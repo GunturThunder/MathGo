@@ -1,9 +1,11 @@
 import { useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { describeResult, runDeterminismCheck } from '../lib/determinism-check';
 
 /** Shows the S1-08 check: game-core in this engine gives the same questions as in Node. */
 export function DeterminismCard() {
+  const { t } = useTranslation();
   const result = useMemo(runDeterminismCheck, []);
 
   useEffect(() => {
@@ -13,15 +15,15 @@ export function DeterminismCard() {
 
   return (
     <View style={styles.card} testID="determinism-card">
-      <Text style={styles.title}>game-core check (S1-08)</Text>
+      <Text style={styles.title}>{t('check.title')}</Text>
       <Text testID="determinism-status" style={result.passed ? styles.pass : styles.fail}>
-        {result.passed ? 'PASS' : 'FAIL'}
+        {result.passed ? t('check.pass') : t('check.fail')}
       </Text>
-      <Text>Engine: {result.engine === 'hermes' ? 'Hermes' : 'not Hermes'}</Text>
-      <Text>Seed: {result.seed}</Text>
-      <Text>Expected: {result.expected}</Text>
-      <Text>Actual: {result.actual}</Text>
-      <Text>First question: {result.firstQuestion}</Text>
+      <Text>{result.engine === 'hermes' ? t('check.engineHermes') : t('check.engineOther')}</Text>
+      <Text>{t('check.seed', { value: result.seed })}</Text>
+      <Text>{t('check.expected', { value: result.expected })}</Text>
+      <Text>{t('check.actual', { value: result.actual })}</Text>
+      <Text>{t('check.firstQuestion', { value: result.firstQuestion })}</Text>
     </View>
   );
 }

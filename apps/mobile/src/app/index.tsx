@@ -1,14 +1,16 @@
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavButton } from '../components/NavButton';
 
 export default function Home() {
+  const { t } = useTranslation();
   return (
     <View style={styles.screen}>
-      <Text style={styles.title}>MathGo</Text>
+      <Text style={styles.title}>{t('app.name')}</Text>
       <View style={styles.buttons}>
-        <NavButton href="/battle" label="Battle" testID="home-battle" />
-        <NavButton href="/practice" label="Practice" testID="home-practice" />
-        <NavButton href="/settings" label="Settings" testID="home-settings" />
+        <NavButton href="/battle" label={t('home.battle')} testID="home-battle" />
+        <NavButton href="/practice" label={t('home.practice')} testID="home-practice" />
+        <NavButton href="/settings" label={t('home.settings')} testID="home-settings" />
       </View>
     </View>
   );

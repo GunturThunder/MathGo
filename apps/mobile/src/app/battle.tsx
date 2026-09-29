@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { Placeholder } from '../components/Placeholder';
 
 export default function Battle() {
-  return <Placeholder title="Battle" note="Online battles arrive in Sprint 3." />;
+  const { t } = useTranslation();
+  return <Placeholder title={t('battle.title')} note={t('battle.note')} />;
 }
