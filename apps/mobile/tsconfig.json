@@ -1,0 +1,14 @@
+{
+  // Metro bundles the app, so it uses Expo's bundler settings instead of the NodeNext base.
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "verbatimModuleSyntax": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["jest"]
+  },
+  "include": ["src", "*.ts", ".expo/types/**/*.ts", "expo-env.d.ts"]
+}

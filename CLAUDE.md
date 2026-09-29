@@ -14,7 +14,7 @@ The docs are exported from the online "MathGo — PRD" doc (https://claude.ai/ar
 
 | Path                 | What                                                                                                                               |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/mobile`        | Expo app (placeholder until S1-04)                                                                                                 |
+| `apps/mobile`        | Expo app (SDK 57, dev builds, expo-router). How to run it on a phone: `apps/mobile/README.md`                                      |
 | `apps/api`           | Fastify HTTP API: guest auth, profile, trophies                                                                                    |
 | `apps/game-server`   | Colyseus: matchmaking and battle rooms                                                                                             |
 | `packages/game-core` | Seeded RNG, question generator, battle rules, trophy maths. Pure TS, no dependencies, no I/O. Runs in Node and in the app (Hermes) |
@@ -39,7 +39,7 @@ For one workspace: `pnpm --filter @mathgo/game-core test`.
 ## Conventions
 
 - pnpm only. Node version in `.nvmrc`. Pin exact dependency versions.
-- ESM everywhere (`"type": "module"`); relative imports end in `.js`.
+- ESM everywhere (`"type": "module"`); relative imports end in `.js`, except in `apps/mobile`, which Metro bundles.
 - TypeScript stays on 6.0.x: typescript-eslint doesn't support 7 yet.
 - Strict TS with `noUncheckedIndexedAccess`; no `any`; use `import type` for types.
 - Libraries build to `dist/` with `tsc -p tsconfig.build.json`; tests (`*.test.ts`) sit next to the code and are excluded from the build.
