@@ -20,7 +20,7 @@ Goal: the monorepo builds in CI, and `game-core` produces valid questions for al
 | --- | --- | --- | --- | --- | --- | --- |
 | S1-01 | Create the monorepo: pnpm workspaces, Turborepo, empty `apps/mobile`, `apps/api`, `apps/game-server`, `packages/game-core`, `protocol`, `db`, `config` | Backend | 1 | – | `pnpm build` passes for every workspace | Done |
 | S1-02 | `packages/config`: strict tsconfig, ESLint and Prettier presets used by every workspace | Mobile | 0.5 | S1-01 | `pnpm lint` and `pnpm typecheck` run from the root | Done |
-| S1-03 | CI on GitHub Actions: lint, typecheck and test on every PR, with Turborepo cache | Mobile | 1 | S1-02 | A PR shows green checks; a failing test blocks merge | Blocked |
+| S1-03 | CI on GitHub Actions: lint, typecheck and test on every PR, with Turborepo cache | Mobile | 1 | S1-02 | A PR shows green checks; a failing test blocks merge | Done |
 | S1-04 | Expo app with dev builds and expo-router; Metro set up to resolve monorepo packages | Mobile | 1.5 | S1-01 | Dev build runs on one Android and one iOS device and imports `game-core` | Not started |
 | S1-05 | App shell: Home, Practice, Battle, Settings placeholder screens and navigation | Mobile | 1.5 | S1-04 | Every screen is reachable from Home | Not started |
 | S1-06 | i18n: Bahasa Indonesia default, English second; all strings in translation files | Mobile | 1 | S1-04 | Switching language in Settings changes every string | Not started |
@@ -31,7 +31,7 @@ Goal: the monorepo builds in CI, and `game-core` produces valid questions for al
 | S1-11 | `game-core`: expression evaluator with order of operations, and a display formatter (×, ÷, ², √, brackets) | Backend | 1 | S1-01 | Evaluator agrees with hand-worked examples from the PRD | Done |
 | S1-12 | `game-core`: question generator for arenas 1–3, with safety rules and redraw | Backend | 2 | S1-08, S1-10, S1-11 | Generates the PRD examples' shapes for each arena | Done |
 | S1-13 | `game-core`: arenas 4–5 (brackets, squares, square roots of perfect squares, negatives) | Backend | 2 | S1-12 | Generates the PRD examples' shapes for arenas 4 and 5 | Done |
-| S1-14 | Property tests (fast-check), 10,000 seeds per arena: whole answers, within the limit, no negatives before arena 5, deterministic | Backend | 1 | S1-13 | All properties pass in CI | Blocked |
+| S1-14 | Property tests (fast-check), 10,000 seeds per arena: whole answers, within the limit, no negatives before arena 5, deterministic | Backend | 1 | S1-13 | All properties pass in CI | Done |
 | S1-15 | Design: visual language (shapes, colours, hit effects), battle screen and keypad | Product | 5 | – | Mockups approved and handed to Mobile by Oct 12 | Not started |
 | S1-16 | Trademark search for "MathGo" in PDKI | Product | 0.5 | – | Result recorded in the PRD's open questions | Not started |
 
