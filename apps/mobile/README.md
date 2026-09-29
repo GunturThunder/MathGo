@@ -33,7 +33,7 @@ Rebuild the dev build (step 3) after adding a package with native code or changi
 
 ## Hermes determinism check (S1-08)
 
-The Home screen shows "game-core check": the app builds a fixed-seed sample of questions in
+Settings shows "game-core check": the app builds a fixed-seed sample of questions in
 Hermes and compares its fingerprint with the one pinned by game-core's Node tests. It must say
 **PASS** with engine **Hermes**. The same line goes to the log:
 
