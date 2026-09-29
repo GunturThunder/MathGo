@@ -1,0 +1,6 @@
+pnpm-lock.yaml
+dist/
+coverage/
+.turbo/
+# Exported from the online PRD doc; edit there, not here.
+docs/

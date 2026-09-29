@@ -1,0 +1,21 @@
+{
+  "name": "@mathgo/api",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Fastify HTTP API: guest auth, profile, trophies.",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": {
+    "@mathgo/config": "workspace:*",
+    "@types/node": "26.6.3",
+    "eslint": "10.11.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}

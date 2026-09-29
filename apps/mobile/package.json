@@ -1,0 +1,6 @@
+{
+  "name": "@mathgo/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Expo (React Native) app. Placeholder until S1-04 sets up Expo with dev builds."
+}
