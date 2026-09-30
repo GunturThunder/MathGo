@@ -158,3 +158,22 @@ export const events = pgTable(
   },
   (t) => [index('events_name_created_at_idx').on(t.name, t.createdAt)],
 );
+
+/**
+ * Refresh tokens (S3-02). Only a SHA-256 hash is stored. Each token works once: using it marks
+ * `used_at` and issues a new one, and presenting a used token again revokes the user's tokens.
+ */
+export const refreshTokens = pgTable(
+  'refresh_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('refresh_tokens_user_id_idx').on(t.userId)],
+);
