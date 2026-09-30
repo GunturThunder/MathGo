@@ -1,3 +1,17 @@
 packages:
   - apps/*
   - packages/*
+minimumReleaseAgeExclude:
+  - '@expo/ui@57.0.21'
+  - expo-constants@57.0.20
+  - expo-modules-core@57.0.20
+  - expo-router@57.0.24
+  - expo@57.0.26
+# pnpm installs optional peers on its own (e.g. expo-router's), and Expo autolinks the native
+# ones into the app. Keep them at the versions Expo SDK 57 expects.
+overrides:
+  '@react-native/metro-config': 0.86.3
+  react-dom: 19.2.3
+  react-native-gesture-handler: 2.32.0
+  react-native-reanimated: 4.5.1
+  react-native-worklets: 0.10.1

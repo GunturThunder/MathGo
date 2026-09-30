@@ -26,3 +26,9 @@ export {
   type Term,
 } from './expression.js';
 export { generateQuestion, generateQuestions, type Question } from './generator.js';
+export {
+  DETERMINISM_FINGERPRINT,
+  DETERMINISM_SEED,
+  determinismSample,
+  fingerprint,
+} from './determinism.js';

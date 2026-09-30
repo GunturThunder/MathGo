@@ -17,3 +17,8 @@ android/
 *.p12
 *.key
 *.mobileprovision
+
+# Expo generated files
+expo-env.d.ts
+.metro-health-check*
+.kotlin/
