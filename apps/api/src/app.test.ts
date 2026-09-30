@@ -1,15 +1,19 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { createTestDatabase } from '@mathgo/db/testing';
+import { afterAll, afterEach, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
-import { loadConfig } from './config.js';
+import { DEV_DATABASE_URL, DEV_JWT_SECRET, loadConfig } from './config.js';
 import { ApiError, type ErrorBody } from './errors.js';
 
 const config = loadConfig({ LOG_LEVEL: 'silent' });
-let app = buildApp(config);
+const database = await createTestDatabase();
+let app = buildApp(config, { db: database.db });
 
 afterEach(async () => {
   await app.close();
-  app = buildApp(config);
+  app = buildApp(config, { db: database.db });
 });
+
+afterAll(() => database.close());
 
 describe('GET /health', () => {
   it('returns 200 with a request id', async () => {
@@ -97,12 +101,26 @@ describe('error format', () => {
 
 describe('loadConfig', () => {
   it('has defaults for local development', () => {
-    expect(loadConfig({})).toEqual({
+    expect(loadConfig({})).toMatchObject({
       NODE_ENV: 'development',
       HOST: '0.0.0.0',
       PORT: 3000,
       LOG_LEVEL: 'info',
+      DATABASE_URL: DEV_DATABASE_URL,
+      JWT_SECRET: DEV_JWT_SECRET,
     });
+  });
+
+  it('requires a real database URL and JWT secret in production', () => {
+    expect(() => loadConfig({ NODE_ENV: 'production' })).toThrow(/DATABASE_URL[\s\S]*JWT_SECRET/);
+    expect(() =>
+      loadConfig({
+        NODE_ENV: 'production',
+        DATABASE_URL: 'postgres://db/x',
+        JWT_SECRET: DEV_JWT_SECRET,
+      }),
+    ).toThrow(/JWT_SECRET/);
+    expect(() => loadConfig({ JWT_SECRET: 'short' })).toThrow(/32 characters/);
   });
 
   it('reads the port as a number and rejects bad values', () => {

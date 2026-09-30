@@ -60,7 +60,7 @@ const pgCode = async (query: Promise<unknown>) => {
 };
 
 describe('migration on an empty database', () => {
-  it('creates the 6 tables of schema v1', async () => {
+  it('creates every table', async () => {
     const result = await client.query<{ table_name: string }>(
       `select table_name from information_schema.tables where table_schema = 'public' order by 1`,
     );
@@ -69,6 +69,7 @@ describe('migration on an empty database', () => {
       'match_answers',
       'matches',
       'parental_consents',
+      'refresh_tokens',
       'trophy_ledger',
       'users',
     ]);
@@ -77,7 +78,9 @@ describe('migration on an empty database', () => {
   it('is recorded, so running it again changes nothing', async () => {
     await migrate(db, { migrationsFolder: MIGRATIONS_FOLDER });
     const applied = await client.query('select * from drizzle.__drizzle_migrations');
-    expect(applied.rows).toHaveLength(1);
+    const journal = (await import('../drizzle/meta/_journal.json', { with: { type: 'json' } }))
+      .default;
+    expect(applied.rows).toHaveLength(journal.entries.length);
   });
 });
 

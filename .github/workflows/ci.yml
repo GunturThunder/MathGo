@@ -66,7 +66,12 @@ jobs:
         run: docker build -f apps/api/Dockerfile -t mathgo-api:ci .
       - name: GET /health returns 200 in Docker
         run: |
-          docker run -d --name api -p 127.0.0.1:3000:3000 mathgo-api:ci
+          # Production config: a real-looking secret and URL are required to start.
+          # /health does not touch the database.
+          docker run -d --name api -p 127.0.0.1:3000:3000 \
+            -e JWT_SECRET=ci-only-secret-0123456789abcdefghijkl \
+            -e DATABASE_URL=postgres://ci:ci@127.0.0.1:5432/ci \
+            mathgo-api:ci
           for i in $(seq 1 30); do
             [ "$(docker inspect -f '{{.State.Health.Status}}' api)" = healthy ] && break
             sleep 1
