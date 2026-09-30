@@ -3,12 +3,8 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
 import { isGeneratedNickname } from './nicknames.js';
-import {
-  ACCESS_TOKEN_TTL_SECONDS,
-  REFRESH_TOKEN_TTL_MS,
-  signAccessToken,
-  signingKey,
-} from './tokens.js';
+import { ACCESS_TOKEN_TTL_SECONDS, signAccessToken, signingKey } from '@mathgo/auth';
+import { REFRESH_TOKEN_TTL_MS } from './tokens.js';
 
 interface Session {
   accessToken: string;
@@ -36,7 +32,7 @@ const advance = (ms: number) => {
   clock = new Date(clock.getTime() + ms);
 };
 
-const newGuest = async (birthYear = 2010) => {
+const newGuest = async (birthYear = 2000) => {
   const res = await app.inject({ method: 'POST', url: '/auth/guest', payload: { birthYear } });
   return { res, session: res.json<Session>() };
 };
@@ -54,7 +50,7 @@ describe('Done when: a new install gets a token; refresh works after expiry', ()
   it('guest → token works → token expires → refresh → new token works', async () => {
     const { res, session } = await newGuest();
     expect(res.statusCode).toBe(201);
-    expect(session.user).toMatchObject({ birthYear: 2010, trophies: 0 });
+    expect(session.user).toMatchObject({ birthYear: 2000, trophies: 0, online: true });
     expect((await me(session.accessToken)).json()).toEqual(session.user);
 
     advance(ACCESS_TOKEN_TTL_SECONDS * 1000 + 1);
@@ -88,9 +84,9 @@ describe('POST /auth/guest', () => {
   it('rejects a missing, non-integer or impossible birth year', async () => {
     for (const payload of [
       {},
-      { birthYear: 2010.5 },
+      { birthYear: 2000.5 },
       { birthYear: 'soon' },
-      { birthYear: 2010, extra: 1 },
+      { birthYear: 2000, extra: 1 },
     ]) {
       const res = await app.inject({ method: 'POST', url: '/auth/guest', payload });
       expect(res.statusCode).toBe(400);
@@ -135,7 +131,7 @@ describe('GET /me', () => {
   it('refuses a token signed with another key', async () => {
     const { session } = await newGuest();
     const forged = await signAccessToken(
-      session.user.id,
+      { userId: session.user.id, online: true },
       signingKey('another-secret-that-is-long-enough-000'),
       clock,
     );

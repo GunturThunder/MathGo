@@ -19,6 +19,7 @@ The docs are exported from the online "MathGo — PRD" doc (https://claude.ai/ar
 | `apps/game-server`   | Colyseus: matchmaking and battle rooms                                                                                             |
 | `packages/game-core` | Seeded RNG, question generator, battle rules, trophy maths. Pure TS, no dependencies, no I/O. Runs in Node and in the app (Hermes) |
 | `packages/protocol`  | Message types + zod schemas shared by app and game-server                                                                          |
+| `packages/auth`      | Access tokens (JWT) and the online-play rule (adults, or minors with parent consent), shared by api and game-server                |
 | `packages/db`        | Drizzle schema and migrations                                                                                                      |
 | `packages/config`    | Shared tsconfig, ESLint and Prettier presets                                                                                       |
 

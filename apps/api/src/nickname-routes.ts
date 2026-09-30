@@ -42,7 +42,7 @@ export function registerNicknameRoutes(app: FastifyInstance, deps: AuthDeps): vo
       },
     },
     async (request) => {
-      const userId = await authenticate(request, deps);
+      const { userId } = await authenticate(request, deps);
       const { nickname } = request.body;
       // No typed names (PRD: privacy and safety): only names the generator can produce.
       if (!isGeneratedNickname(nickname)) {

@@ -1,15 +1,16 @@
-import { eq, refreshTokens, users, type Database } from '@mathgo/db';
+import {
+  AuthError,
+  isAdult,
+  signAccessToken,
+  verifyAccessToken,
+  type AccessClaims,
+  type SigningKey,
+} from '@mathgo/auth';
+import { and, eq, isNull, parentalConsents, refreshTokens, users, type Database } from '@mathgo/db';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { ApiError } from './errors.js';
 import { generateNicknames } from './nicknames.js';
-import {
-  hashRefreshToken,
-  newRefreshToken,
-  REFRESH_TOKEN_TTL_MS,
-  signAccessToken,
-  verifyAccessToken,
-  type SigningKey,
-} from './tokens.js';
+import { hashRefreshToken, newRefreshToken, REFRESH_TOKEN_TTL_MS } from './tokens.js';
 
 export interface AuthDeps {
   readonly db: Database;
@@ -31,10 +32,25 @@ export const profileOf = ({ id, nickname, birthYear, trophies }: Profile): Profi
   trophies,
 });
 
+/**
+ * May this user play online right now? Adults yes; minors only with active parent consent
+ * (FR-20). Checked each time a token is issued, so a revoked consent ends online play by the
+ * next refresh.
+ */
+export async function canPlayOnline(db: Database, user: Profile, now: Date): Promise<boolean> {
+  if (isAdult(user.birthYear, now)) return true;
+  const [consent] = await db
+    .select({ id: parentalConsents.id })
+    .from(parentalConsents)
+    .where(and(eq(parentalConsents.userId, user.id), isNull(parentalConsents.revokedAt)));
+  return consent !== undefined;
+}
+
 /** Access token + a fresh refresh token for a user, in the shape the app stores. */
 async function issueSession(deps: AuthDeps, db: Database, user: Profile) {
   const now = deps.now();
-  const access = await signAccessToken(user.id, deps.key, now);
+  const online = await canPlayOnline(db, user, now);
+  const access = await signAccessToken({ userId: user.id, online }, deps.key, now);
   const refresh = newRefreshToken();
   const refreshExpiresAt = new Date(now.getTime() + REFRESH_TOKEN_TTL_MS);
   await db.insert(refreshTokens).values({
@@ -47,18 +63,23 @@ async function issueSession(deps: AuthDeps, db: Database, user: Profile) {
     accessTokenExpiresAt: access.expiresAt.toISOString(),
     refreshToken: refresh.token,
     refreshTokenExpiresAt: refreshExpiresAt.toISOString(),
-    user: profileOf(user),
+    user: { ...profileOf(user), online },
   };
 }
 
-/** The signed-in user's id, from `Authorization: Bearer <access token>`. */
-export async function authenticate(request: FastifyRequest, deps: AuthDeps): Promise<string> {
+/** The signed-in user, from `Authorization: Bearer <access token>`. */
+export async function authenticate(request: FastifyRequest, deps: AuthDeps): Promise<AccessClaims> {
   const header = request.headers.authorization ?? '';
   const match = /^Bearer (\S+)$/.exec(header);
   if (match?.[1] === undefined) {
     throw new ApiError(401, 'invalid-token', 'Send the access token as a Bearer token.');
   }
-  return verifyAccessToken(match[1], deps.key, deps.now());
+  try {
+    return await verifyAccessToken(match[1], deps.key, deps.now());
+  } catch (error) {
+    if (error instanceof AuthError) throw new ApiError(401, error.code, error.message);
+    throw error;
+  }
 }
 
 export function registerAuthRoutes(app: FastifyInstance, deps: AuthDeps): void {
@@ -83,6 +104,11 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthDeps): void {
           'invalid-birth-year',
           `Birth year must be ${thisYear - 120}–${thisYear}.`,
         );
+      }
+      // Under 18: no account and no data until a parent consents (PRD FR-20, PP Tunas). The
+      // app stays offline; the consent flow (S5-05) creates the account.
+      if (!isAdult(birthYear, deps.now())) {
+        throw new ApiError(403, 'consent-required', 'A parent must approve online play first.');
       }
       const session = await deps.db.transaction(async (tx) => {
         // A random generated name; the player can pick another (PATCH /me/nickname).
@@ -140,11 +166,12 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthDeps): void {
   );
 
   app.get('/me', async (request) => {
-    const userId = await authenticate(request, deps);
+    const { userId } = await authenticate(request, deps);
     const [user] = await deps.db.select().from(users).where(eq(users.id, userId));
     if (user === undefined) {
       throw new ApiError(401, 'invalid-token', 'This account no longer exists.');
     }
-    return profileOf(user);
+    // Current, not the token's copy: the app shows under-18 mode from this (S3-09).
+    return { ...profileOf(user), online: await canPlayOnline(deps.db, user, deps.now()) };
   });
 }
