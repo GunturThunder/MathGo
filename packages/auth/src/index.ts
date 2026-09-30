@@ -7,6 +7,9 @@ import { errors, jwtVerify, SignJWT } from 'jose';
 
 export const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
 
+/** Local-development secret shared by api and game-server. Both refuse it in production. */
+export const DEV_JWT_SECRET = 'dev-only-jwt-secret-change-me-0123456789';
+
 const ISSUER = 'mathgo-api';
 const AUDIENCE = 'mathgo';
 const ALGORITHM = 'HS256';

@@ -35,6 +35,7 @@ export const id = {
   errors: {
     'update-required': 'Versi aplikasi ini sudah lama. Perbarui MathGo untuk bertarung online.',
     'invalid-token': 'Sesi kamu berakhir. Buka ulang aplikasi lalu coba lagi.',
+    'token-expired': 'Sesi kamu perlu diperbarui. Coba lagi.',
     'consent-required': 'Minta orang tua untuk membuka pertarungan online.',
     'room-not-found': 'Kode itu tidak ditemukan. Periksa lagi kodenya.',
     'room-full': 'Ruangan itu sudah penuh.',

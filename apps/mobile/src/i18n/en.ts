@@ -36,6 +36,7 @@ export const en: Translation = {
   errors: {
     'update-required': 'This version of the app is out of date. Update MathGo to battle online.',
     'invalid-token': 'Your session ended. Reopen the app and try again.',
+    'token-expired': 'Your session needs refreshing. Try again.',
     'consent-required': 'Ask a parent to unlock online battles.',
     'room-not-found': "That code wasn't found. Check it and try again.",
     'room-full': 'That room is already full.',

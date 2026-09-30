@@ -4,12 +4,16 @@ packages:
 allowBuilds:
   # drizzle-kit bundles its config with esbuild; its install script checks the native binary.
   esbuild: true
+  # Optional native speed-up for msgpackr (Colyseus); prebuilt binaries load without it.
+  msgpackr-extract: false
 minimumReleaseAgeExclude:
   - '@expo/ui@57.0.21'
   - expo-constants@57.0.20
   - expo-modules-core@57.0.20
   - expo-router@57.0.24
   - expo@57.0.26
+  - '@colyseus/core@0.18.18'
+  - '@colyseus/tools@0.18.7'
 # pnpm installs optional peers on its own (e.g. expo-router's), and Expo autolinks the native
 # ones into the app. Keep them at the versions Expo SDK 57 expects.
 overrides:
