@@ -6,6 +6,9 @@ import { z } from 'zod';
  */
 export const PROTOCOL_VERSION = 1;
 
+/** The Colyseus room the app joins for a battle. */
+export const BATTLE_ROOM = 'battle';
+
 // Shared pieces.
 
 const seat = z.union([z.literal(0), z.literal(1)]);
@@ -114,6 +117,8 @@ export const ERROR_CODES = [
   /** `protocolVersion` is older than the server's: show "please update" (S4-12). */
   'update-required',
   'invalid-token',
+  /** The access token expired: refresh it and join again. */
+  'token-expired',
   /** Under-18 account without parent consent (FR-20). */
   'consent-required',
   'room-not-found',

@@ -1,8 +1,10 @@
+import { DEV_JWT_SECRET } from '@mathgo/auth';
 import { z } from 'zod';
+
+export { DEV_JWT_SECRET };
 
 /** Local defaults, matching docker-compose.yml. Refused in production. */
 export const DEV_DATABASE_URL = 'postgres://mathgo:mathgo@localhost:5432/mathgo';
-export const DEV_JWT_SECRET = 'dev-only-jwt-secret-change-me-0123456789';
 
 const schema = z
   .object({
