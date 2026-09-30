@@ -2,6 +2,7 @@ import { createTestDatabase } from '@mathgo/db/testing';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
 import { loadConfig } from './config.js';
+import { isGeneratedNickname } from './nicknames.js';
 import {
   ACCESS_TOKEN_TTL_SECONDS,
   REFRESH_TOKEN_TTL_MS,
@@ -70,13 +71,13 @@ describe('Done when: a new install gets a token; refresh works after expiry', ()
 });
 
 describe('POST /auth/guest', () => {
-  it('returns tokens with their expiry times and a placeholder nickname', async () => {
+  it('returns tokens with their expiry times and a generated nickname', async () => {
     const { session } = await newGuest();
     expect(session.accessTokenExpiresAt).toBe('2026-11-02T08:15:00.000Z');
     expect(session.refreshTokenExpiresAt).toBe(
       new Date(clock.getTime() + REFRESH_TOKEN_TTL_MS).toISOString(),
     );
-    expect(session.user.nickname).toMatch(/^Pemain \d{4}$/);
+    expect(isGeneratedNickname(session.user.nickname)).toBe(true);
   });
 
   it('creates a different account for each install', async () => {

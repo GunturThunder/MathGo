@@ -4,6 +4,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { registerAuthRoutes } from './auth.js';
 import type { Config } from './config.js';
 import { registerErrorHandlers } from './errors.js';
+import { registerNicknameRoutes } from './nickname-routes.js';
 import { signingKey } from './tokens.js';
 
 export interface AppDeps {
@@ -37,7 +38,9 @@ export function buildApp(config: Config, { db, now = () => new Date() }: AppDeps
   // Liveness for Docker and the uptime monitor: the process is up and serving.
   app.get('/health', async () => ({ status: 'ok' }));
 
-  registerAuthRoutes(app, { db, key: signingKey(config.JWT_SECRET), now });
+  const auth = { db, key: signingKey(config.JWT_SECRET), now };
+  registerAuthRoutes(app, auth);
+  registerNicknameRoutes(app, auth);
 
   return app;
 }

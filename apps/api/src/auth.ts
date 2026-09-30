@@ -1,7 +1,7 @@
-import { randomInt } from 'node:crypto';
 import { eq, refreshTokens, users, type Database } from '@mathgo/db';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { ApiError } from './errors.js';
+import { generateNicknames } from './nicknames.js';
 import {
   hashRefreshToken,
   newRefreshToken,
@@ -17,14 +17,14 @@ export interface AuthDeps {
   readonly now: () => Date;
 }
 
-interface Profile {
+export interface Profile {
   id: string;
   nickname: string;
   birthYear: number;
   trophies: number;
 }
 
-const profileOf = ({ id, nickname, birthYear, trophies }: Profile): Profile => ({
+export const profileOf = ({ id, nickname, birthYear, trophies }: Profile): Profile => ({
   id,
   nickname,
   birthYear,
@@ -85,11 +85,9 @@ export function registerAuthRoutes(app: FastifyInstance, deps: AuthDeps): void {
         );
       }
       const session = await deps.db.transaction(async (tx) => {
-        // Placeholder until S3-03 lets the player pick a generated nickname.
-        const [user] = await tx
-          .insert(users)
-          .values({ nickname: `Pemain ${randomInt(1000, 10_000)}`, birthYear })
-          .returning();
+        // A random generated name; the player can pick another (PATCH /me/nickname).
+        const [nickname = ''] = generateNicknames('id', 1);
+        const [user] = await tx.insert(users).values({ nickname, birthYear }).returning();
         if (user === undefined) throw new Error('user insert returned nothing');
         return issueSession(deps, tx, user);
       });
