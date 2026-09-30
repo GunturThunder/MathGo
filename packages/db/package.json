@@ -20,7 +20,8 @@
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
     "db:generate": "drizzle-kit generate",
-    "db:check": "drizzle-kit check"
+    "db:check": "drizzle-kit check",
+    "migrate": "node dist/migrate-cli.js"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",
@@ -32,6 +33,7 @@
     "vitest": "5.0.2"
   },
   "dependencies": {
-    "drizzle-orm": "0.45.3"
+    "drizzle-orm": "0.45.3",
+    "postgres": "3.4.9"
   }
 }

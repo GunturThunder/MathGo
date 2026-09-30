@@ -48,7 +48,7 @@ Goal: a full battle against the bot, playable offline on a phone by Oct 30 (week
 | S2-03 | `game-core` trophy calc: +30 win, −20 loss, up to ±10 by trophy gap, 0 on draw, arena floor | Backend | 1 | S1-09 | Unit tests for each case, including a loss at an arena floor | Done |
 | S2-04 | `packages/protocol`: zod schemas for join, question batch, answer, state update, result, error and `protocolVersion` | Backend | 1.5 | S2-01 | Types imported by the app and a server stub without errors | Done |
 | S2-05 | `packages/db`: Drizzle schema v1 (users, parental\_consents, matches, match\_answers, trophy\_ledger, events) and first migration | Backend | 2 | S1-01 | Migration runs on an empty database | Done |
-| S2-06 | Docker Compose for local Postgres and Redis; `pnpm db:migrate` script | Backend | 0.5 | S2-05 | `docker compose up` + migrate works on a fresh machine | Not started |
+| S2-06 | Docker Compose for local Postgres and Redis; `pnpm db:migrate` script | Backend | 0.5 | S2-05 | `docker compose up` + migrate works on a fresh machine | Done |
 | S2-07 | Custom numeric keypad: digits, backspace, submit, minus key in arena 5 only, 44 px touch targets, tap haptics | Mobile | 1.5 | S1-15 | Typing 3-digit answers feels instant on a mid-range Android phone | Not started |
 | S2-08 | Battle screen layout: both HP bars, question, answer field, timer, combo indicator | Mobile | 2 | S1-07 | Matches the approved mockup on small and large phones | Not started |
 | S2-09 | Skia + Reanimated effects: attack hit, HP drain, combo, KO, wrong-answer shake and lock | Mobile | 2.5 | S2-08 | Effects play on the UI thread without dropped frames | Not started |

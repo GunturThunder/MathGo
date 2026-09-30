@@ -12,7 +12,8 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:migrate": "turbo run build --filter=@mathgo/db --output-logs=errors-only && node --env-file-if-exists=.env packages/db/dist/migrate-cli.js"
   },
   "prettier": "@mathgo/config/prettier",
   "devDependencies": {
