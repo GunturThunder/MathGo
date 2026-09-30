@@ -1,15 +1,26 @@
 {
-  "name": "@mathgo/api",
+  "name": "@mathgo/auth",
   "version": "0.0.0",
   "private": true,
-  "description": "Fastify HTTP API: guest auth, profile, trophies.",
+  "description": "Access tokens and the online-play rules shared by api and game-server.",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "jose": "6.2.12"
   },
   "devDependencies": {
     "@mathgo/config": "workspace:*",
@@ -17,11 +28,5 @@
     "eslint": "10.11.0",
     "typescript": "6.0.3",
     "vitest": "5.0.2"
-  },
-  "dependencies": {
-    "@mathgo/auth": "workspace:*",
-    "@mathgo/db": "workspace:*",
-    "fastify": "5.12.5",
-    "zod": "4.6.5"
   }
 }

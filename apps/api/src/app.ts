@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
+import { signingKey } from '@mathgo/auth';
 import type { Database } from '@mathgo/db';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { registerAuthRoutes } from './auth.js';
 import type { Config } from './config.js';
 import { registerErrorHandlers } from './errors.js';
 import { registerNicknameRoutes } from './nickname-routes.js';
-import { signingKey } from './tokens.js';
 
 export interface AppDeps {
   readonly db: Database;
