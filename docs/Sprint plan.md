@@ -25,7 +25,7 @@ Goal: the monorepo builds in CI, and `game-core` produces valid questions for al
 | S1-05 | App shell: Home, Practice, Battle, Settings placeholder screens and navigation | Mobile | 1.5 | S1-04 | Every screen is reachable from Home | Done |
 | S1-06 | i18n: Bahasa Indonesia default, English second; all strings in translation files | Mobile | 1 | S1-04 | Switching language in Settings changes every string | Done |
 | S1-07 | Theme tokens from the design (colours, type, spacing, radii) | Mobile | 1 | S1-15 | Screens use tokens only, no raw colour values | Not started |
-| S1-08 | `game-core`: seeded RNG keyed by match seed + question number | Backend | 0.5 | S1-01 | Same seed gives the same sequence in Node and in the app (Hermes) | In progress |
+| S1-08 | `game-core`: seeded RNG keyed by match seed + question number | Backend | 0.5 | S1-01 | Same seed gives the same sequence in Node and in the app (Hermes) | Done |
 | S1-09 | `game-core`: arena table (trophy ranges, terms, operators, number ranges, answer limits) | Backend | 0.5 | S1-01 | Table matches the PRD's "Rules per arena" | Done |
 | S1-10 | `game-core`: N\_max difficulty formula; the lower trophy count sets T when arenas differ | Backend | 0.5 | S1-09 | Unit tests at p = 0, 0.5 and 1 for each arena | Done |
 | S1-11 | `game-core`: expression evaluator with order of operations, and a display formatter (×, ÷, ², √, brackets) | Backend | 1 | S1-01 | Evaluator agrees with hand-worked examples from the PRD | Done |
