@@ -1,6 +1,9 @@
 packages:
   - apps/*
   - packages/*
+allowBuilds:
+  # drizzle-kit bundles its config with esbuild; its install script checks the native binary.
+  esbuild: true
 minimumReleaseAgeExclude:
   - '@expo/ui@57.0.21'
   - expo-constants@57.0.20
