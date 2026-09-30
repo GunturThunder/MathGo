@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import { Placeholder } from '../components/Placeholder';
 
 export default function Practice() {
-  return <Placeholder title="Practice" note="Practice against the bot arrives in Sprint 2." />;
+  const { t } = useTranslation();
+  return <Placeholder title={t('practice.title')} note={t('practice.note')} />;
 }

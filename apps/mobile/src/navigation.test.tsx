@@ -31,7 +31,7 @@ describe('app shell', () => {
 
   it('Settings shows and logs the game-core check', () => {
     renderRouter(APP_DIR, { initialUrl: '/settings' });
-    expect(screen.getByTestId('determinism-status')).toHaveTextContent('PASS');
+    expect(screen.getByTestId('determinism-status')).toHaveTextContent('LULUS');
     expect(log).toHaveBeenCalledWith(expect.stringMatching(/^\[S1-08\] PASS /));
   });
 });
