@@ -11,18 +11,27 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "drizzle"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@mathgo/config": "workspace:*",
+    "@types/node": "26.6.3",
+    "drizzle-kit": "0.31.11",
     "eslint": "10.11.0",
     "typescript": "6.0.3",
     "vitest": "5.0.2"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.3"
   }
 }
