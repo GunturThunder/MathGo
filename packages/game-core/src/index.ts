@@ -47,3 +47,14 @@ export {
   type RejectReason,
   type Seat,
 } from './battle.js';
+export {
+  BOT_DIFFICULTIES,
+  BOT_PROFILES,
+  planBotAnswer,
+  simulateBotBattle,
+  type Bot,
+  type BotAnswer,
+  type BotBattle,
+  type BotDifficulty,
+  type BotProfile,
+} from './bot.js';
