@@ -32,6 +32,9 @@ pnpm lint
 pnpm test         # vitest
 pnpm format       # prettier --write
 pnpm format:check
+
+docker compose up -d --wait   # local Postgres + Redis (defaults in .env.example)
+pnpm db:migrate               # apply packages/db migrations to DATABASE_URL
 ```
 
 For one workspace: `pnpm --filter @mathgo/game-core test`.
