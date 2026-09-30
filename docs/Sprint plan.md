@@ -45,7 +45,7 @@ Goal: a full battle against the bot, playable offline on a phone by Oct 30 (week
 | --- | --- | --- | --- | --- | --- | --- |
 | S2-01 | `game-core` battle engine as a pure reducer: HP 100, damage 10, +5 speed bonus under 3 s, combo doubles the next hit after 3 correct, 1 s lock and combo reset on a wrong answer, 90 s timer, KO, higher HP wins at time-out, draw on equal HP | Backend | 2 | S1-14 | Unit tests cover every rule in the PRD's battle-rules table | Done |
 | S2-02 | `game-core` bot opponent: answer time and error rate per arena, 3 difficulty levels | Backend | 1.5 | S2-01 | Simulated bot battles last 60–90 s at the middle level | Done |
-| S2-03 | `game-core` trophy calc: +30 win, −20 loss, up to ±10 by trophy gap, 0 on draw, arena floor | Backend | 1 | S1-09 | Unit tests for each case, including a loss at an arena floor | Not started |
+| S2-03 | `game-core` trophy calc: +30 win, −20 loss, up to ±10 by trophy gap, 0 on draw, arena floor | Backend | 1 | S1-09 | Unit tests for each case, including a loss at an arena floor | Done |
 | S2-04 | `packages/protocol`: zod schemas for join, question batch, answer, state update, result, error and `protocolVersion` | Backend | 1.5 | S2-01 | Types imported by the app and a server stub without errors | Not started |
 | S2-05 | `packages/db`: Drizzle schema v1 (users, parental\_consents, matches, match\_answers, trophy\_ledger, events) and first migration | Backend | 2 | S1-01 | Migration runs on an empty database | Not started |
 | S2-06 | Docker Compose for local Postgres and Redis; `pnpm db:migrate` script | Backend | 0.5 | S2-05 | `docker compose up` + migrate works on a fresh machine | Not started |

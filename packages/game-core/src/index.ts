@@ -58,3 +58,13 @@ export {
   type BotDifficulty,
   type BotProfile,
 } from './bot.js';
+export {
+  DEFAULT_TROPHY_RULES,
+  gapAdjustment,
+  settleTrophies,
+  trophyChange,
+  type MatchOutcome,
+  type TrophyChange,
+  type TrophyInput,
+  type TrophyRules,
+} from './trophies.js';
