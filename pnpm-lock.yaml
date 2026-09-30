@@ -202,6 +202,13 @@ importers:
         version: 5.0.2(@types/node@26.6.3)(jsdom@20.0.3(supports-color@8.1.1))(vite@8.3.1(@types/node@26.6.3)(terser@5.51.2)(yaml@2.9.1))
 
   apps/game-server:
+    dependencies:
+      '@mathgo/game-core':
+        specifier: workspace:*
+        version: link:../../packages/game-core
+      '@mathgo/protocol':
+        specifier: workspace:*
+        version: link:../../packages/protocol
     devDependencies:
       '@mathgo/config':
         specifier: workspace:*
@@ -227,6 +234,9 @@ importers:
       '@mathgo/game-core':
         specifier: workspace:*
         version: link:../../packages/game-core
+      '@mathgo/protocol':
+        specifier: workspace:*
+        version: link:../../packages/protocol
       expo:
         specifier: 57.0.26
         version: 57.0.26(245f7ff5c6a0cf24f4efa1d0742c3de5)
@@ -344,10 +354,17 @@ importers:
         version: 5.0.2(@types/node@26.6.3)(jsdom@20.0.3(supports-color@8.1.1))(vite@8.3.1(@types/node@26.6.3)(terser@5.51.2)(yaml@2.9.1))
 
   packages/protocol:
+    dependencies:
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
     devDependencies:
       '@mathgo/config':
         specifier: workspace:*
         version: link:../config
+      '@mathgo/game-core':
+        specifier: workspace:*
+        version: link:../game-core
       eslint:
         specifier: 10.11.0
         version: 10.11.0(supports-color@8.1.1)
@@ -4623,6 +4640,9 @@ packages:
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.6.5:
+    resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
 snapshots:
 
@@ -9656,3 +9676,5 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zod@3.25.76: {}
+
+  zod@4.6.5: {}
