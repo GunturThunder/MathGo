@@ -16,6 +16,7 @@
   "dependencies": {
     "@expo/metro-runtime": "57.0.16",
     "@mathgo/game-core": "workspace:*",
+    "@mathgo/protocol": "workspace:*",
     "expo": "57.0.26",
     "expo-constants": "57.0.20",
     "expo-dev-client": "57.0.19",

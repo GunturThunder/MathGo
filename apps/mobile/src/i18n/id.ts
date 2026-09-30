@@ -32,4 +32,14 @@ export const id = {
     actual: 'Hasil: {{value}}',
     firstQuestion: 'Soal pertama: {{value}}',
   },
+  errors: {
+    'update-required': 'Versi aplikasi ini sudah lama. Perbarui MathGo untuk bertarung online.',
+    'invalid-token': 'Sesi kamu berakhir. Buka ulang aplikasi lalu coba lagi.',
+    'consent-required': 'Minta orang tua untuk membuka pertarungan online.',
+    'room-not-found': 'Kode itu tidak ditemukan. Periksa lagi kodenya.',
+    'room-full': 'Ruangan itu sudah penuh.',
+    'room-expired': 'Kode itu sudah kedaluwarsa. Minta kode baru.',
+    'rate-limited': 'Terlalu cepat! Tunggu sebentar.',
+    'invalid-message': 'Terjadi kesalahan. Coba lagi.',
+  },
 };
