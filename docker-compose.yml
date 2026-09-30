@@ -1,5 +1,5 @@
-# Local development: Postgres and Redis. S3-07 adds the api and game-server services.
-# Start with `docker compose up -d`, then run `pnpm db:migrate`.
+# Local development: Postgres, Redis and the api. S3-07 adds game-server.
+# Start with `docker compose up -d --wait`, then run `pnpm db:migrate`.
 name: mathgo
 
 services:
@@ -31,6 +31,15 @@ services:
       interval: 2s
       timeout: 3s
       retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      LOG_LEVEL: ${API_LOG_LEVEL:-info}
+    ports:
+      - '127.0.0.1:${API_PORT:-3000}:3000'
 
 volumes:
   postgres-data:
