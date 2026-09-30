@@ -24,10 +24,10 @@ export interface Outgoing {
 }
 
 /**
- * Stand-in for the BattleRoom (S3-06): validates client messages with `@mathgo/protocol` and
- * runs the `game-core` engine. No networking; the caller passes the server clock.
+ * One battle without networking: validates client messages with `@mathgo/protocol`, runs the
+ * `game-core` engine and says what to send to whom. BattleRoom owns the clock and the sockets.
  */
-export class BattleStub {
+export class BattleSession {
   private state: BattleState;
   /** Highest question index already sent, per seat. */
   private readonly sent: [number, number] = [-1, -1];
@@ -40,7 +40,8 @@ export class BattleStub {
     return this.state;
   }
 
-  join(seat: Seat): Outgoing[] {
+  /** Sent when a player takes a seat. */
+  welcome(seat: Seat): Outgoing[] {
     return [
       {
         to: seat,
@@ -53,8 +54,12 @@ export class BattleStub {
           },
         },
       },
-      ...this.topUpQuestions(seat),
     ];
+  }
+
+  /** Both seats are taken and the clock starts: each player gets the first questions. */
+  start(): Outgoing[] {
+    return [...this.topUpQuestions(0), ...this.topUpQuestions(1)];
   }
 
   receive(seat: Seat, type: string, payload: unknown, at: number): Outgoing[] {
