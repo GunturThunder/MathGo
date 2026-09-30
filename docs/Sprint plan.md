@@ -67,7 +67,7 @@ Goal: `api` and `game-server` run in Docker Compose, a guest can sign in, and th
 
 | ID | Task | Owner | Days | Needs | Done when | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| S3-01 | `apps/api` on Fastify: env config, health check, structured logging (pino), one error format | Backend | 1 | S2-06 | `GET /health` returns 200 in Docker | Not started |
+| S3-01 | `apps/api` on Fastify: env config, health check, structured logging (pino), one error format | Backend | 1 | S2-06 | `GET /health` returns 200 in Docker | Done |
 | S3-02 | Guest auth: `POST /auth/guest` issues a JWT access token and refresh token, signed with a key shared with `game-server` | Backend | 1.5 | S3-01, S2-05 | A new install gets a token; refresh works after expiry | Not started |
 | S3-03 | Nickname generator (adjective + animal, Bahasa Indonesia and English): `GET /nicknames` gives choices, `PATCH /me/nickname` saves one | Backend | 0.5 | S3-02 | Only generated names are accepted | Not started |
 | S3-04 | Birth-year check: store the birth year only; under-18 players get no online account until a parent consents | Backend | 0.5 | S3-02 | An under-18 token cannot join matchmaking or rooms | Not started |
