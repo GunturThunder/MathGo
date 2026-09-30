@@ -32,3 +32,18 @@ export {
   determinismSample,
   fingerprint,
 } from './determinism.js';
+export {
+  DEFAULT_BATTLE_RULES,
+  applyBattleAction,
+  createBattle,
+  type BattleAction,
+  type BattleEvent,
+  type BattleResult,
+  type BattleRules,
+  type BattleState,
+  type BattleUpdate,
+  type NewBattle,
+  type PlayerState,
+  type RejectReason,
+  type Seat,
+} from './battle.js';
