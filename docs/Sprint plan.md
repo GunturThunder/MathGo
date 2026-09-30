@@ -22,7 +22,7 @@ Goal: the monorepo builds in CI, and `game-core` produces valid questions for al
 | S1-02 | `packages/config`: strict tsconfig, ESLint and Prettier presets used by every workspace | Mobile | 0.5 | S1-01 | `pnpm lint` and `pnpm typecheck` run from the root | Done |
 | S1-03 | CI on GitHub Actions: lint, typecheck and test on every PR, with Turborepo cache | Mobile | 1 | S1-02 | A PR shows green checks; a failing test blocks merge | Done |
 | S1-04 | Expo app with dev builds and expo-router; Metro set up to resolve monorepo packages | Mobile | 1.5 | S1-01 | Dev build runs on one Android and one iOS device and imports `game-core` | Blocked |
-| S1-05 | App shell: Home, Practice, Battle, Settings placeholder screens and navigation | Mobile | 1.5 | S1-04 | Every screen is reachable from Home | Not started |
+| S1-05 | App shell: Home, Practice, Battle, Settings placeholder screens and navigation | Mobile | 1.5 | S1-04 | Every screen is reachable from Home | Done |
 | S1-06 | i18n: Bahasa Indonesia default, English second; all strings in translation files | Mobile | 1 | S1-04 | Switching language in Settings changes every string | Not started |
 | S1-07 | Theme tokens from the design (colours, type, spacing, radii) | Mobile | 1 | S1-15 | Screens use tokens only, no raw colour values | Not started |
 | S1-08 | `game-core`: seeded RNG keyed by match seed + question number | Backend | 0.5 | S1-01 | Same seed gives the same sequence in Node and in the app (Hermes) | In progress |
