@@ -191,6 +191,9 @@ importers:
       '@mathgo/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@mathgo/protocol':
+        specifier: workspace:*
+        version: link:../../packages/protocol
       fastify:
         specifier: 5.12.5
         version: 5.12.5

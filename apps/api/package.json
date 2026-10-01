@@ -21,6 +21,7 @@
   "dependencies": {
     "@mathgo/auth": "workspace:*",
     "@mathgo/db": "workspace:*",
+    "@mathgo/protocol": "workspace:*",
     "fastify": "5.12.5",
     "zod": "4.6.5"
   }

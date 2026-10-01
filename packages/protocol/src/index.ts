@@ -238,3 +238,56 @@ export function parseClientMessage(type: string, payload: unknown): Parsed<Clien
 export function parseServerMessage(type: string, payload: unknown): Parsed<ServerMessage> {
   return parseWith<ServerMessage>(serverMessages, type, payload);
 }
+
+// Analytics (FR-09, S6-02): app → api, POST /events. Numbers and fixed values only: no free text,
+// so no personal data can ride along. Only signed-in players send them (no data from minors
+// before parent consent).
+
+const battleMode = z.enum(['ranked', 'invite']);
+
+export const analyticsEvent = z.discriminatedUnion('name', [
+  z.strictObject({
+    name: z.literal('battle_start'),
+    props: z.strictObject({ mode: battleMode, arena: arenaId }),
+  }),
+  z.strictObject({
+    name: z.literal('battle_end'),
+    props: z.strictObject({
+      mode: battleMode,
+      arena: arenaId,
+      outcome: z.enum(['win', 'loss', 'draw']),
+      reason: z.enum(['ko', 'time', 'forfeit']),
+      durationMs: nat.max(10 * 60_000),
+      correct: nat.max(1_000),
+      wrong: nat.max(1_000),
+    }),
+  }),
+  z.strictObject({
+    name: z.literal('queue_wait'),
+    props: z.strictObject({
+      waitedMs: nat.max(60 * 60_000),
+      outcome: z.enum(['matched', 'cancelled']),
+    }),
+  }),
+  z.strictObject({ name: z.literal('invite_create'), props: z.strictObject({}) }),
+  z.strictObject({
+    name: z.literal('invite_join'),
+    props: z.strictObject({ result: z.enum(['joined', 'expired', 'not-found', 'full']) }),
+  }),
+  z.strictObject({
+    name: z.literal('consent_step'),
+    props: z.strictObject({ step: z.enum(['started', 'code-sent', 'verified', 'failed']) }),
+  }),
+]);
+
+export type AnalyticsEvent = z.infer<typeof analyticsEvent>;
+export type AnalyticsEventName = AnalyticsEvent['name'];
+export const ANALYTICS_EVENT_NAMES = analyticsEvent.options.map(
+  (o) => o.shape.name.value,
+) as readonly AnalyticsEventName[];
+
+/** One POST /events body: up to 50 events, each checked on its own. */
+export const MAX_EVENTS_PER_BATCH = 50;
+export const eventBatch = z.strictObject({
+  events: z.array(z.unknown()).min(1).max(MAX_EVENTS_PER_BATCH),
+});
