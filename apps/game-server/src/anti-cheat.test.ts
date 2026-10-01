@@ -75,7 +75,7 @@ describe('anti-cheat basics (S4-06)', () => {
     const human = await player('Kucing Tenang', bot.connection.roomId);
     const room = colyseus.getRoomById(bot.connection.roomId) as unknown as {
       session: BattleSession;
-      recorded: Promise<string> | null;
+      recorded: Promise<{ matchId: string } | null> | null;
     };
     await until(() => bot.inbox.some((m) => m.type === 'questions'));
     const { seed, level } = room.session.battle;
@@ -103,7 +103,7 @@ describe('anti-cheat basics (S4-06)', () => {
     fakeNow = T0 + 1_700;
     bot.connection.sendAnswer(5, answerOf(5));
     await until(() => room.recorded !== null);
-    const matchId = await room.recorded;
+    const matchId = (await room.recorded)?.matchId;
 
     const rows = await database.db
       .select()

@@ -22,7 +22,7 @@ const stored: FinishedMatch[] = [];
 const recorder: MatchRecorder = {
   record: async (match) => {
     stored.push(match);
-    return `match-${stored.length}`;
+    return { matchId: `match-${stored.length}`, trophies: null };
   },
 };
 const invites = new MemoryInviteStore();

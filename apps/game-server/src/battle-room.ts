@@ -6,7 +6,7 @@ import { parseClientMessage } from '@mathgo/protocol';
 import { BattleSession, type Outgoing } from './battle-session.js';
 import { authorizeJoin, JoinRefused } from './join.js';
 import type { InviteStore } from './invites.js';
-import type { MatchRecorder } from './match-recorder.js';
+import type { MatchRecorder, RecordedMatch } from './match-recorder.js';
 import { RateLimiter } from './rate-limit.js';
 
 /** Answers per second per player before the rest are dropped (S4-06 adds speed flags). */
@@ -73,7 +73,7 @@ export class BattleRoom extends Room {
   /** User id per seat, kept after a player leaves (a forfeit still names them). */
   private readonly users: [string, string] = ['', ''];
   /** The stored match id, once the finished battle is saved (S4-03). */
-  recorded: Promise<string> | null = null;
+  recorded: Promise<RecordedMatch> | null = null;
   /** Last battle time used; the engine needs time never to go backwards. */
   private lastAt = 0;
 
@@ -247,10 +247,10 @@ export class BattleRoom extends Room {
   }
 
   /** Saves the finished battle once; a failed write is logged, never fatal for the room. */
-  private recordMatch() {
-    if (this.recorded !== null || this.startedAt === null) return;
+  private recordMatch(): Promise<RecordedMatch> | null {
+    if (this.recorded !== null || this.startedAt === null) return this.recorded;
     const recorder = BattleRoom.recorder;
-    if (recorder === undefined) return;
+    if (recorder === undefined) return null;
     const battle = this.session.battle;
     this.recorded = recorder
       .record({
@@ -266,11 +266,38 @@ export class BattleRoom extends Room {
         throw error;
       });
     this.recorded.catch(() => undefined);
+    return this.recorded;
   }
 
-  private dispatch(out: readonly Outgoing[]) {
-    if (out.some((o) => o.message.type === 'end')) this.recordMatch();
-    for (const { to, message } of out) {
+  /**
+   * The battle's `end`, once it is stored: for ranked battles it carries both players' trophy
+   * changes (S5-03). If storing failed the battle still ends, without trophy changes.
+   */
+  private async sendEnd(end: Outgoing) {
+    let message = end.message;
+    const recorded = await this.recordMatch()?.catch(() => null);
+    if (message.type === 'end' && recorded?.trophies != null) {
+      const [a, b] = recorded.trophies.map(({ delta, trophies, arenaBefore, arenaAfter }) => ({
+        delta,
+        trophies,
+        arenaBefore,
+        arenaAfter,
+      }));
+      if (a !== undefined && b !== undefined) {
+        message = { ...message, payload: { ...message.payload, trophies: [a, b] } };
+      }
+    }
+    this.dispatch([{ to: end.to, message }], true);
+  }
+
+  /** Sends each message to its seat or to both. An `end` waits for the match to be stored. */
+  private dispatch(out: readonly Outgoing[], stored = false) {
+    for (const outgoing of out) {
+      if (outgoing.message.type === 'end' && !stored) {
+        void this.sendEnd(outgoing);
+        continue;
+      }
+      const { to, message } = outgoing;
       if (to === 'all') {
         this.broadcast(message.type, message.payload);
       } else {
