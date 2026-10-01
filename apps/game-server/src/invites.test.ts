@@ -14,6 +14,7 @@ import {
   RedisInviteStore,
   type InviteStore,
 } from './invites.js';
+import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
 
 describe('invite codes', () => {
@@ -86,7 +87,9 @@ describe('invite rooms through game-server (S4-02)', () => {
   const key = signingKey(DEV_JWT_SECRET);
 
   beforeAll(async () => {
-    colyseus = await boot(createServer(loadConfig({}), store));
+    colyseus = await boot(
+      createServer(loadConfig({}), { invites: store, recorder: noMatchRecorder }),
+    );
   });
   afterAll(async () => {
     await colyseus.shutdown();

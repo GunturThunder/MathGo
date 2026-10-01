@@ -13,6 +13,7 @@ import { RECONNECT_SECONDS } from './battle-room.js';
 import type { BattleSession } from './battle-session.js';
 import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
+import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
 
 /**
@@ -24,7 +25,13 @@ let colyseus: ColyseusTestServer;
 const endpoint = 'ws://localhost:2568';
 
 beforeAll(async () => {
-  colyseus = await boot(createServer(loadConfig({}), new MemoryInviteStore(), undefined, WINDOW_S));
+  colyseus = await boot(
+    createServer(loadConfig({}), {
+      invites: new MemoryInviteStore(),
+      recorder: noMatchRecorder,
+      reconnectSeconds: WINDOW_S,
+    }),
+  );
 });
 afterAll(async () => {
   await colyseus.shutdown();

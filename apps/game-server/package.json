@@ -27,6 +27,7 @@
     "@colyseus/schema": "5.0.34",
     "@colyseus/ws-transport": "0.18.4",
     "@mathgo/auth": "workspace:*",
+    "@mathgo/db": "workspace:*",
     "@mathgo/game-core": "workspace:*",
     "@mathgo/protocol": "workspace:*",
     "ioredis": "6.0.0",

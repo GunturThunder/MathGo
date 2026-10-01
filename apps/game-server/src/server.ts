@@ -6,21 +6,20 @@ import { BattleRoom } from './battle-room.js';
 import type { Config } from './config.js';
 import { inviteEndpoints } from './invite-routes.js';
 import type { InviteStore } from './invites.js';
+import type { MatchRecorder } from './match-recorder.js';
 
-export function createServer(
-  config: Config,
-  invites: InviteStore,
-  now: () => Date = () => new Date(),
+export interface ServerDeps {
+  readonly invites: InviteStore;
+  readonly recorder: MatchRecorder;
+  readonly now?: () => Date;
   /** Tests shorten the 15 s reconnect window. */
-  reconnectSeconds?: number,
-) {
+  readonly reconnectSeconds?: number;
+}
+
+export function createServer(config: Config, deps: ServerDeps) {
   const key = signingKey(config.JWT_SECRET);
-  BattleRoom.configure({
-    key,
-    invites,
-    now,
-    ...(reconnectSeconds === undefined ? {} : { reconnectSeconds }),
-  });
+  const now = deps.now ?? (() => new Date());
+  BattleRoom.configure({ key, ...deps, now });
   return defineServer({
     transport: new WebSocketTransport({ pingInterval: 5_000 }),
     rooms: {
@@ -29,7 +28,7 @@ export function createServer(
     routes: createRouter({
       // Liveness for Docker and the uptime monitor, like the api's.
       health: createEndpoint('/health', { method: 'GET' }, async () => ({ status: 'ok' })),
-      ...inviteEndpoints(key, invites, now),
+      ...inviteEndpoints(key, deps.invites, now),
     }),
   });
 }

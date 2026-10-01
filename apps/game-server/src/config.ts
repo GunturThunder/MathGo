@@ -9,6 +9,8 @@ const schema = z
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional(),
     /** Invite codes (S4-02); later matchmaking and presence. */
     REDIS_URL: z.url().optional(),
+    /** Finished matches and their answers (S4-03). */
+    DATABASE_URL: z.url().optional(),
   })
   .transform((env, ctx) => {
     if (
@@ -21,13 +23,16 @@ const schema = z
         message: 'set a real secret in production',
       });
     }
-    if (env.NODE_ENV === 'production' && env.REDIS_URL === undefined) {
-      ctx.addIssue({ code: 'custom', path: ['REDIS_URL'], message: 'required in production' });
+    for (const name of ['REDIS_URL', 'DATABASE_URL'] as const) {
+      if (env.NODE_ENV === 'production' && env[name] === undefined) {
+        ctx.addIssue({ code: 'custom', path: [name], message: 'required in production' });
+      }
     }
     return {
       ...env,
       JWT_SECRET: env.JWT_SECRET ?? DEV_JWT_SECRET,
       REDIS_URL: env.REDIS_URL ?? 'redis://localhost:6379',
+      DATABASE_URL: env.DATABASE_URL ?? 'postgres://mathgo:mathgo@localhost:5432/mathgo',
     };
   });
 

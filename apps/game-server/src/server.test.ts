@@ -4,6 +4,7 @@ import { BATTLE_ROOM, PROTOCOL_VERSION } from '@mathgo/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
+import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
 
 const now = new Date('2026-11-09T10:00:00Z');
@@ -11,7 +12,13 @@ const key = signingKey(DEV_JWT_SECRET);
 let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
-  colyseus = await boot(createServer(loadConfig({}), new MemoryInviteStore(), () => now));
+  colyseus = await boot(
+    createServer(loadConfig({}), {
+      invites: new MemoryInviteStore(),
+      recorder: noMatchRecorder,
+      now: () => now,
+    }),
+  );
 });
 afterAll(async () => {
   await colyseus.shutdown();
