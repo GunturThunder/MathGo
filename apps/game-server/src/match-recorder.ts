@@ -63,6 +63,7 @@ export class DbMatchRecorder implements MatchRecorder {
             correct: a.correct,
             latencyMs: a.latencyMs,
             atMs: a.atMs,
+            tooFast: a.tooFast,
           })),
         );
       }
