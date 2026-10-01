@@ -73,7 +73,7 @@ Goal: `api` and `game-server` run in Docker Compose, a guest can sign in, and th
 | S3-04 | Birth-year check: store the birth year only; under-18 players get no online account until a parent consents | Backend | 0.5 | S3-02 | An under-18 token cannot join matchmaking or rooms | Done |
 | S3-05 | `apps/game-server` on Colyseus: checks the JWT on join; refuses an old `protocolVersion` with "please update" | Backend | 1 | S2-04, S3-02 | A bad token or old version is refused with a clear error code | Done |
 | S3-06 | BattleRoom core: 2 seats, secret seed, 3 questions queued per player, answers checked with `game-core`, per-player rate limit | Backend | 2.5 | S3-05, S2-01 | Two test clients get the same questions; a wrong answer is rejected | Done |
-| S3-07 | Multi-stage Dockerfiles for `api` and `game-server` (`turbo prune`); Compose runs all 4 services | Backend | 1 | S3-01, S3-05 | `docker compose up` starts everything on a clean machine | Not started |
+| S3-07 | Multi-stage Dockerfiles for `api` and `game-server` (`turbo prune`); Compose runs all 4 services | Backend | 1 | S3-01, S3-05 | `docker compose up` starts everything on a clean machine | Done |
 | S3-08 | First-launch flow: language, birth-year picker, nickname choice | Mobile | 2 | S2-13, S3-03 | A new player reaches Home in 3 taps after the birth year | Not started |
 | S3-09 | Under-18 mode: practice vs bot only; online buttons open "Ask a parent" | Mobile | 1 | S3-08 | No network call to battle services is made for under-18 players | Not started |
 | S3-10 | API client: TanStack Query, token in MMKV, automatic refresh on 401 | Mobile | 1.5 | S3-02 | Token survives app restart; refresh is invisible to the player | Not started |

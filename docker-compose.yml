@@ -1,5 +1,5 @@
-# Local development: Postgres, Redis and the api. S3-07 adds game-server.
-# Start with `docker compose up -d --wait`, then run `pnpm db:migrate`.
+# Local development: Postgres, Redis, api and game-server. `docker compose up -d --wait` starts
+# everything and applies the database migrations (the one-shot `migrate` service).
 name: mathgo
 
 services:
@@ -32,10 +32,24 @@ services:
       timeout: 3s
       retries: 30
 
+  # Applies the database migrations once, then exits; api starts after it succeeds.
+  migrate:
+    build:
+      context: .
+      args: { APP: db }
+    command: ['node', 'dist/migrate-cli.js']
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-mathgo}:${POSTGRES_PASSWORD:-mathgo}@postgres:5432/${POSTGRES_DB:-mathgo}
+    healthcheck:
+      disable: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   api:
     build:
       context: .
-      dockerfile: apps/api/Dockerfile
+      args: { APP: api, PORT: 3000 }
     environment:
       LOG_LEVEL: ${API_LOG_LEVEL:-info}
       DATABASE_URL: postgres://${POSTGRES_USER:-mathgo}:${POSTGRES_PASSWORD:-mathgo}@postgres:5432/${POSTGRES_DB:-mathgo}
@@ -44,8 +58,18 @@ services:
     ports:
       - '127.0.0.1:${API_PORT:-3000}:3000'
     depends_on:
-      postgres:
-        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  game-server:
+    build:
+      context: .
+      args: { APP: game-server, PORT: 2567 }
+    environment:
+      # Must match the api's, which signs the tokens game-server checks.
+      JWT_SECRET: ${JWT_SECRET:-local-compose-jwt-secret-not-for-production}
+    ports:
+      - '127.0.0.1:${GAME_SERVER_PORT:-2567}:2567'
 
 volumes:
   postgres-data:
