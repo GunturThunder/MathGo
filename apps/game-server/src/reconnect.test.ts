@@ -15,6 +15,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
+import { testDeps } from './test-deps.js';
 
 /**
  * FR-07, scaled down: a 1.5 s reconnect window stands in for the real 15 s, so a 1 s outage
@@ -26,11 +27,14 @@ const endpoint = 'ws://localhost:2568';
 
 beforeAll(async () => {
   colyseus = await boot(
-    createServer(loadConfig({}), {
-      invites: new MemoryInviteStore(),
-      recorder: noMatchRecorder,
-      reconnectSeconds: WINDOW_S,
-    }),
+    createServer(
+      loadConfig({}),
+      testDeps({
+        invites: new MemoryInviteStore(),
+        recorder: noMatchRecorder,
+        reconnectSeconds: WINDOW_S,
+      }),
+    ),
   );
 });
 afterAll(async () => {

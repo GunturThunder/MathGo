@@ -16,6 +16,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
+import { testDeps } from './test-deps.js';
 
 /**
  * S4-01: a scripted battle through the real BattleRoom must match the game-core engine run
@@ -27,11 +28,14 @@ let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
   colyseus = await boot(
-    createServer(loadConfig({}), {
-      invites: new MemoryInviteStore(),
-      recorder: noMatchRecorder,
-      now: () => new Date(fakeNow),
-    }),
+    createServer(
+      loadConfig({}),
+      testDeps({
+        invites: new MemoryInviteStore(),
+        recorder: noMatchRecorder,
+        now: () => new Date(fakeNow),
+      }),
+    ),
   );
 });
 afterAll(async () => {

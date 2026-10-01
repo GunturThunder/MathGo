@@ -7,6 +7,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
+import { testDeps } from './test-deps.js';
 
 // The app's battle client (packages/battle-client) against the real BattleRoom.
 let colyseus: ColyseusTestServer;
@@ -15,7 +16,10 @@ const key = signingKey(DEV_JWT_SECRET);
 
 beforeAll(async () => {
   colyseus = await boot(
-    createServer(loadConfig({}), { invites: new MemoryInviteStore(), recorder: noMatchRecorder }),
+    createServer(
+      loadConfig({}),
+      testDeps({ invites: new MemoryInviteStore(), recorder: noMatchRecorder }),
+    ),
   );
 });
 afterAll(async () => {

@@ -9,6 +9,9 @@ export const PROTOCOL_VERSION = 1;
 /** The Colyseus room the app joins for a battle. */
 export const BATTLE_ROOM = 'battle';
 
+/** The Colyseus room the app joins to wait for a random opponent (FR-02). */
+export const QUEUE_ROOM = 'queue';
+
 // Shared pieces.
 
 const seat = z.union([z.literal(0), z.literal(1)]);
@@ -105,6 +108,17 @@ export const presence = z.strictObject({
  */
 export const rematchUpdate = z.strictObject({ seat, accepted: z.boolean() });
 
+/** In the random queue; trophies as the server knows them (FR-02). */
+export const queued = z.strictObject({ trophies: nat });
+
+/**
+ * An opponent was found: a seat in a new battle room is reserved for this player. The app hands
+ * `reservation` to the Colyseus client (`consumeSeatReservation`) to enter the battle.
+ */
+export const matched = z.strictObject({
+  reservation: z.looseObject({ name: z.string(), roomId: z.string(), sessionId: z.string() }),
+});
+
 const battleResult = z.discriminatedUnion('outcome', [
   z.strictObject({
     outcome: z.literal('win'),
@@ -168,6 +182,8 @@ export const serverMessages = {
   end: battleEnd,
   presence,
   rematch: rematchUpdate,
+  queued,
+  matched,
   error: errorMessage,
 } as const;
 
