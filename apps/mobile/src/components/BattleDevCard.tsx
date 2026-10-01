@@ -3,6 +3,7 @@ import type { ServerMessage } from '@mathgo/protocol';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors, radii, shadows, sizes, space, typography } from '../theme';
 import { API_URL } from '../api';
 import { findMatchAsPlayer, GAME_SERVER_URL } from '../net/battle';
 
@@ -69,24 +70,24 @@ export function BattleDevCard() {
   return (
     <View style={styles.card} testID="battle-dev-card">
       <Text style={styles.title}>{t('battleDev.title')}</Text>
-      <Text>{t('battleDev.hint')}</Text>
+      <Text style={styles.body}>{t('battleDev.hint')}</Text>
       {status === 'idle' ? (
         <Pressable style={styles.button} onPress={() => void join()} testID="battle-dev-join">
           <Text style={styles.buttonLabel}>{t('battleDev.join')}</Text>
         </Pressable>
       ) : null}
-      {status === 'joining' ? <Text>{t('battleDev.joining')}</Text> : null}
-      {status === 'dropped' ? <Text>{t('battleDev.dropped')}</Text> : null}
+      {status === 'joining' ? <Text style={styles.body}>{t('battleDev.joining')}</Text> : null}
+      {status === 'dropped' ? <Text style={styles.body}>{t('battleDev.dropped')}</Text> : null}
       {joined?.type === 'joined' ? (
-        <Text>{t('battleDev.seat', { value: joined.payload.seat })}</Text>
+        <Text style={styles.body}>{t('battleDev.seat', { value: joined.payload.seat })}</Text>
       ) : null}
       {status !== 'idle' ? (
         <>
-          <Text testID="battle-dev-count">
+          <Text testID="battle-dev-count" style={styles.body}>
             {t('battleDev.questions', { value: questions.length })}
           </Text>
           {questions[0] === undefined ? null : (
-            <Text>{t('battleDev.first', { value: questions[0].text })}</Text>
+            <Text style={styles.body}>{t('battleDev.first', { value: questions[0].text })}</Text>
           )}
           <Pressable style={styles.button} onPress={() => void leave()}>
             <Text style={styles.buttonLabel}>{t('battleDev.leave')}</Text>
@@ -101,15 +102,25 @@ export function BattleDevCard() {
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 6, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#ccc' },
-  title: { fontWeight: '600' },
-  button: {
-    marginTop: 4,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#222',
-    alignItems: 'center',
+  card: {
+    gap: space.sm,
+    padding: space.lg,
+    borderRadius: radii.xl,
+    backgroundColor: colors.white,
+    ...shadows.card,
   },
-  buttonLabel: { color: '#fff', fontWeight: '600' },
-  error: { color: '#cf222e' },
+  title: { ...typography.cardTitle, color: colors.ink },
+  body: { ...typography.body, color: colors.ink },
+  button: {
+    marginTop: space.xs,
+    minHeight: sizes.touch,
+    justifyContent: 'center',
+    padding: space.md,
+    borderRadius: radii.md,
+    backgroundColor: colors.blue,
+    alignItems: 'center',
+    ...shadows.raised(colors.blueBase, 4),
+  },
+  buttonLabel: { ...typography.button, color: colors.white },
+  error: { ...typography.body, color: colors.danger },
 });

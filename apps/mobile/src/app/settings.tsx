@@ -4,11 +4,16 @@ import { BattleDevCard } from '../components/BattleDevCard';
 import { DeterminismCard } from '../components/DeterminismCard';
 import { LanguagePicker } from '../components/LanguagePicker';
 import { OnlineDevCard } from '../components/OnlineDevCard';
+import { colors, space, typography } from '../theme';
 
 export default function Settings() {
   const { t } = useTranslation();
   return (
-    <ScrollView contentContainerStyle={styles.content} testID="settings-screen">
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      testID="settings-screen"
+    >
       <LanguagePicker />
       <Text style={styles.heading}>{t('settings.diagnostics')}</Text>
       <DeterminismCard />
@@ -19,6 +24,7 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
-  content: { gap: 16, padding: 16 },
-  heading: { fontSize: 16, fontWeight: '600' },
+  screen: { backgroundColor: colors.ground },
+  content: { gap: space.lg, padding: space.lg },
+  heading: { ...typography.label, color: colors.ink2 },
 });

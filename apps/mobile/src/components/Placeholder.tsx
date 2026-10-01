@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { colors, space, typography } from '../theme';
 
 /** Stand-in body for screens that later sprints build. */
 export function Placeholder({ title, note }: { title: string; note: string }) {
@@ -11,7 +12,14 @@ export function Placeholder({ title, note }: { title: string; note: string }) {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, padding: 16 },
-  title: { fontSize: 28, fontWeight: '700' },
-  note: { fontSize: 16, color: '#555', textAlign: 'center' },
+  screen: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space.sm,
+    padding: space.lg,
+    backgroundColor: colors.ground,
+  },
+  title: { ...typography.headline, color: colors.ink },
+  note: { ...typography.body, color: colors.ink2, textAlign: 'center' },
 });
