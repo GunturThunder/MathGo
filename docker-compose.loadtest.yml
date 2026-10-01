@@ -1,0 +1,6 @@
+# S4-07: game-server limited like a small VPS (2 vCPU, 4 GB) for the load test.
+#   docker compose -f docker-compose.yml -f docker-compose.loadtest.yml up -d --wait --build
+services:
+  game-server:
+    cpus: 2
+    mem_limit: 4g
