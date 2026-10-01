@@ -5,6 +5,7 @@ export * from './schema.js';
 // Query helpers, re-exported so every workspace uses this package's drizzle-orm instance.
 export { and, eq, gt, inArray, isNull, lt, or, sql } from 'drizzle-orm';
 export { createDatabase, type Database, type DatabaseConnection } from './database.js';
+export * from './metrics.js';
 export {
   TOO_FAST_REVIEW,
   tooFastAccounts,
