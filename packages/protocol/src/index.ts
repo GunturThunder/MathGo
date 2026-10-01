@@ -86,6 +86,16 @@ export const stateUpdate = z.strictObject({
   events: z.array(battleEvent).max(10),
 });
 
+/**
+ * A player dropped or came back (FR-07). While `connected` is false the seat is held until
+ * `reconnectBy`; the app shows "opponent reconnecting" (S4-10).
+ */
+export const presence = z.strictObject({
+  seat,
+  connected: z.boolean(),
+  reconnectBy: battleMs.optional(),
+});
+
 const battleResult = z.discriminatedUnion('outcome', [
   z.strictObject({
     outcome: z.literal('win'),
@@ -146,6 +156,7 @@ export const serverMessages = {
   questions: questionBatch,
   state: stateUpdate,
   end: battleEnd,
+  presence,
   error: errorMessage,
 } as const;
 
@@ -155,6 +166,7 @@ export type Joined = z.infer<typeof joined>;
 export type QuestionBatch = z.infer<typeof questionBatch>;
 export type StateUpdate = z.infer<typeof stateUpdate>;
 export type BattleEnd = z.infer<typeof battleEnd>;
+export type Presence = z.infer<typeof presence>;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export type ErrorMessage = z.infer<typeof errorMessage>;
 
