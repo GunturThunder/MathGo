@@ -55,7 +55,7 @@ Goal: a full battle against the bot, playable offline on a phone by Oct 30 (week
 | S2-10 | Practice vs bot mode: the local `game-core` engine and bot drive the battle screen; clearly labelled, no trophies | Mobile | 1 | S2-01, S2-02, S2-09 | A full 90 s battle plays offline in airplane mode | Not started |
 | S2-11 | Result screen: win, lose or draw, correct answers, best combo | Mobile | 1 | S2-10 | Shown after every battle, with Play again and Home | Not started |
 | S2-12 | Performance pass on a mid-range Android phone | Mobile | 0.5 | S2-09 | 60 fps during hits, measured with the performance monitor | Not started |
-| S2-13 | Design: Home, matchmaking, create and join room, result, birth-year check and parent consent screens | Product | 4 | S1-15 | Mockups approved and handed to Mobile by Oct 30 | In progress |
+| S2-13 | Design: Home, matchmaking, create and join room, result, birth-year check and parent consent screens | Product | 4 | S1-15 | Mockups approved and handed to Mobile by Oct 30 | Done |
 | S2-14 | Playtest with 8–10 people (kids 6–12, teens, adults); record how long battles last and what confused them | Product | 1.5 | S2-11 | Notes shared with the team by Oct 29 | Not started |
 | S2-15 | Fun gate (Oct 30): keep or tune HP, damage, timer and arena ranges in `game-core` | Product + Backend | 0.5 | S2-14 | Decision and any new values recorded in the PRD | Not started |
 
