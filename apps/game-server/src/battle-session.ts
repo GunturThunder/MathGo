@@ -27,10 +27,23 @@ export interface Outgoing {
  * One battle without networking: validates client messages with `@mathgo/protocol`, runs the
  * `game-core` engine and says what to send to whom. BattleRoom owns the clock and the sockets.
  */
+/** One answer the engine counted (a hit or a miss), as stored in match_answers (S4-03). */
+export interface AnswerRecord {
+  readonly seat: Seat;
+  readonly questionIndex: number;
+  readonly value: number;
+  readonly correct: boolean;
+  /** Server clock: from when this question showed to when the answer arrived. */
+  readonly latencyMs: number;
+  /** When it arrived, in ms from the battle start. */
+  readonly atMs: number;
+}
+
 export class BattleSession {
   private state: BattleState;
   /** Highest question index already sent, per seat. */
   private readonly sent: [number, number] = [-1, -1];
+  private readonly log: AnswerRecord[] = [];
 
   constructor(seed: number, level: QuestionLevel) {
     this.state = createBattle({ seed, level });
@@ -38,6 +51,11 @@ export class BattleSession {
 
   get battle(): BattleState {
     return this.state;
+  }
+
+  /** Every counted answer so far, in order. Refused answers (locked, stale, late) are not in it. */
+  get answers(): readonly AnswerRecord[] {
+    return this.log;
   }
 
   /** Sent when a player takes a seat. */
@@ -73,10 +91,28 @@ export class BattleSession {
       ];
     }
     const { questionIndex, value } = parsed.message.payload;
-    return this.apply(
-      applyBattleAction(this.state, { type: 'answer', seat, questionIndex, value, at }),
+    const shownAt = this.state.players[seat].questionShownAt;
+    const update = applyBattleAction(this.state, {
+      type: 'answer',
       seat,
+      questionIndex,
+      value,
+      at,
+    });
+    const counted = update.events.find(
+      (e) => (e.type === 'hit' || e.type === 'miss') && e.seat === seat,
     );
+    if (counted !== undefined) {
+      this.log.push({
+        seat,
+        questionIndex,
+        value,
+        correct: counted.type === 'hit',
+        latencyMs: at - shownAt,
+        atMs: at,
+      });
+    }
+    return this.apply(update, seat);
   }
 
   /** The player at `seat` quit or did not come back in time (FR-07). */

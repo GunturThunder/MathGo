@@ -1,6 +1,8 @@
 import { loadConfig } from './config.js';
+import { createDatabase } from '@mathgo/db';
 import { Redis } from 'ioredis';
 import { RedisInviteStore } from './invites.js';
+import { DbMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
 
 let config;
@@ -13,4 +15,8 @@ try {
 
 // Colyseus shuts down gracefully on SIGTERM/SIGINT by itself.
 const redis = new Redis(config.REDIS_URL);
-await createServer(config, new RedisInviteStore(redis)).listen(config.PORT);
+const database = createDatabase(config.DATABASE_URL);
+await createServer(config, {
+  invites: new RedisInviteStore(redis),
+  recorder: new DbMatchRecorder(database.db),
+}).listen(config.PORT);

@@ -5,6 +5,7 @@ import type { QuestionLevel, Seat } from '@mathgo/game-core';
 import { BattleSession, type Outgoing } from './battle-session.js';
 import { authorizeJoin, JoinRefused } from './join.js';
 import type { InviteStore } from './invites.js';
+import type { MatchRecorder } from './match-recorder.js';
 import { RateLimiter } from './rate-limit.js';
 
 /** Answers per second per player before the rest are dropped (S4-06 adds speed flags). */
@@ -22,6 +23,7 @@ export const RECONNECT_SECONDS = 15;
 export interface BattleRoomOptions {
   readonly key: SigningKey;
   readonly invites: InviteStore;
+  readonly recorder: MatchRecorder;
   readonly now?: () => Date;
   readonly reconnectSeconds?: number;
 }
@@ -42,11 +44,13 @@ export class BattleRoom extends Room {
   private static now: () => Date = () => new Date();
   private static invites: InviteStore | undefined;
   private static reconnectSeconds = RECONNECT_SECONDS;
+  private static recorder: MatchRecorder | undefined;
 
   /** Called once at startup: the key that checks access tokens (JWT_SECRET) and the invite store. */
   static configure(options: BattleRoomOptions): void {
     BattleRoom.key = options.key;
     BattleRoom.invites = options.invites;
+    BattleRoom.recorder = options.recorder;
     BattleRoom.now = options.now ?? (() => new Date());
     BattleRoom.reconnectSeconds = options.reconnectSeconds ?? RECONNECT_SECONDS;
   }
@@ -61,6 +65,10 @@ export class BattleRoom extends Room {
   /** Ranked rooms come from matchmaking (S5-01); invite rooms from POST /invites (S4-02). */
   private mode: 'ranked' | 'invite' = 'ranked';
   private startedAt: number | null = null;
+  /** User id per seat, kept after a player leaves (a forfeit still names them). */
+  private readonly users: [string, string] = ['', ''];
+  /** The stored match id, once the finished battle is saved (S4-03). */
+  recorded: Promise<string> | null = null;
   /** Last battle time used; the engine needs time never to go backwards. */
   private lastAt = 0;
 
@@ -98,6 +106,7 @@ export class BattleRoom extends Room {
     const taken = new Set(this.clients.map((c) => (c.userData as PlayerData | undefined)?.seat));
     const seat: Seat = taken.has(0) ? 1 : 0;
     client.userData = { userId: auth.userId, seat } satisfies PlayerData;
+    this.users[seat] = auth.userId;
     this.touchInvite();
     this.dispatch(this.session.welcome(seat));
 
@@ -189,7 +198,30 @@ export class BattleRoom extends Room {
     return this.lastAt;
   }
 
+  /** Saves the finished battle once; a failed write is logged, never fatal for the room. */
+  private recordMatch() {
+    if (this.recorded !== null || this.startedAt === null) return;
+    const recorder = BattleRoom.recorder;
+    if (recorder === undefined) return;
+    const battle = this.session.battle;
+    this.recorded = recorder
+      .record({
+        mode: this.mode,
+        battle,
+        users: [...this.users],
+        startedAt: new Date(this.startedAt),
+        endedAt: new Date(this.startedAt + battle.now),
+        answers: [...this.session.answers],
+      })
+      .catch((error: unknown) => {
+        console.error(`[battle ${this.roomId}] could not record the match`, error);
+        throw error;
+      });
+    this.recorded.catch(() => undefined);
+  }
+
   private dispatch(out: readonly Outgoing[]) {
+    if (out.some((o) => o.message.type === 'end')) this.recordMatch();
     for (const { to, message } of out) {
       if (to === 'all') {
         this.broadcast(message.type, message.payload);
