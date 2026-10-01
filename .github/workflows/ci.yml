@@ -56,25 +56,24 @@ jobs:
         env:
           DATABASE_URL: postgres://mathgo:mathgo@localhost:5432/mathgo
 
-  api-image:
-    name: API image
+  compose:
+    name: Docker Compose
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Build
-        run: docker build -f apps/api/Dockerfile -t mathgo-api:ci .
-      - name: GET /health returns 200 in Docker
+      # The S3-07 check on a clean machine: one command builds and starts everything, and the
+      # one-shot migrate service prepares the database.
+      - name: docker compose up
+        run: docker compose up -d --wait --build
+      - name: api and game-server are healthy
         run: |
-          # Production config: a real-looking secret and URL are required to start.
-          # /health does not touch the database.
-          docker run -d --name api -p 127.0.0.1:3000:3000 \
-            -e JWT_SECRET=ci-only-secret-0123456789abcdefghijkl \
-            -e DATABASE_URL=postgres://ci:ci@127.0.0.1:5432/ci \
-            mathgo-api:ci
-          for i in $(seq 1 30); do
-            [ "$(docker inspect -f '{{.State.Health.Status}}' api)" = healthy ] && break
-            sleep 1
-          done
-          docker logs api
           test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/health)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:2567/health)" = 200
+      - name: a guest can sign up (the migrations ran)
+        run: |
+          curl -sf -X POST http://127.0.0.1:3000/auth/guest \
+            -H 'content-type: application/json' -d '{"birthYear":1990}' > /dev/null
+      - name: Logs
+        if: always()
+        run: docker compose logs

@@ -31,6 +31,14 @@ async function refusal(options: unknown) {
   }
 }
 
+describe('GET /health', () => {
+  it('returns 200 { status: ok }', async () => {
+    const res = await colyseus.http.get('/health');
+    expect(res.statusCode).toBe(200);
+    expect(res.data).toEqual({ status: 'ok' });
+  });
+});
+
 describe('joining a battle room (S3-05)', () => {
   it('a current app with a valid adult token joins', async () => {
     const room = await colyseus.sdk.joinOrCreate(BATTLE_ROOM, {

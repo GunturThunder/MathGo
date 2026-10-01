@@ -1,5 +1,5 @@
 import { signingKey } from '@mathgo/auth';
-import { defineRoom, defineServer } from '@colyseus/core';
+import { createEndpoint, createRouter, defineRoom, defineServer } from '@colyseus/core';
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { BATTLE_ROOM } from '@mathgo/protocol';
 import { BattleRoom } from './battle-room.js';
@@ -12,5 +12,9 @@ export function createServer(config: Config, now?: () => Date) {
     rooms: {
       [BATTLE_ROOM]: defineRoom(BattleRoom),
     },
+    routes: createRouter({
+      // Liveness for Docker and the uptime monitor, like the api's.
+      health: createEndpoint('/health', { method: 'GET' }, async () => ({ status: 'ok' })),
+    }),
   });
 }
