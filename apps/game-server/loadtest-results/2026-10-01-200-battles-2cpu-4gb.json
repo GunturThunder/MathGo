@@ -1,0 +1,28 @@
+{
+  "battlesRequested": 200,
+  "clients": 400,
+  "durationS": 57.7,
+  "joined": 400,
+  "joinFailed": 0,
+  "rooms": 200,
+  "roomsFinishedForBoth": 200,
+  "droppedRooms": 0,
+  "droppedClients": 0,
+  "invalidMessages": 0,
+  "endReasons": {
+    "ko": 200
+  },
+  "answers": 3076,
+  "rttMs": {
+    "p50": 5.1,
+    "p95": 14.9,
+    "p99": 21.2,
+    "max": 37.6
+  },
+  "container": {
+    "samples": 19,
+    "cpuPercentAvg": 11.1,
+    "cpuPercentPeak": 37.6,
+    "memMiBPeak": 76.6
+  }
+}
