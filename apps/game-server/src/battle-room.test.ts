@@ -14,7 +14,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
-import { testDeps } from './test-deps.js';
+import { openBattle, testDeps } from './test-deps.js';
 
 let colyseus: ColyseusTestServer;
 
@@ -42,16 +42,13 @@ class TestPlayer {
     });
   }
 
-  static async join(userId: string) {
+  static async join(userId: string, roomId: string) {
     const { token } = await signAccessToken(
       { userId, online: true },
       signingKey(DEV_JWT_SECRET),
       new Date(),
     );
-    const room = await colyseus.sdk.joinOrCreate(BATTLE_ROOM, {
-      protocolVersion: PROTOCOL_VERSION,
-      token,
-    });
+    const room = await colyseus.sdk.joinById(roomId, { protocolVersion: PROTOCOL_VERSION, token });
     return new TestPlayer(room);
   }
 
@@ -81,8 +78,9 @@ const serverSession = (roomId: string) =>
 
 describe('BattleRoom (S3-06)', () => {
   it('Done when: two clients get the same questions; a wrong answer is rejected', async () => {
-    const alice = await TestPlayer.join('alice');
-    const bob = await TestPlayer.join('bob');
+    const roomId = await openBattle(colyseus);
+    const alice = await TestPlayer.join('alice', roomId);
+    const bob = await TestPlayer.join('bob', roomId);
     expect(bob.room.roomId).toBe(alice.room.roomId);
 
     expect((await alice.next('joined')).payload.seat).toBe(0);
@@ -117,20 +115,34 @@ describe('BattleRoom (S3-06)', () => {
     await bob.room.leave();
   });
 
-  it('refuses a third player: the full room is locked, so they get a new room', async () => {
-    const [a, b, c] = [
-      await TestPlayer.join('a'),
-      await TestPlayer.join('b'),
-      await TestPlayer.join('c'),
-    ];
-    expect(b.room.roomId).toBe(a.room.roomId);
-    expect(c.room.roomId).not.toBe(a.room.roomId);
-    await Promise.all([a, b, c].map((p) => p.room.leave()));
+  it('refuses a third player: the room is full', async () => {
+    const roomId = await openBattle(colyseus);
+    const [a, b] = [await TestPlayer.join('a', roomId), await TestPlayer.join('b', roomId)];
+    await expect(TestPlayer.join('c', roomId)).rejects.toBeDefined();
+    await Promise.all([a, b].map((p) => p.room.leave()));
+  });
+
+  it('clients cannot open battle rooms: random battles go through the queue (S5-02)', async () => {
+    const { token } = await signAccessToken(
+      { userId: 'sneaky', online: true },
+      signingKey(DEV_JWT_SECRET),
+      new Date(),
+    );
+    for (const open of [
+      colyseus.sdk.joinOrCreate.bind(colyseus.sdk),
+      colyseus.sdk.create.bind(colyseus.sdk),
+    ]) {
+      const error = await open(BATTLE_ROOM, { protocolVersion: PROTOCOL_VERSION, token }).catch(
+        (e: unknown) => e,
+      );
+      expect(error).toMatchObject({ message: 'room-not-found' });
+    }
   });
 
   it('rate-limits a flood of answers from one player', async () => {
-    const spammer = await TestPlayer.join('spammer');
-    const other = await TestPlayer.join('other');
+    const roomId = await openBattle(colyseus);
+    const spammer = await TestPlayer.join('spammer', roomId);
+    const other = await TestPlayer.join('other', roomId);
     await spammer.next('questions');
     for (let i = 0; i < 12; i++) spammer.answer(99, 1); // stale question: no effect but a rejection
     expect((await spammer.next('error')).payload.code).toBe('rate-limited');
@@ -139,7 +151,7 @@ describe('BattleRoom (S3-06)', () => {
   });
 
   it('ignores answers before the second player arrives', async () => {
-    const early = await TestPlayer.join('early');
+    const early = await TestPlayer.join('early', await openBattle(colyseus));
     early.answer(0, 1);
     await new Promise((resolve) => setTimeout(resolve, 100));
     expect(early.inbox.map((m) => m.type)).toEqual(['joined']);

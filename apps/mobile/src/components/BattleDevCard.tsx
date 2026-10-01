@@ -1,10 +1,10 @@
-import { joinBattle, type BattleConnection } from '@mathgo/battle-client';
+import { findMatch, type BattleConnection } from '@mathgo/battle-client';
 import type { ServerMessage } from '@mathgo/protocol';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { API_URL } from '../api';
-import { GAME_SERVER_URL, joinAsPlayer } from '../net/battle';
+import { findMatchAsPlayer, GAME_SERVER_URL } from '../net/battle';
 
 type Status = 'idle' | 'joining' | 'joined' | 'dropped';
 
@@ -20,8 +20,8 @@ async function opponentToken(): Promise<string> {
 }
 
 /**
- * Dev builds only (S3-11): joins a BattleRoom as the signed-in player, with a test opponent, and
- * shows the questions that arrive. The real battle screen comes with S2-08/S3-12.
+ * Dev builds only (S3-11): queues the signed-in player and a test opponent, so they meet in one
+ * battle, and shows the questions that arrive. The real battle screen comes with S2-08/S3-12.
  */
 export function BattleDevCard() {
   const { t } = useTranslation();
@@ -43,20 +43,19 @@ export function BattleDevCard() {
     setError(null);
     setInbox([]);
     try {
-      const me = await joinAsPlayer({
+      // Both search the random queue (FR-02), like real players, and meet in one battle.
+      const mine = await findMatchAsPlayer({
         onMessage: (m) => setInbox((list) => [...list, m]),
         onDrop: () => setStatus('dropped'),
         onReconnect: () => setStatus('joined'),
         onLeave: () => setStatus('idle'),
       });
-      connections.current.push(me);
       const token = await opponentToken();
-      const opponent = await joinBattle(
+      const theirs = await findMatch(
         { endpoint: GAME_SERVER_URL, getToken: async () => token },
         { onMessage: () => undefined },
-        me.roomId,
       );
-      connections.current.push(opponent);
+      connections.current.push(...(await Promise.all([mine.match, theirs.match])));
       setStatus('joined');
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));

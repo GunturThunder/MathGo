@@ -12,7 +12,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { DbMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
-import { testDeps } from './test-deps.js';
+import { openBattle, testDeps } from './test-deps.js';
 
 const T0 = Date.parse('2026-11-25T09:00:00Z');
 let fakeNow = T0;
@@ -36,7 +36,7 @@ afterAll(async () => {
   await database.close();
 });
 
-async function player(nickname: string, roomId?: string) {
+async function player(nickname: string, roomId: string) {
   const [user] = await database.db.insert(users).values({ nickname, birthYear: 1990 }).returning();
   if (user === undefined) throw new Error('no user');
   const inbox: ServerMessage[] = [];
@@ -71,8 +71,9 @@ describe('anti-cheat basics (S4-06)', () => {
 
   it('Done when: scripted fast answers are rate-limited and flagged', async () => {
     fakeNow = T0;
-    const bot = await player('Rubah Cerdas');
-    const human = await player('Kucing Tenang', bot.connection.roomId);
+    const roomId = await openBattle(colyseus);
+    const bot = await player('Rubah Cerdas', roomId);
+    const human = await player('Kucing Tenang', roomId);
     const room = colyseus.getRoomById(bot.connection.roomId) as unknown as {
       session: BattleSession;
       recorded: Promise<{ matchId: string } | null> | null;

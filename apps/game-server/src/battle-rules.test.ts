@@ -16,7 +16,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
-import { testDeps } from './test-deps.js';
+import { openBattle, testDeps } from './test-deps.js';
 
 /**
  * S4-01: a scripted battle through the real BattleRoom must match the game-core engine run
@@ -49,7 +49,7 @@ interface Player {
   connection: BattleConnection;
 }
 
-async function join(userId: string): Promise<Player> {
+async function join(userId: string, roomId: string): Promise<Player> {
   const inbox: ServerMessage[] = [];
   const key = signingKey(DEV_JWT_SECRET);
   const connection = await joinBattle(
@@ -59,6 +59,7 @@ async function join(userId: string): Promise<Player> {
         (await signAccessToken({ userId, online: true }, key, new Date(fakeNow))).token,
     },
     { onMessage: (m) => inbox.push(m) },
+    roomId,
   );
   return { inbox, connection };
 }
@@ -74,7 +75,8 @@ async function waitFor(check: () => boolean) {
 /** Plays the script through the room and through the engine; returns both for comparison. */
 async function play(script: Step[]) {
   fakeNow = T0;
-  const players = [await join('p0'), await join('p1')] as const;
+  const roomId = await openBattle(colyseus);
+  const players = [await join('p0', roomId), await join('p1', roomId)] as const;
   await waitFor(() => players.every((p) => p.inbox.some((m) => m.type === 'questions')));
 
   const session = (

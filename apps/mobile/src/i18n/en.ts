@@ -66,6 +66,8 @@ export const en: Translation = {
     'room-full': 'That room is already full.',
     'room-expired': 'That code has expired. Ask for a new one.',
     'rate-limited': 'Too fast! Wait a moment.',
+    'already-queued': 'You are already looking for an opponent on another device.',
+    'already-in-match': 'You are still in a battle. Go back to it.',
     'invalid-message': 'Something went wrong. Try again.',
   },
 };

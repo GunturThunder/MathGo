@@ -1,6 +1,6 @@
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
 import { DEV_JWT_SECRET, signAccessToken, signingKey } from '@mathgo/auth';
-import { findMatch, joinBattle, JoinError, type BattleClientOptions } from '@mathgo/battle-client';
+import { findMatch, JoinError, type BattleClientOptions } from '@mathgo/battle-client';
 import type { ServerMessage } from '@mathgo/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from './config.js';
@@ -67,11 +67,7 @@ describe('random matchmaking (S5-01)', () => {
     expect(queued.sort()).toEqual([500, 550]); // trophies from the server's lookup
     await until(() => inboxes.every((box) => box.some((m) => m.type === 'questions')));
     expect(await queue.all()).toEqual([]);
-
-    // A random direct join never lands in a matched room.
-    const stranger = await joinBattle(as('stranger', 0), { onMessage: () => undefined });
-    expect(stranger.roomId).not.toBe(ca.roomId);
-    await Promise.all([ca.leave(), cb.leave(), stranger.leave()]);
+    await Promise.all([ca.leave(), cb.leave()]);
   });
 
   it('players far apart wait until their window has widened enough', async () => {

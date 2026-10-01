@@ -53,11 +53,21 @@ async function simulate(store: MatchQueueStore) {
   const matchmaker = new Matchmaker(store);
   const pairs: { a: QueueEntry; b: QueueEntry; at: number }[] = [];
 
+  const waiting = new Set<string>();
   for (let now = 0; now <= 300_000 && pairs.length < 25; now += 1_000) {
-    for (const p of players.filter((x) => x.joinedAt === now)) await matchmaker.join(p);
-    for (const [a, b] of await matchmaker.tick(now)) pairs.push({ a, b, at: now });
+    for (const p of players.filter((x) => x.joinedAt === now)) {
+      await matchmaker.join(p, now);
+      waiting.add(p.userId);
+    }
+    // Like the queue room: everyone still connected is seen every tick (S5-02 stale pruning).
+    await store.touch([...waiting], now);
+    for (const [a, b] of await matchmaker.tick(now)) {
+      pairs.push({ a, b, at: now });
+      waiting.delete(a.userId);
+      waiting.delete(b.userId);
+    }
   }
-  return { players, pairs, left: await store.all() };
+  return { players, pairs, left: (await store.all()).map((e) => e.userId) };
 }
 
 function checkSimulation({ players, pairs, left }: Awaited<ReturnType<typeof simulate>>) {
@@ -86,7 +96,7 @@ describe('Done when: 50 simulated players are all paired within the widening rul
     const redis = new Redis(redisUrl ?? '');
     afterAll(() => redis.quit());
     it('the same in a Redis sorted set', async () => {
-      await redis.del('mm:queue', 'mm:joined');
+      await redis.del('mm:queue', 'mm:joined', 'mm:seen');
       checkSimulation(await simulate(new RedisMatchQueue(redis)));
     });
   });

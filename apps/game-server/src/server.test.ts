@@ -1,12 +1,12 @@
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
 import { DEV_JWT_SECRET, signAccessToken, signingKey } from '@mathgo/auth';
-import { BATTLE_ROOM, PROTOCOL_VERSION } from '@mathgo/protocol';
+import { PROTOCOL_VERSION } from '@mathgo/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
-import { testDeps } from './test-deps.js';
+import { openBattle, testDeps } from './test-deps.js';
 
 const now = new Date('2026-11-09T10:00:00Z');
 const key = signingKey(DEV_JWT_SECRET);
@@ -34,7 +34,7 @@ const token = async (online = true, at = now, secret = key) =>
 /** What the app sees when a join is refused: the status and the protocol error code. */
 async function refusal(options: unknown) {
   try {
-    const room = await colyseus.sdk.joinOrCreate(BATTLE_ROOM, options as object);
+    const room = await colyseus.sdk.joinById(await openBattle(colyseus), options as object);
     await room.leave();
     return 'joined';
   } catch (error) {
@@ -53,7 +53,7 @@ describe('GET /health', () => {
 
 describe('joining a battle room (S3-05)', () => {
   it('a current app with a valid adult token joins', async () => {
-    const room = await colyseus.sdk.joinOrCreate(BATTLE_ROOM, {
+    const room = await colyseus.sdk.joinById(await openBattle(colyseus), {
       protocolVersion: PROTOCOL_VERSION,
       token: await token(),
     });

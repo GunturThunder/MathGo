@@ -65,6 +65,8 @@ export const id = {
     'room-full': 'Ruangan itu sudah penuh.',
     'room-expired': 'Kode itu sudah kedaluwarsa. Minta kode baru.',
     'rate-limited': 'Terlalu cepat! Tunggu sebentar.',
+    'already-queued': 'Kamu sudah mencari lawan di perangkat lain.',
+    'already-in-match': 'Kamu masih di tengah pertarungan. Kembali ke pertarungan itu.',
     'invalid-message': 'Terjadi kesalahan. Coba lagi.',
   },
 };

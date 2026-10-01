@@ -1,3 +1,4 @@
+import { BATTLE_ROOM } from '@mathgo/protocol';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { MemoryMatchQueue } from './matchmaking/queue-store.js';
@@ -12,4 +13,15 @@ export function testDeps(overrides: Partial<ServerDeps> = {}): ServerDeps {
     trophies: async () => 0,
     ...overrides,
   };
+}
+
+/**
+ * Opens a battle room the way the server does (clients cannot, S5-02) and returns its id, for
+ * tests that are not about matchmaking.
+ */
+export async function openBattle(
+  colyseus: { createRoom: (name: string, options: object) => Promise<{ roomId: string }> },
+  mode: 'ranked' | 'invite' = 'ranked',
+): Promise<string> {
+  return (await colyseus.createRoom(BATTLE_ROOM, { mode })).roomId;
 }

@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "test": "vitest run --passWithNoTests",
     "loadtest": "node dist/loadtest/run.js",
-    "loadtest:ui": "node dist/loadtest/colyseus.js --room battle"
+    "loadtest:ui": "node dist/loadtest/colyseus.js --room queue"
   },
   "devDependencies": {
     "@colyseus/loadtest": "0.18.3",

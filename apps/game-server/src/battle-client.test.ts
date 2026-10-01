@@ -7,7 +7,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
-import { testDeps } from './test-deps.js';
+import { openBattle, testDeps } from './test-deps.js';
 
 // The app's battle client (packages/battle-client) against the real BattleRoom.
 let colyseus: ColyseusTestServer;
@@ -29,11 +29,12 @@ afterAll(async () => {
 const tokenFor = async (userId: string, at = new Date()) =>
   (await signAccessToken({ userId, online: true }, key, at)).token;
 
-async function player(userId: string) {
+async function player(userId: string, roomId: string) {
   const inbox: ServerMessage[] = [];
   const connection = await joinBattle(
     { endpoint, getToken: () => tokenFor(userId) },
     { onMessage: (m) => inbox.push(m) },
+    roomId,
   );
   return { inbox, connection };
 }
@@ -45,8 +46,9 @@ const until = async (check: () => boolean) => {
 
 describe('@mathgo/battle-client against BattleRoom (S3-11)', () => {
   it('Done when: the client joins a BattleRoom and receives questions', async () => {
-    const alice = await player('alice');
-    const bob = await player('bob');
+    const roomId = await openBattle(colyseus);
+    const alice = await player('alice', roomId);
+    const bob = await player('bob', roomId);
     expect(bob.connection.roomId).toBe(alice.connection.roomId);
 
     const questionsOf = (inbox: ServerMessage[]) =>
@@ -69,6 +71,7 @@ describe('@mathgo/battle-client against BattleRoom (S3-11)', () => {
     const error = await joinBattle(
       { endpoint, getToken: async () => 'garbage' },
       { onMessage: () => undefined },
+      await openBattle(colyseus),
     ).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(JoinError);
     expect((error as JoinError).code).toBe('invalid-token');
@@ -87,6 +90,7 @@ describe('@mathgo/battle-client against BattleRoom (S3-11)', () => {
         },
       },
       { onMessage: () => undefined },
+      await openBattle(colyseus),
     );
     expect(calls).toEqual([false, true]);
     await connection.leave();
@@ -96,6 +100,7 @@ describe('@mathgo/battle-client against BattleRoom (S3-11)', () => {
     const error = await joinBattle(
       { endpoint: 'ws://localhost:1', getToken: () => tokenFor('dave') },
       { onMessage: () => undefined },
+      'any-room',
     ).catch((e: unknown) => e);
     expect((error as JoinError).code).toBe('connection-failed');
   });

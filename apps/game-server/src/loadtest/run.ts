@@ -5,7 +5,7 @@
 import { execFile } from 'node:child_process';
 import { writeFile } from 'node:fs/promises';
 import { parseArgs, promisify } from 'node:util';
-import { LoadStats, runBot } from './bot-client.js';
+import { guestToken, LoadStats, runBot } from './bot-client.js';
 
 const run = promisify(execFile);
 
@@ -13,10 +13,8 @@ const { values: args } = parseArgs({
   options: {
     battles: { type: 'string', default: '200' },
     endpoint: { type: 'string', default: 'ws://127.0.0.1:2567' },
-    secret: {
-      type: 'string',
-      default: process.env['JWT_SECRET'] ?? 'local-compose-jwt-secret-not-for-production',
-    },
+    /** The api, for one guest account per bot (the queue looks up real trophies). */
+    api: { type: 'string', default: 'http://127.0.0.1:3000' },
     container: { type: 'string' },
     /** Spread the joins out: one new client every this many ms. */
     stagger: { type: 'string', default: '10' },
@@ -61,12 +59,13 @@ const percentile = (sorted: number[], p: number) =>
     ? 0
     : (sorted[Math.min(sorted.length - 1, Math.floor((p / 100) * sorted.length))] ?? 0);
 
+const tokens: string[] = [];
+for (let i = 0; i < battles * 2; i++) tokens.push(await guestToken(args.api));
+
 const started = Date.now();
 const bots: Promise<void>[] = [];
-for (let i = 0; i < battles * 2; i++) {
-  bots.push(
-    runBot({ endpoint: args.endpoint, userId: `loadtest-${i}`, secret: args.secret, stats }),
-  );
+for (const token of tokens) {
+  bots.push(runBot({ endpoint: args.endpoint, token, stats }));
   await new Promise((r) => setTimeout(r, Number(args.stagger)));
 }
 await Promise.all(bots);
