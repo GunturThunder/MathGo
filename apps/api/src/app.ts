@@ -5,6 +5,7 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { registerAuthRoutes } from './auth.js';
 import type { Config } from './config.js';
 import { registerErrorHandlers } from './errors.js';
+import { registerEventRoutes } from './events.js';
 import { registerNicknameRoutes } from './nickname-routes.js';
 
 export interface AppDeps {
@@ -41,6 +42,7 @@ export function buildApp(config: Config, { db, now = () => new Date() }: AppDeps
   const auth = { db, key: signingKey(config.JWT_SECRET), now };
   registerAuthRoutes(app, auth);
   registerNicknameRoutes(app, auth);
+  registerEventRoutes(app, auth);
 
   return app;
 }
