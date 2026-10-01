@@ -1,7 +1,8 @@
 import { randomBytes } from 'node:crypto';
 import type { AccessClaims, SigningKey } from '@mathgo/auth';
-import { Room, ServerError, type AuthContext, type Client } from '@colyseus/core';
+import { Room, ServerError, type AuthContext, type Client, type Delayed } from '@colyseus/core';
 import type { QuestionLevel, Seat } from '@mathgo/game-core';
+import { parseClientMessage } from '@mathgo/protocol';
 import { BattleSession, type Outgoing } from './battle-session.js';
 import { authorizeJoin, JoinRefused } from './join.js';
 import type { InviteStore } from './invites.js';
@@ -35,6 +36,9 @@ interface PlayerData {
 
 const otherSeat = (seat: Seat): Seat => (seat === 0 ? 1 : 0);
 
+const newSession = () => new BattleSession(randomBytes(4).readUInt32BE(0), DEFAULT_LEVEL);
+const newLimiter = () => new RateLimiter<Seat>(ANSWER_RATE_LIMIT.max, ANSWER_RATE_LIMIT.windowMs);
+
 /**
  * A 1v1 battle. The seed is drawn here and never leaves the server; players get question text
  * only. The battle clock starts when the second seat is taken.
@@ -57,11 +61,12 @@ export class BattleRoom extends Room {
 
   override maxClients = 2;
 
-  private readonly session = new BattleSession(randomBytes(4).readUInt32BE(0), DEFAULT_LEVEL);
-  private readonly limiter = new RateLimiter<Seat>(
-    ANSWER_RATE_LIMIT.max,
-    ANSWER_RATE_LIMIT.windowMs,
-  );
+  /** The current battle; a rematch replaces it with a new one (new secret seed). */
+  private session = newSession();
+  private limiter = newLimiter();
+  private endTimer: Delayed | null = null;
+  /** Seats that said "play again" after the last battle (S4-05). */
+  private readonly rematch = new Set<Seat>();
   /** Ranked rooms come from matchmaking (S5-01); invite rooms from POST /invites (S4-02). */
   private mode: 'ranked' | 'invite' = 'ranked';
   private startedAt: number | null = null;
@@ -111,12 +116,47 @@ export class BattleRoom extends Room {
     this.dispatch(this.session.welcome(seat));
 
     if (this.clients.length === this.maxClients && this.startedAt === null) {
-      this.startedAt = BattleRoom.now().getTime();
-      this.dispatch(this.session.start());
-      // End on time even if nobody answers.
-      this.clock.setTimeout(() => {
-        this.dispatch(this.session.tick(this.session.battle.rules.durationMs));
-      }, this.session.battle.rules.durationMs);
+      this.beginBattle();
+    }
+  }
+
+  /** Starts the clock of the current session and sends both players their first questions. */
+  private beginBattle() {
+    this.startedAt = BattleRoom.now().getTime();
+    this.lastAt = 0;
+    this.recorded = null;
+    this.dispatch(this.session.start());
+    // End on time even if nobody answers; a previous battle's timer must not end this one.
+    this.endTimer?.clear();
+    const session = this.session;
+    this.endTimer = this.clock.setTimeout(() => {
+      this.dispatch(session.tick(session.battle.rules.durationMs));
+    }, session.battle.rules.durationMs);
+  }
+
+  /**
+   * "Play again?" after a battle in an invite room (S4-05). Both players see each answer; when
+   * both accept, a new battle starts in the same room, so the same code keeps working.
+   */
+  private handleRematch(client: Client, player: PlayerData, type: string, payload: unknown) {
+    const parsed = parseClientMessage(type, payload);
+    const error = (detail: string) => client.send('error', { code: 'invalid-message', detail });
+    if (!parsed.ok || parsed.message.type !== 'rematch')
+      return error(parsed.ok ? 'not a rematch' : parsed.error);
+    if (this.mode !== 'invite') return error('rematches are for invite rooms');
+    if (this.running || this.startedAt === null) return error('the battle has not ended');
+
+    if (parsed.message.payload.accept) this.rematch.add(player.seat);
+    else this.rematch.delete(player.seat);
+    this.broadcast('rematch', { seat: player.seat, accepted: parsed.message.payload.accept });
+    this.touchInvite();
+
+    if (this.rematch.size === this.maxClients && this.clients.length === this.maxClients) {
+      this.rematch.clear();
+      this.session = newSession();
+      this.limiter = newLimiter();
+      this.dispatch([...this.session.welcome(0), ...this.session.welcome(1)]);
+      this.beginBattle();
     }
   }
 
@@ -181,6 +221,10 @@ export class BattleRoom extends Room {
     const player = client.userData as PlayerData | undefined;
     if (player === undefined || this.startedAt === null) {
       return; // Nothing to answer before both players are in.
+    }
+    if (type === 'rematch') {
+      this.handleRematch(client, player, type, payload);
+      return;
     }
     const at = this.battleTime();
     if (!this.limiter.allow(player.seat, at)) {
