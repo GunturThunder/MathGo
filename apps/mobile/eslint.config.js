@@ -17,4 +17,10 @@ export default defineConfig([
       ],
     },
   },
+  {
+    // Metro loads its config with require().
+    files: ['*.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
 ]);

@@ -77,7 +77,7 @@ Goal: `api` and `game-server` run in Docker Compose, a guest can sign in, and th
 | S3-08 | First-launch flow: language, birth-year picker, nickname choice | Mobile | 2 | S2-13, S3-03 | A new player reaches Home in 3 taps after the birth year | Not started |
 | S3-09 | Under-18 mode: practice vs bot only; online buttons open "Ask a parent" | Mobile | 1 | S3-08 | No network call to battle services is made for under-18 players | Not started |
 | S3-10 | API client: TanStack Query, token in MMKV, automatic refresh on 401 | Mobile | 1.5 | S3-02 | Token survives app restart; refresh is invisible to the player | In progress |
-| S3-11 | Colyseus client wrapper: connect with JWT, join by room id, typed messages from `protocol`, reconnect hooks | Mobile | 2 | S3-05 | App joins a test BattleRoom and receives questions | Not started |
+| S3-11 | Colyseus client wrapper: connect with JWT, join by room id, typed messages from `protocol`, reconnect hooks | Mobile | 2 | S3-05 | App joins a test BattleRoom and receives questions | In progress |
 | S3-12 | Battle screen reads from either the local engine (practice) or server state (online), same UI | Mobile | 2 | S3-11, S2-10 | One online battle plays end to end between two dev phones | Not started |
 | S3-13 | Choose a WhatsApp/SMS OTP provider for parent codes; start sender registration | Product | 1 | – | Provider account and test sender ready for Sprint 5 | Not started |
 | S3-14 | Draft privacy policy and terms (Bahasa Indonesia and English) covering UU PDP and PP Tunas | Product | 2 | – | Drafts sent to the local lawyer | Not started |
