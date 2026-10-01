@@ -45,6 +45,23 @@ adb logcat -s ReactNativeJS | grep S1-08
 # [S1-08] PASS engine=hermes seed=1592598566 expected=0c4a6ee6 actual=0c4a6ee6
 ```
 
+## Talk to the local backend (S3-10)
+
+Start the backend with `docker compose up -d --wait` at the repo root. Then let the phone reach it
+over USB:
+
+```sh
+adb reverse tcp:3000 tcp:3000   # api
+adb reverse tcp:2567 tcp:2567   # game-server
+```
+
+The app calls `http://localhost:3000` unless `EXPO_PUBLIC_API_URL` is set when Metro starts (e.g.
+`EXPO_PUBLIC_API_URL=http://192.168.1.20:3000 pnpm --filter @mathgo/mobile start` over Wi-Fi).
+
+To check that the session survives a restart: Settings → "Daring (dev)" (dev builds only) →
+**Buat akun tamu**. Note the name, close the app completely, open it again: Settings shows the same
+name. Tokens refresh on their own every 15 minutes.
+
 ## Without USB: EAS cloud build
 
 ```sh
