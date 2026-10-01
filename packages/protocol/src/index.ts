@@ -32,6 +32,9 @@ export const answerRequest = z.strictObject({
   value: z.number().int().min(-99_999).max(99_999),
 });
 
+/** After a battle in an invite room: play again (accept) or not (S4-05). */
+export const rematchRequest = z.strictObject({ accept: z.boolean() });
+
 // Server → client.
 
 /** Reply to a join: which seat is yours and what the battle plays. */
@@ -96,6 +99,12 @@ export const presence = z.strictObject({
   reconnectBy: battleMs.optional(),
 });
 
+/**
+ * A player's answer to "play again?", sent to both players (S4-13). When both have accepted, a
+ * new battle starts in the same room: `joined` again, then its first questions.
+ */
+export const rematchUpdate = z.strictObject({ seat, accepted: z.boolean() });
+
 const battleResult = z.discriminatedUnion('outcome', [
   z.strictObject({
     outcome: z.literal('win'),
@@ -149,6 +158,7 @@ export const errorMessage = z.strictObject({
 /** Message names for `room.send(type, …)` and `room.onMessage(type, …)`. */
 export const clientMessages = {
   answer: answerRequest,
+  rematch: rematchRequest,
 } as const;
 
 export const serverMessages = {
@@ -157,6 +167,7 @@ export const serverMessages = {
   state: stateUpdate,
   end: battleEnd,
   presence,
+  rematch: rematchUpdate,
   error: errorMessage,
 } as const;
 
@@ -167,6 +178,7 @@ export type QuestionBatch = z.infer<typeof questionBatch>;
 export type StateUpdate = z.infer<typeof stateUpdate>;
 export type BattleEnd = z.infer<typeof battleEnd>;
 export type Presence = z.infer<typeof presence>;
+export type RematchUpdate = z.infer<typeof rematchUpdate>;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 export type ErrorMessage = z.infer<typeof errorMessage>;
 

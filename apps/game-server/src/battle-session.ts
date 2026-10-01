@@ -88,14 +88,13 @@ export class BattleSession {
     return [...this.topUpQuestions(0), ...this.topUpQuestions(1)];
   }
 
+  /** A player's answer. Other client messages (rematch) belong to the room, not the battle. */
   receive(seat: Seat, type: string, payload: unknown, at: number): Outgoing[] {
     const parsed = parseClientMessage(type, payload);
-    if (!parsed.ok) {
+    if (!parsed.ok || parsed.message.type !== 'answer') {
+      const detail = parsed.ok ? `"${type}" is not part of a battle` : parsed.error;
       return [
-        {
-          to: seat,
-          message: { type: 'error', payload: { code: 'invalid-message', detail: parsed.error } },
-        },
+        { to: seat, message: { type: 'error', payload: { code: 'invalid-message', detail } } },
       ];
     }
     const { questionIndex, value } = parsed.message.payload;

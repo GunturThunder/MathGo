@@ -95,7 +95,7 @@ Goal: two friends battle online with a 6-character code by Nov 20 (week 7), and 
 | S4-02 | Invite rooms: create a 6-character code (no 0, O, 1, I, L), Redis `code → roomId` with a 10-minute idle TTL, join by code, no trophies | Backend | 1.5 | S3-06 | A friend joins by code; an expired code gives a clear error | Done |
 | S4-03 | Match end: write `matches` and `match_answers` (with per-answer latency) to Postgres | Backend | 1 | S4-01 | Every finished battle has one match row and one row per answer | Done |
 | S4-04 | Reconnect (FR-07): `allowReconnection` for 15 s, battle keeps running, forfeit after 15 s or on quit | Backend | 1.5 | S4-01 | Airplane mode for 10 s resumes; 20 s ends as a loss | Done |
-| S4-05 | Rematch in an invite room: the same room stays open; starts when both accept | Backend | 0.5 | S4-02 | Two rematches in a row work without a new code | Not started |
+| S4-05 | Rematch in an invite room: the same room stays open; starts when both accept | Backend | 0.5 | S4-02 | Two rematches in a row work without a new code | Done |
 | S4-06 | Anti-cheat basics: answers-per-second limit; flag answers under 300 ms in the match record | Backend | 1 | S4-03 | Scripted fast answers are rate-limited and flagged | Done |
 | S4-07 | Load test with the Colyseus loadtest tool: 200 concurrent bot battles on a VPS-sized machine | Backend | 1 | S4-04 | CPU, memory and round-trip times recorded; no dropped rooms | Not started |
 | S4-08 | Create room screen: show the code, share sheet, waiting for friend | Mobile | 1.5 | S4-02 | Code shared through WhatsApp from the share sheet | Not started |

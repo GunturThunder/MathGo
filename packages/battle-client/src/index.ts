@@ -42,6 +42,8 @@ export interface BattleHandlers {
 export interface BattleConnection {
   readonly roomId: string;
   sendAnswer(questionIndex: number, value: number): void;
+  /** After a battle in an invite room: play again or not (S4-05). */
+  requestRematch(accept: boolean): void;
   leave(): Promise<void>;
 }
 
@@ -97,6 +99,7 @@ export async function joinBattle(
   return {
     roomId: room.roomId,
     sendAnswer: (questionIndex, value) => room.send('answer', { questionIndex, value }),
+    requestRematch: (accept) => room.send('rematch', { accept }),
     leave: async () => {
       await room.leave(true);
     },
