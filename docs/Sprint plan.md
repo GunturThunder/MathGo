@@ -151,7 +151,7 @@ Goal: every P0 requirement is live on the production VPS, and closed-beta tester
 | S6-12 | Store listing in Bahasa Indonesia and English: screenshots, description, "MathGo Battle" name | Product | 1 | S6-10 | Listings saved as drafts in both consoles | Not started |
 | S6-13 | Store compliance: Play Data safety and Families forms, App Store privacy labels, privacy policy published | Product | 1 | S5-12 | Both consoles accept the forms | Not started |
 | S6-14 | Submit the IGRS age-rating application | Product | 0.5 | S4-15 | Submission reference recorded in the PRD | Not started |
-| S6-15 | Success-metric queries on the `events` table: D1/D7 retention, queue wait, invite join rate, disconnects, parent unlock rate | Product + Backend | 1 | S6-02 | Each PRD metric has a saved query | Not started |
+| S6-15 | Success-metric queries on the `events` table: D1/D7 retention, queue wait, invite join rate, disconnects, parent unlock rate | Product + Backend | 1 | S6-02 | Each PRD metric has a saved query | Done |
 | S6-16 | Closed-beta kickoff: invite testers, feedback form, daily triage | Product | 1 | S6-10, S5-13 | At least 30 testers have played a battle by Dec 24 | Not started |
 
 Load: Backend 8 days, Mobile 6 days, Product 4.5 days.
