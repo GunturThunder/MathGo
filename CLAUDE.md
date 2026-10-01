@@ -10,6 +10,8 @@ A 1v1 mobile math battle game: each correct answer attacks the opponent. TypeScr
 
 The docs are exported from the online "MathGo — PRD" doc (https://claude.ai/artifact/WPu88KL124128V27Tp8eef), which is the source of truth. Don't edit them here, except the Status column of `docs/Sprint plan.md` (see below). If a task conflicts with the docs, stop and ask.
 
+The app's design lives on the online "Math Battle UI" canvas (https://claude.ai/artifact/5NoACzFATY1J1PzAHSacLg): every screen plus the Visual language board (colours, type, components). The game's player-facing name is MathBattle. `docs/Math Battle UI.html` is an export of the approved screens; boards titled "(draft)" are not approved yet. Theme values in `apps/mobile/src/theme` come from the Visual language board; screens use only those tokens.
+
 ## Layout
 
 | Path                     | What                                                                                                                                   |
