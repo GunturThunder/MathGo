@@ -29,6 +29,16 @@ jobs:
           --health-interval 2s
           --health-timeout 3s
           --health-retries 30
+      # Invite codes (game-server); the Redis tests run when REDIS_URL is set.
+      redis:
+        image: redis:8.8.3-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 30
     steps:
       - uses: actions/checkout@v4
 
@@ -51,6 +61,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+        env:
+          REDIS_URL: redis://localhost:6379
       - run: pnpm build
       - run: pnpm db:migrate
         env:

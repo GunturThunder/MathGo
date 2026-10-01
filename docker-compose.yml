@@ -68,8 +68,12 @@ services:
     environment:
       # Must match the api's, which signs the tokens game-server checks.
       JWT_SECRET: ${JWT_SECRET:-local-compose-jwt-secret-not-for-production}
+      REDIS_URL: redis://redis:6379
     ports:
       - '127.0.0.1:${GAME_SERVER_PORT:-2567}:2567'
+    depends_on:
+      redis:
+        condition: service_healthy
 
 volumes:
   postgres-data:

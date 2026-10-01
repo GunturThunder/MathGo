@@ -92,7 +92,7 @@ Goal: two friends battle online with a 6-character code by Nov 20 (week 7), and 
 | ID | Task | Owner | Days | Needs | Done when | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | S4-01 | Battle rules on the server with the `game-core` engine: damage, speed bonus from the server clock, combo, wrong-answer lock, 90 s timer, KO and draw | Backend | 1.5 | S3-06 | Server state matches the engine's unit tests for a scripted battle | Done |
-| S4-02 | Invite rooms: create a 6-character code (no 0, O, 1, I, L), Redis `code → roomId` with a 10-minute idle TTL, join by code, no trophies | Backend | 1.5 | S3-06 | A friend joins by code; an expired code gives a clear error | Not started |
+| S4-02 | Invite rooms: create a 6-character code (no 0, O, 1, I, L), Redis `code → roomId` with a 10-minute idle TTL, join by code, no trophies | Backend | 1.5 | S3-06 | A friend joins by code; an expired code gives a clear error | Done |
 | S4-03 | Match end: write `matches` and `match_answers` (with per-answer latency) to Postgres | Backend | 1 | S4-01 | Every finished battle has one match row and one row per answer | Not started |
 | S4-04 | Reconnect (FR-07): `allowReconnection` for 15 s, battle keeps running, forfeit after 15 s or on quit | Backend | 1.5 | S4-01 | Airplane mode for 10 s resumes; 20 s ends as a loss | Not started |
 | S4-05 | Rematch in an invite room: the same room stays open; starts when both accept | Backend | 0.5 | S4-02 | Two rematches in a row work without a new code | Not started |

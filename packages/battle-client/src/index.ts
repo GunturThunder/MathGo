@@ -102,3 +102,54 @@ export async function joinBattle(
     },
   };
 }
+
+/** game-server's HTTP address, from its WebSocket one (ws → http, wss → https). */
+export function httpBase(endpoint: string): string {
+  return endpoint.replace(/^ws(s?):\/\//, 'http$1://');
+}
+
+export interface Invite {
+  readonly code: string;
+  readonly roomId: string;
+  /** ISO time; the code stays alive while the room is used. */
+  readonly expiresAt: string;
+}
+
+async function errorCodeOf(res: Response): Promise<ErrorCode | 'connection-failed'> {
+  const body = (await res.json().catch(() => null)) as { code?: unknown } | null;
+  return isErrorCode(body?.code) ? body.code : 'connection-failed';
+}
+
+/** Creates a private battle room for a friend to join by code (S4-08). */
+export async function createInvite(options: BattleClientOptions): Promise<Invite> {
+  const post = async (forceRefresh: boolean) =>
+    fetch(`${httpBase(options.endpoint)}/invites`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${await options.getToken(forceRefresh)}` },
+    }).catch(() => null);
+  let res = await post(false);
+  if (res !== null && res.status === 401 && (await errorCodeOf(res.clone())) === 'token-expired') {
+    res = await post(true);
+  }
+  if (res === null) throw new JoinError('connection-failed');
+  if (!res.ok) throw new JoinError(await errorCodeOf(res), res.status);
+  return (await res.json()) as Invite;
+}
+
+/**
+ * Joins a friend's room by its 6-character code (S4-09). An unknown or expired code throws
+ * JoinError `room-not-found` / `room-expired`.
+ */
+export async function joinByCode(
+  options: BattleClientOptions,
+  handlers: BattleHandlers,
+  code: string,
+): Promise<BattleConnection> {
+  const res = await fetch(
+    `${httpBase(options.endpoint)}/invites/${encodeURIComponent(code.trim().toUpperCase())}`,
+  ).catch(() => null);
+  if (res === null) throw new JoinError('connection-failed');
+  if (!res.ok) throw new JoinError(await errorCodeOf(res), res.status);
+  const { roomId } = (await res.json()) as { roomId: string };
+  return joinBattle(options, handlers, roomId);
+}
