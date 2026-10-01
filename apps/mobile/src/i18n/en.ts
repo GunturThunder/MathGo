@@ -2,7 +2,7 @@ import type { Translation } from './types';
 
 export const en: Translation = {
   app: {
-    name: 'MathGo',
+    name: 'MathBattle',
   },
   home: {
     battle: 'Battle',
@@ -58,7 +58,8 @@ export const en: Translation = {
     firstQuestion: 'First question: {{value}}',
   },
   errors: {
-    'update-required': 'This version of the app is out of date. Update MathGo to battle online.',
+    'update-required':
+      'This version of the app is out of date. Update MathBattle to battle online.',
     'invalid-token': 'Your session ended. Reopen the app and try again.',
     'token-expired': 'Your session needs refreshing. Try again.',
     'consent-required': 'Ask a parent to unlock online battles.',

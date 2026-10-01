@@ -4,7 +4,7 @@ import { DEFAULT_LANGUAGE, i18n } from './i18n';
 const APP_DIR = './src/app';
 const ROUTES = ['/', '/battle', '/practice', '/settings'];
 /** The same in both languages: the brand, and language names written in their own language. */
-const SAME_IN_EVERY_LANGUAGE = new Set(['MathGo', 'Bahasa Indonesia', 'English']);
+const SAME_IN_EVERY_LANGUAGE = new Set(['MathBattle', 'Bahasa Indonesia', 'English']);
 
 /** The shape of `screen.toJSON()`. */
 type Node = string | { type: string; children: Node[] | null };

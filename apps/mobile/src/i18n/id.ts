@@ -1,7 +1,7 @@
 // Bahasa Indonesia: the default language and the source of the translation keys.
 export const id = {
   app: {
-    name: 'MathGo',
+    name: 'MathBattle',
   },
   home: {
     battle: 'Bertarung',
@@ -57,7 +57,7 @@ export const id = {
     firstQuestion: 'Soal pertama: {{value}}',
   },
   errors: {
-    'update-required': 'Versi aplikasi ini sudah lama. Perbarui MathGo untuk bertarung online.',
+    'update-required': 'Versi aplikasi ini sudah lama. Perbarui MathBattle untuk bertarung online.',
     'invalid-token': 'Sesi kamu berakhir. Buka ulang aplikasi lalu coba lagi.',
     'token-expired': 'Sesi kamu perlu diperbarui. Coba lagi.',
     'consent-required': 'Minta orang tua untuk membuka pertarungan online.',

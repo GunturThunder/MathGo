@@ -24,7 +24,7 @@ Goal: the monorepo builds in CI, and `game-core` produces valid questions for al
 | S1-04 | Expo app with dev builds and expo-router; Metro set up to resolve monorepo packages | Mobile | 1.5 | S1-01 | Dev build runs on one Android and one iOS device and imports `game-core` | Blocked |
 | S1-05 | App shell: Home, Practice, Battle, Settings placeholder screens and navigation | Mobile | 1.5 | S1-04 | Every screen is reachable from Home | Done |
 | S1-06 | i18n: Bahasa Indonesia default, English second; all strings in translation files | Mobile | 1 | S1-04 | Switching language in Settings changes every string | Done |
-| S1-07 | Theme tokens from the design (colours, type, spacing, radii) | Mobile | 1 | S1-15 | Screens use tokens only, no raw colour values | Not started |
+| S1-07 | Theme tokens from the design (colours, type, spacing, radii) | Mobile | 1 | S1-15 | Screens use tokens only, no raw colour values | In progress |
 | S1-08 | `game-core`: seeded RNG keyed by match seed + question number | Backend | 0.5 | S1-01 | Same seed gives the same sequence in Node and in the app (Hermes) | Done |
 | S1-09 | `game-core`: arena table (trophy ranges, terms, operators, number ranges, answer limits) | Backend | 0.5 | S1-01 | Table matches the PRD's "Rules per arena" | Done |
 | S1-10 | `game-core`: N\_max difficulty formula; the lower trophy count sets T when arenas differ | Backend | 0.5 | S1-09 | Unit tests at p = 0, 0.5 and 1 for each arena | Done |
@@ -32,7 +32,7 @@ Goal: the monorepo builds in CI, and `game-core` produces valid questions for al
 | S1-12 | `game-core`: question generator for arenas 1–3, with safety rules and redraw | Backend | 2 | S1-08, S1-10, S1-11 | Generates the PRD examples' shapes for each arena | Done |
 | S1-13 | `game-core`: arenas 4–5 (brackets, squares, square roots of perfect squares, negatives) | Backend | 2 | S1-12 | Generates the PRD examples' shapes for arenas 4 and 5 | Done |
 | S1-14 | Property tests (fast-check), 10,000 seeds per arena: whole answers, within the limit, no negatives before arena 5, deterministic | Backend | 1 | S1-13 | All properties pass in CI | Done |
-| S1-15 | Design: visual language (shapes, colours, hit effects), battle screen and keypad | Product | 5 | – | Mockups approved and handed to Mobile by Oct 12 | Not started |
+| S1-15 | Design: visual language (shapes, colours, hit effects), battle screen and keypad | Product | 5 | – | Mockups approved and handed to Mobile by Oct 12 | Done |
 | S1-16 | Trademark search for "MathGo" in PDKI | Product | 0.5 | – | Result recorded in the PRD's open questions | Not started |
 
 Load: Backend 8.5 days, Mobile 6.5 days, Product 5.5 days.
@@ -55,7 +55,7 @@ Goal: a full battle against the bot, playable offline on a phone by Oct 30 (week
 | S2-10 | Practice vs bot mode: the local `game-core` engine and bot drive the battle screen; clearly labelled, no trophies | Mobile | 1 | S2-01, S2-02, S2-09 | A full 90 s battle plays offline in airplane mode | Not started |
 | S2-11 | Result screen: win, lose or draw, correct answers, best combo | Mobile | 1 | S2-10 | Shown after every battle, with Play again and Home | Not started |
 | S2-12 | Performance pass on a mid-range Android phone | Mobile | 0.5 | S2-09 | 60 fps during hits, measured with the performance monitor | Not started |
-| S2-13 | Design: Home, matchmaking, create and join room, result, birth-year check and parent consent screens | Product | 4 | S1-15 | Mockups approved and handed to Mobile by Oct 30 | Not started |
+| S2-13 | Design: Home, matchmaking, create and join room, result, birth-year check and parent consent screens | Product | 4 | S1-15 | Mockups approved and handed to Mobile by Oct 30 | In progress |
 | S2-14 | Playtest with 8–10 people (kids 6–12, teens, adults); record how long battles last and what confused them | Product | 1.5 | S2-11 | Notes shared with the team by Oct 29 | Not started |
 | S2-15 | Fun gate (Oct 30): keep or tune HP, damage, timer and arena ranges in `game-core` | Product + Backend | 0.5 | S2-14 | Decision and any new values recorded in the PRD | Not started |
 

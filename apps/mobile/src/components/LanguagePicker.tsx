@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LANGUAGES, LANGUAGE_NAMES } from '../i18n';
+import { colors, radii, sizes, space, typography } from '../theme';
 
 export function LanguagePicker() {
   const { t, i18n } = useTranslation();
@@ -29,17 +30,18 @@ export function LanguagePicker() {
 }
 
 const styles = StyleSheet.create({
-  section: { gap: 8 },
-  heading: { fontSize: 16, fontWeight: '600' },
+  section: { gap: space.sm },
+  heading: { ...typography.cardTitle, color: colors.ink },
   option: {
-    minHeight: 48,
+    minHeight: sizes.touch + 4,
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    paddingHorizontal: space.lg,
+    borderRadius: radii.lg,
+    borderWidth: 2,
+    borderColor: colors.line,
+    backgroundColor: colors.white,
   },
-  selected: { backgroundColor: '#222', borderColor: '#222' },
-  label: { fontSize: 16 },
-  selectedLabel: { color: '#fff', fontWeight: '600' },
+  selected: { backgroundColor: colors.blue, borderColor: colors.blue },
+  label: { ...typography.bodyLarge, color: colors.ink },
+  selectedLabel: { color: colors.white },
 });

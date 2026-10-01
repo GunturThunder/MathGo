@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors, radii, shadows, sizes, space, typography } from '../theme';
 import { api } from '../api';
 import { meQueryKey, useMe } from '../api/queries';
 
@@ -22,7 +23,7 @@ export function OnlineDevCard() {
       <Text style={styles.title}>{t('online.title')}</Text>
       {session === null ? (
         <>
-          <Text>{t('online.signedOut')}</Text>
+          <Text style={styles.body}>{t('online.signedOut')}</Text>
           <Pressable
             style={styles.button}
             onPress={() => signUp.mutate()}
@@ -33,15 +34,15 @@ export function OnlineDevCard() {
         </>
       ) : (
         <>
-          <Text testID="online-nickname">
+          <Text testID="online-nickname" style={styles.body}>
             {t('online.nickname', { value: me.data?.nickname ?? session.user.nickname })}
           </Text>
-          <Text>
+          <Text style={styles.body}>
             {t('online.status', {
               value: (me.data ?? session.user).online ? t('online.yes') : t('online.no'),
             })}
           </Text>
-          <Text>
+          <Text style={styles.body}>
             {t('online.expires', {
               value: new Date(session.accessTokenExpiresAt).toLocaleTimeString(),
             })}
@@ -66,15 +67,25 @@ export function OnlineDevCard() {
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 6, padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#ccc' },
-  title: { fontWeight: '600' },
-  button: {
-    marginTop: 4,
-    padding: 12,
-    borderRadius: 10,
-    backgroundColor: '#222',
-    alignItems: 'center',
+  card: {
+    gap: space.sm,
+    padding: space.lg,
+    borderRadius: radii.xl,
+    backgroundColor: colors.white,
+    ...shadows.card,
   },
-  buttonLabel: { color: '#fff', fontWeight: '600' },
-  error: { color: '#cf222e' },
+  title: { ...typography.cardTitle, color: colors.ink },
+  body: { ...typography.body, color: colors.ink },
+  button: {
+    marginTop: space.xs,
+    minHeight: sizes.touch,
+    justifyContent: 'center',
+    padding: space.md,
+    borderRadius: radii.md,
+    backgroundColor: colors.blue,
+    alignItems: 'center',
+    ...shadows.raised(colors.blueBase, 4),
+  },
+  buttonLabel: { ...typography.button, color: colors.white },
+  error: { ...typography.body, color: colors.danger },
 });
