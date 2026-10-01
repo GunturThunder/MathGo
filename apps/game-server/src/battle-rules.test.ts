@@ -13,6 +13,7 @@ import type { ServerMessage } from '@mathgo/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { BattleSession } from './battle-session.js';
 import { loadConfig } from './config.js';
+import { MemoryInviteStore } from './invites.js';
 import { createServer } from './server.js';
 
 /**
@@ -24,7 +25,9 @@ let fakeNow = T0;
 let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
-  colyseus = await boot(createServer(loadConfig({}), () => new Date(fakeNow)));
+  colyseus = await boot(
+    createServer(loadConfig({}), new MemoryInviteStore(), () => new Date(fakeNow)),
+  );
 });
 afterAll(async () => {
   await colyseus.shutdown();

@@ -11,12 +11,13 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { BattleSession } from './battle-session.js';
 import { loadConfig } from './config.js';
+import { MemoryInviteStore } from './invites.js';
 import { createServer } from './server.js';
 
 let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
-  colyseus = await boot(createServer(loadConfig({})));
+  colyseus = await boot(createServer(loadConfig({}), new MemoryInviteStore()));
 });
 afterAll(async () => {
   await colyseus.shutdown();

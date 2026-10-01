@@ -4,6 +4,7 @@ import { joinBattle, JoinError, type BattleConnection } from '@mathgo/battle-cli
 import type { ServerMessage } from '@mathgo/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from './config.js';
+import { MemoryInviteStore } from './invites.js';
 import { createServer } from './server.js';
 
 // The app's battle client (packages/battle-client) against the real BattleRoom.
@@ -12,7 +13,7 @@ const endpoint = 'ws://localhost:2568'; // @colyseus/testing's port
 const key = signingKey(DEV_JWT_SECRET);
 
 beforeAll(async () => {
-  colyseus = await boot(createServer(loadConfig({})));
+  colyseus = await boot(createServer(loadConfig({}), new MemoryInviteStore()));
 });
 afterAll(async () => {
   await colyseus.shutdown();

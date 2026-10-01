@@ -4,6 +4,7 @@ import { Room, ServerError, type AuthContext, type Client } from '@colyseus/core
 import type { QuestionLevel, Seat } from '@mathgo/game-core';
 import { BattleSession, type Outgoing } from './battle-session.js';
 import { authorizeJoin, JoinRefused } from './join.js';
+import type { InviteStore } from './invites.js';
 import { RateLimiter } from './rate-limit.js';
 
 /** Answers per second per player before the rest are dropped (S4-06 adds speed flags). */
@@ -27,10 +28,16 @@ interface PlayerData {
 export class BattleRoom extends Room {
   private static key: SigningKey | undefined;
   private static now: () => Date = () => new Date();
+  private static invites: InviteStore | undefined;
 
-  /** Called once at startup with the key that checks access tokens (JWT_SECRET). */
-  static configure(key: SigningKey, now: () => Date = () => new Date()): void {
+  /** Called once at startup: the key that checks access tokens (JWT_SECRET) and the invite store. */
+  static configure(
+    key: SigningKey,
+    invites: InviteStore,
+    now: () => Date = () => new Date(),
+  ): void {
     BattleRoom.key = key;
+    BattleRoom.invites = invites;
     BattleRoom.now = now;
   }
 
@@ -41,6 +48,8 @@ export class BattleRoom extends Room {
     ANSWER_RATE_LIMIT.max,
     ANSWER_RATE_LIMIT.windowMs,
   );
+  /** Ranked rooms come from matchmaking (S5-01); invite rooms from POST /invites (S4-02). */
+  private mode: 'ranked' | 'invite' = 'ranked';
   private startedAt: number | null = null;
   /** Last battle time used; the engine needs time never to go backwards. */
   private lastAt = 0;
@@ -60,7 +69,16 @@ export class BattleRoom extends Room {
     }
   }
 
-  override onCreate() {
+  /**
+   * Only the server creates invite rooms (matchMaker.createRoom in POST /invites): clients' join
+   * options never pass the protocol schema with a `mode`, so they cannot ask for one.
+   */
+  override async onCreate(options?: { mode?: 'invite' }) {
+    if (options?.mode === 'invite') {
+      this.mode = 'invite';
+      // Random matchmaking must never fill an invite room; friends join it by id.
+      await this.setPrivate(true);
+    }
     this.onMessage('*', (client: Client, type: string | number, payload: unknown) => {
       this.receive(client, String(type), payload);
     });
@@ -70,6 +88,7 @@ export class BattleRoom extends Room {
     const taken = new Set(this.clients.map((c) => (c.userData as PlayerData | undefined)?.seat));
     const seat: Seat = taken.has(0) ? 1 : 0;
     client.userData = { userId: auth.userId, seat } satisfies PlayerData;
+    this.touchInvite();
     this.dispatch(this.session.welcome(seat));
 
     if (this.clients.length === this.maxClients && this.startedAt === null) {
@@ -80,6 +99,19 @@ export class BattleRoom extends Room {
         this.dispatch(this.session.tick(this.session.battle.rules.durationMs));
       }, this.session.battle.rules.durationMs);
     }
+  }
+
+  override onLeave() {
+    this.touchInvite();
+  }
+
+  override async onDispose() {
+    if (this.mode === 'invite') await BattleRoom.invites?.removeRoom(this.roomId);
+  }
+
+  /** Activity keeps an invite code alive (10-minute idle expiry). */
+  private touchInvite() {
+    if (this.mode === 'invite') void BattleRoom.invites?.touchRoom(this.roomId);
   }
 
   private receive(client: Client, type: string, payload: unknown) {

@@ -1,4 +1,6 @@
 import { loadConfig } from './config.js';
+import { Redis } from 'ioredis';
+import { RedisInviteStore } from './invites.js';
 import { createServer } from './server.js';
 
 let config;
@@ -10,4 +12,5 @@ try {
 }
 
 // Colyseus shuts down gracefully on SIGTERM/SIGINT by itself.
-await createServer(config).listen(config.PORT);
+const redis = new Redis(config.REDIS_URL);
+await createServer(config, new RedisInviteStore(redis)).listen(config.PORT);

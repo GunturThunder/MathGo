@@ -7,6 +7,8 @@ const schema = z
     PORT: z.coerce.number().int().min(1).max(65_535).default(2567),
     /** Must match the api's: game-server checks the tokens the api signs. */
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional(),
+    /** Invite codes (S4-02); later matchmaking and presence. */
+    REDIS_URL: z.url().optional(),
   })
   .transform((env, ctx) => {
     if (
@@ -19,7 +21,14 @@ const schema = z
         message: 'set a real secret in production',
       });
     }
-    return { ...env, JWT_SECRET: env.JWT_SECRET ?? DEV_JWT_SECRET };
+    if (env.NODE_ENV === 'production' && env.REDIS_URL === undefined) {
+      ctx.addIssue({ code: 'custom', path: ['REDIS_URL'], message: 'required in production' });
+    }
+    return {
+      ...env,
+      JWT_SECRET: env.JWT_SECRET ?? DEV_JWT_SECRET,
+      REDIS_URL: env.REDIS_URL ?? 'redis://localhost:6379',
+    };
   });
 
 export type Config = z.infer<typeof schema>;
