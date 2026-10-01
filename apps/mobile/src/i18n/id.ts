@@ -21,6 +21,18 @@ export const id = {
     language: 'Bahasa',
     diagnostics: 'Diagnostik',
   },
+  online: {
+    title: 'Daring (dev)',
+    signedOut: 'Belum masuk.',
+    createGuest: 'Buat akun tamu',
+    clear: 'Hapus sesi',
+    nickname: 'Nama: {{value}}',
+    status: 'Main online: {{value}}',
+    yes: 'boleh',
+    no: 'perlu izin orang tua',
+    expires: 'Token berlaku sampai {{value}}',
+    error: 'Gagal: {{value}}',
+  },
   check: {
     title: 'Pemeriksaan game-core (S1-08)',
     pass: 'LULUS',

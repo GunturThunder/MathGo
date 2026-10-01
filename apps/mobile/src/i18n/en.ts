@@ -22,6 +22,18 @@ export const en: Translation = {
     language: 'Language',
     diagnostics: 'Diagnostics',
   },
+  online: {
+    title: 'Online (dev)',
+    signedOut: 'Not signed in.',
+    createGuest: 'Create guest account',
+    clear: 'Clear session',
+    nickname: 'Name: {{value}}',
+    status: 'Online play: {{value}}',
+    yes: 'allowed',
+    no: 'needs a parent',
+    expires: 'Token valid until {{value}}',
+    error: 'Failed: {{value}}',
+  },
   check: {
     title: 'game-core check (S1-08)',
     pass: 'PASS',

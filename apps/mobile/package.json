@@ -17,6 +17,7 @@
     "@expo/metro-runtime": "57.0.16",
     "@mathgo/game-core": "workspace:*",
     "@mathgo/protocol": "workspace:*",
+    "@tanstack/react-query": "5.104.0",
     "expo": "57.0.26",
     "expo-constants": "57.0.20",
     "expo-dev-client": "57.0.19",
@@ -27,6 +28,8 @@
     "react": "19.2.3",
     "react-i18next": "17.0.15",
     "react-native": "0.86.3",
+    "react-native-mmkv": "4.3.2",
+    "react-native-nitro-modules": "0.37.1",
     "react-native-safe-area-context": "5.7.0",
     "react-native-screens": "4.26.2"
   },
