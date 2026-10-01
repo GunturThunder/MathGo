@@ -140,7 +140,7 @@ Goal: every P0 requirement is live on the production VPS, and closed-beta tester
 | S6-01 | Google and Apple sign-in (FR-01): verify ID tokens, link to the guest account, keep trophies | Backend | 2 | S3-02 | Sign-in on a second phone restores the same trophies | Not started |
 | S6-02 | Analytics (FR-09): `POST /events` batch endpoint into the Postgres `events` table (battle start/end, queue wait, invite create/join, consent steps); no personal data | Backend | 1.5 | S2-05 | Each event type appears after a test session | Done |
 | S6-03 | Sentry on `api` and `game-server` with personal data removed | Backend | 0.5 | S3-07 | A test error shows in Sentry without IP, phone or nickname | Not started |
-| S6-04 | Anti-cheat review query: accounts with repeated answers under 300 ms | Backend | 0.5 | S4-06 | Weekly list of flagged accounts runs from one command | Not started |
+| S6-04 | Anti-cheat review query: accounts with repeated answers under 300 ms | Backend | 0.5 | S4-06 | Weekly list of flagged accounts runs from one command | Done |
 | S6-05 | Production VPS in Jakarta or Singapore: Docker Compose, Caddy with automatic HTTPS, firewall, automatic security updates | Backend | 1.5 | S3-07 | App connects over `wss://` with a round trip under 150 ms from Jakarta | Not started |
 | S6-06 | Daily Postgres backups stored off the server, a tested restore, uptime alerts | Backend | 1 | S6-05 | A restore to a fresh database succeeds; an alert fires when `api` is stopped | Not started |
 | S6-07 | Deploy pipeline: CI builds and pushes images, runs migrations, restarts services | Backend | 1 | S6-05 | A merge to main deploys without manual steps | Not started |
