@@ -27,6 +27,12 @@ export interface Outgoing {
  * One battle without networking: validates client messages with `@mathgo/protocol`, runs the
  * `game-core` engine and says what to send to whom. BattleRoom owns the clock and the sockets.
  */
+/**
+ * Answers faster than this after their question showed are flagged for review (S4-06, S6-04).
+ * Reading and typing a question takes longer; a script does not.
+ */
+export const TOO_FAST_MS = 300;
+
 /** One answer the engine counted (a hit or a miss), as stored in match_answers (S4-03). */
 export interface AnswerRecord {
   readonly seat: Seat;
@@ -37,6 +43,8 @@ export interface AnswerRecord {
   readonly latencyMs: number;
   /** When it arrived, in ms from the battle start. */
   readonly atMs: number;
+  /** Under TOO_FAST_MS: kept and scored, but flagged for the anti-cheat review. */
+  readonly tooFast: boolean;
 }
 
 export class BattleSession {
@@ -103,13 +111,15 @@ export class BattleSession {
       (e) => (e.type === 'hit' || e.type === 'miss') && e.seat === seat,
     );
     if (counted !== undefined) {
+      const latencyMs = at - shownAt;
       this.log.push({
         seat,
         questionIndex,
         value,
         correct: counted.type === 'hit',
-        latencyMs: at - shownAt,
+        latencyMs,
         atMs: at,
+        tooFast: latencyMs < TOO_FAST_MS,
       });
     }
     return this.apply(update, seat);
