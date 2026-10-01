@@ -8,6 +8,7 @@ import {
   type Delayed,
 } from '@colyseus/core';
 import { eq, users, type Database } from '@mathgo/db';
+import { questionLevelForMatch } from '@mathgo/game-core';
 import { BATTLE_ROOM } from '@mathgo/protocol';
 import { authorizeJoin, JoinRefused } from './join.js';
 import type { Matchmaker } from './matchmaking/matchmaker.js';
@@ -140,7 +141,12 @@ export class QueueRoom extends Room {
           continue;
         }
         // A private ranked room: only the two reserved players can enter it.
-        const room = await matchMaker.createRoom(BATTLE_ROOM, { mode: 'ranked', matched: true });
+        // Questions from the lower trophy count: its arena and difficulty (FR-02, S5-04).
+        const room = await matchMaker.createRoom(BATTLE_ROOM, {
+          mode: 'ranked',
+          matched: true,
+          level: questionLevelForMatch(a.auth.trophies, b.auth.trophies),
+        });
         for (const player of [a, b]) {
           const reservation = await matchMaker.reserveSeatFor(room, {}, {
             userId: player.auth.userId,

@@ -1,23 +1,39 @@
 import { randomBytes } from 'node:crypto';
 import type { AccessClaims, SigningKey } from '@mathgo/auth';
 import { Room, ServerError, type AuthContext, type Client, type Delayed } from '@colyseus/core';
-import type { QuestionLevel, Seat } from '@mathgo/game-core';
+import { questionLevelForMatch, type QuestionLevel, type Seat } from '@mathgo/game-core';
 import { parseClientMessage } from '@mathgo/protocol';
 import { BattleSession, type Outgoing } from './battle-session.js';
 import { authorizeJoin, JoinRefused } from './join.js';
 import type { InviteStore } from './invites.js';
 import type { MatchRecorder, RecordedMatch } from './match-recorder.js';
 import type { MatchQueueStore } from './matchmaking/queue-store.js';
+import type { TrophyLookup } from './queue-room.js';
 import { RateLimiter } from './rate-limit.js';
 
 /** Answers per second per player before the rest are dropped (S4-06 adds speed flags). */
 export const ANSWER_RATE_LIMIT = { max: 5, windowMs: 1_000 } as const;
 
 /**
- * Questions come from Counting Camp until matchmaking and invites set the level (S4-02, S5-04).
- * The level must come from the server, never from a client's join options.
+ * Where a battle's questions come from when nothing else says (tests' server-opened rooms). The
+ * queue passes the match's level; invite rooms work it out from both players (S5-04). It always
+ * comes from the server, never from a client's join options.
  */
 const DEFAULT_LEVEL: QuestionLevel = { arena: 1, trophies: 0 };
+
+/** A level from the queue's create options, checked even though only the server sets it. */
+function isLevel(value: unknown): value is QuestionLevel {
+  const level = value as Partial<QuestionLevel> | null;
+  return (
+    typeof level === 'object' &&
+    level !== null &&
+    Number.isInteger(level.arena) &&
+    (level.arena ?? 0) >= 1 &&
+    (level.arena ?? 0) <= 5 &&
+    Number.isSafeInteger(level.trophies) &&
+    (level.trophies ?? -1) >= 0
+  );
+}
 
 /** A dropped player keeps their seat this long while the battle runs on (FR-07). */
 export const RECONNECT_SECONDS = 15;
@@ -28,6 +44,8 @@ export interface BattleRoomOptions {
   readonly recorder: MatchRecorder;
   /** Marks who is in a running battle, so they cannot queue for another (S5-02). */
   readonly matchQueue: MatchQueueStore;
+  /** Players' trophies, to set an invite battle's level (S5-04). */
+  readonly trophies: TrophyLookup;
   readonly now?: () => Date;
   readonly reconnectSeconds?: number;
 }
@@ -39,7 +57,8 @@ interface PlayerData {
 
 const otherSeat = (seat: Seat): Seat => (seat === 0 ? 1 : 0);
 
-const newSession = () => new BattleSession(randomBytes(4).readUInt32BE(0), DEFAULT_LEVEL);
+const newSession = (level: QuestionLevel) =>
+  new BattleSession(randomBytes(4).readUInt32BE(0), level);
 const newLimiter = () => new RateLimiter<Seat>(ANSWER_RATE_LIMIT.max, ANSWER_RATE_LIMIT.windowMs);
 
 /**
@@ -53,6 +72,7 @@ export class BattleRoom extends Room {
   private static reconnectSeconds = RECONNECT_SECONDS;
   private static recorder: MatchRecorder | undefined;
   private static activity: MatchQueueStore | undefined;
+  private static trophies: TrophyLookup | undefined;
 
   /** Called once at startup: the key that checks access tokens (JWT_SECRET) and the invite store. */
   static configure(options: BattleRoomOptions): void {
@@ -60,6 +80,7 @@ export class BattleRoom extends Room {
     BattleRoom.invites = options.invites;
     BattleRoom.recorder = options.recorder;
     BattleRoom.activity = options.matchQueue;
+    BattleRoom.trophies = options.trophies;
     BattleRoom.now = options.now ?? (() => new Date());
     BattleRoom.reconnectSeconds = options.reconnectSeconds ?? RECONNECT_SECONDS;
   }
@@ -67,7 +88,9 @@ export class BattleRoom extends Room {
   override maxClients = 2;
 
   /** The current battle; a rematch replaces it with a new one (new secret seed). */
-  private session = newSession();
+  /** The level every battle in this room plays at (S5-04); a rematch keeps it. */
+  private level: QuestionLevel = DEFAULT_LEVEL;
+  private session = newSession(DEFAULT_LEVEL);
   private limiter = newLimiter();
   private endTimer: Delayed | null = null;
   /** Seats that said "play again" after the last battle (S4-05). */
@@ -101,7 +124,11 @@ export class BattleRoom extends Room {
    * Only the server creates invite rooms (matchMaker.createRoom in POST /invites): clients' join
    * options never pass the protocol schema with a `mode`, so they cannot ask for one.
    */
-  override async onCreate(options?: { mode?: 'invite' | 'ranked'; matched?: boolean }) {
+  override async onCreate(options?: {
+    mode?: 'invite' | 'ranked';
+    matched?: boolean;
+    level?: unknown;
+  }) {
     // Only the server opens battles: the queue (ranked, with reserved seats) or POST /invites.
     // A client's joinOrCreate/create would skip matchmaking, and with it the trophy window.
     if (options?.mode === undefined) {
@@ -116,6 +143,12 @@ export class BattleRoom extends Room {
       // Made by the queue (S5-01) with a seat reserved for each player: nobody else gets in.
       await this.setPrivate(true);
     }
+    if (options?.level !== undefined) {
+      if (!isLevel(options.level)) throw new ServerError(400, 'invalid-message');
+      // The queue's pick: the lower of the two players' trophies (S5-04).
+      this.level = options.level;
+      this.session = newSession(this.level);
+    }
     this.onMessage('*', (client: Client, type: string | number, payload: unknown) => {
       this.receive(client, String(type), payload);
     });
@@ -127,11 +160,29 @@ export class BattleRoom extends Room {
     client.userData = { userId: auth.userId, seat } satisfies PlayerData;
     this.users[seat] = auth.userId;
     this.touchInvite();
-    this.dispatch(this.session.welcome(seat));
+    // An invite room learns its level only when both friends are in, so `joined` (which names
+    // the arena) waits until then; other rooms know it from the start.
+    if (this.mode !== 'invite') this.dispatch(this.session.welcome(seat));
 
     if (this.clients.length === this.maxClients && this.startedAt === null) {
-      this.beginBattle();
+      if (this.mode === 'invite') void this.beginInviteBattle();
+      else this.beginBattle();
     }
+  }
+
+  /**
+   * Friends can be in different arenas: like random battles, questions come from the lower
+   * trophy count (PRD; S5-04). Looked up when both are in, then the battle starts.
+   */
+  private async beginInviteBattle() {
+    const lookup = BattleRoom.trophies;
+    const [a, b] =
+      lookup === undefined ? [null, null] : await Promise.all(this.users.map((u) => lookup(u)));
+    if (this.clients.length < this.maxClients || this.startedAt !== null) return; // someone left
+    this.level = a == null || b == null ? DEFAULT_LEVEL : questionLevelForMatch(a, b);
+    this.session = newSession(this.level);
+    this.dispatch([...this.session.welcome(0), ...this.session.welcome(1)]);
+    this.beginBattle();
   }
 
   /** Starts the clock of the current session and sends both players their first questions. */
@@ -168,7 +219,7 @@ export class BattleRoom extends Room {
 
     if (this.rematch.size === this.maxClients && this.clients.length === this.maxClients) {
       this.rematch.clear();
-      this.session = newSession();
+      this.session = newSession(this.level);
       this.limiter = newLimiter();
       this.dispatch([...this.session.welcome(0), ...this.session.welcome(1)]);
       this.beginBattle();
