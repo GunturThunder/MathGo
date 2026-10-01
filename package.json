@@ -13,7 +13,8 @@
     "test": "turbo run test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "db:migrate": "turbo run build --filter=@mathgo/db --output-logs=errors-only && node --env-file-if-exists=.env packages/db/dist/migrate-cli.js"
+    "db:migrate": "turbo run build --filter=@mathgo/db --output-logs=errors-only && node --env-file-if-exists=.env packages/db/dist/migrate-cli.js",
+    "review:too-fast": "turbo run build --filter=@mathgo/db --output-logs=errors-only && node --env-file-if-exists=.env packages/db/dist/review-cli.js"
   },
   "prettier": "@mathgo/config/prettier",
   "devDependencies": {
