@@ -4,7 +4,7 @@
   "private": true,
   "description": "Expo (React Native) app with dev builds and expo-router.",
   "type": "module",
-  "main": "expo-router/entry",
+  "main": "./index.ts",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android",
