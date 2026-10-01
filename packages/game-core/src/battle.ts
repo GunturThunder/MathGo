@@ -51,7 +51,8 @@ export interface PlayerState {
 }
 
 export type BattleResult =
-  | { readonly outcome: 'win'; readonly winner: Seat; readonly reason: 'ko' | 'time' }
+  /** `forfeit`: the loser quit or stayed disconnected too long (FR-07). */
+  | { readonly outcome: 'win'; readonly winner: Seat; readonly reason: 'ko' | 'time' | 'forfeit' }
   | { readonly outcome: 'draw'; readonly reason: 'time' };
 
 export interface BattleState {
@@ -75,7 +76,9 @@ export type BattleAction =
       readonly at: number;
     }
   /** Advances the clock, so the battle ends on time without an answer. */
-  | { readonly type: 'tick'; readonly at: number };
+  | { readonly type: 'tick'; readonly at: number }
+  /** The player at `seat` quit or did not come back in time: the other player wins. */
+  | { readonly type: 'forfeit'; readonly seat: Seat; readonly at: number };
 
 export type RejectReason = 'finished' | 'locked' | 'stale-question';
 
@@ -204,6 +207,10 @@ export function applyBattleAction(state: BattleState, action: BattleAction): Bat
   const clocked: BattleState = { ...state, now: action.at };
   if (action.type === 'tick') {
     return { state: clocked, events: [] };
+  }
+  if (action.type === 'forfeit') {
+    const result: BattleResult = { outcome: 'win', winner: other(action.seat), reason: 'forfeit' };
+    return { state: { ...clocked, result }, events: [{ type: 'end', result }] };
   }
   return answer(clocked, action);
 }

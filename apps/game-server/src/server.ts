@@ -11,9 +11,16 @@ export function createServer(
   config: Config,
   invites: InviteStore,
   now: () => Date = () => new Date(),
+  /** Tests shorten the 15 s reconnect window. */
+  reconnectSeconds?: number,
 ) {
   const key = signingKey(config.JWT_SECRET);
-  BattleRoom.configure(key, invites, now);
+  BattleRoom.configure({
+    key,
+    invites,
+    now,
+    ...(reconnectSeconds === undefined ? {} : { reconnectSeconds }),
+  });
   return defineServer({
     transport: new WebSocketTransport({ pingInterval: 5_000 }),
     rooms: {

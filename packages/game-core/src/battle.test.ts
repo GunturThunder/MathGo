@@ -269,3 +269,28 @@ describe('stats for the result screen', () => {
     expect(state.players[0]).toMatchObject({ correct: 7, wrong: 1, run: 2, bestStreak: 5 });
   });
 });
+
+describe('forfeit (FR-07)', () => {
+  it('the other player wins at once', () => {
+    const state = right(newBattle(), 0, SLOW).state;
+    const update = applyBattleAction(state, { type: 'forfeit', seat: 0, at: 20_000 });
+    const result = { outcome: 'win', winner: 1, reason: 'forfeit' };
+    expect(update.state.result).toEqual(result);
+    expect(update.events).toEqual([{ type: 'end', result }]);
+    expect(update.state.now).toBe(20_000);
+    // HP is left as it was: the leader can still lose by forfeiting.
+    expect(update.state.players[1].hp).toBe(90);
+  });
+
+  it('changes nothing after the battle has ended', () => {
+    const ended = applyBattleAction(newBattle(), { type: 'tick', at: 90_000 }).state;
+    const update = applyBattleAction(ended, { type: 'forfeit', seat: 1, at: 95_000 });
+    expect(update.state).toBe(ended);
+    expect(update.events).toEqual([]);
+  });
+
+  it('at or after 90 s the timer decides, not the forfeit', () => {
+    const update = applyBattleAction(newBattle(), { type: 'forfeit', seat: 0, at: 90_000 });
+    expect(update.state.result).toEqual({ outcome: 'draw', reason: 'time' });
+  });
+});

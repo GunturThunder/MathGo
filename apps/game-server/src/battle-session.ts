@@ -79,6 +79,23 @@ export class BattleSession {
     );
   }
 
+  /** The player at `seat` quit or did not come back in time (FR-07). */
+  forfeit(seat: Seat, at: number): Outgoing[] {
+    return this.apply(applyBattleAction(this.state, { type: 'forfeit', seat, at }), null);
+  }
+
+  /** Everything a returning player needs: where the battle stands and their next questions. */
+  resync(seat: Seat): Outgoing[] {
+    const out: Outgoing[] = [{ to: seat, message: { type: 'state', payload: this.view([]) } }];
+    if (this.state.result !== null) {
+      out.push({ to: seat, message: { type: 'end', payload: this.end() } });
+      return out;
+    }
+    // The app may have lost its queue: send the next questions again from the current one.
+    this.sent[seat] = this.state.players[seat].questionIndex - 1;
+    return [...out, ...this.topUpQuestions(seat)];
+  }
+
   tick(at: number): Outgoing[] {
     return this.apply(applyBattleAction(this.state, { type: 'tick', at }), null);
   }

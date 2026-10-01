@@ -16,10 +16,22 @@ export const ANSWER_RATE_LIMIT = { max: 5, windowMs: 1_000 } as const;
  */
 const DEFAULT_LEVEL: QuestionLevel = { arena: 1, trophies: 0 };
 
+/** A dropped player keeps their seat this long while the battle runs on (FR-07). */
+export const RECONNECT_SECONDS = 15;
+
+export interface BattleRoomOptions {
+  readonly key: SigningKey;
+  readonly invites: InviteStore;
+  readonly now?: () => Date;
+  readonly reconnectSeconds?: number;
+}
+
 interface PlayerData {
   readonly userId: string;
   readonly seat: Seat;
 }
+
+const otherSeat = (seat: Seat): Seat => (seat === 0 ? 1 : 0);
 
 /**
  * A 1v1 battle. The seed is drawn here and never leaves the server; players get question text
@@ -29,16 +41,14 @@ export class BattleRoom extends Room {
   private static key: SigningKey | undefined;
   private static now: () => Date = () => new Date();
   private static invites: InviteStore | undefined;
+  private static reconnectSeconds = RECONNECT_SECONDS;
 
   /** Called once at startup: the key that checks access tokens (JWT_SECRET) and the invite store. */
-  static configure(
-    key: SigningKey,
-    invites: InviteStore,
-    now: () => Date = () => new Date(),
-  ): void {
-    BattleRoom.key = key;
-    BattleRoom.invites = invites;
-    BattleRoom.now = now;
+  static configure(options: BattleRoomOptions): void {
+    BattleRoom.key = options.key;
+    BattleRoom.invites = options.invites;
+    BattleRoom.now = options.now ?? (() => new Date());
+    BattleRoom.reconnectSeconds = options.reconnectSeconds ?? RECONNECT_SECONDS;
   }
 
   override maxClients = 2;
@@ -101,8 +111,52 @@ export class BattleRoom extends Room {
     }
   }
 
-  override onLeave() {
+  /**
+   * Dropped without leaving (network, app in the background): hold the seat while the battle
+   * keeps running (no freeze, decided), and tell the opponent until when.
+   */
+  override onDrop(client: Client) {
+    const player = client.userData as PlayerData | undefined;
+    if (player === undefined || !this.running) return;
+    const reconnectBy = this.battleTime() + BattleRoom.reconnectSeconds * 1000;
+    this.dispatch([
+      {
+        to: otherSeat(player.seat),
+        message: {
+          type: 'presence',
+          payload: { seat: player.seat, connected: false, reconnectBy },
+        },
+      },
+    ]);
+    // Rejected when the time is up; onLeave then forfeits.
+    this.allowReconnection(client, BattleRoom.reconnectSeconds).catch(() => undefined);
+  }
+
+  /** Back in time: tell the opponent, and bring this player up to date. */
+  override onReconnect(client: Client) {
+    const player = client.userData as PlayerData | undefined;
+    if (player === undefined) return;
+    this.dispatch([
+      {
+        to: otherSeat(player.seat),
+        message: { type: 'presence', payload: { seat: player.seat, connected: true } },
+      },
+      ...this.session.resync(player.seat),
+    ]);
+  }
+
+  /** Gone for good: quit, or not back within the reconnect window. Mid-battle that is a forfeit. */
+  override onLeave(client: Client) {
+    const player = client.userData as PlayerData | undefined;
+    if (player !== undefined && this.running) {
+      this.dispatch(this.session.forfeit(player.seat, this.battleTime()));
+    }
     this.touchInvite();
+  }
+
+  /** Both players have been in and the battle has not ended. */
+  private get running(): boolean {
+    return this.startedAt !== null && this.session.battle.result === null;
   }
 
   override async onDispose() {
