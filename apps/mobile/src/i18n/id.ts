@@ -33,6 +33,18 @@ export const id = {
     expires: 'Token berlaku sampai {{value}}',
     error: 'Gagal: {{value}}',
   },
+  battleDev: {
+    title: 'Bertarung (dev)',
+    hint: 'Masuk dulu di kartu Daring. Lawan uji dibuat otomatis.',
+    join: 'Gabung battle uji',
+    leave: 'Keluar',
+    joining: 'Menghubungkan…',
+    seat: 'Kursi {{value}}',
+    questions: 'Soal diterima: {{value}}',
+    first: 'Soal pertama: {{value}}',
+    dropped: 'Koneksi putus, menyambung lagi…',
+    error: 'Gagal: {{value}}',
+  },
   check: {
     title: 'Pemeriksaan game-core (S1-08)',
     pass: 'LULUS',

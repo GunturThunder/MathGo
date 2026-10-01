@@ -62,6 +62,14 @@ To check that the session survives a restart: Settings → "Daring (dev)" (dev b
 **Buat akun tamu**. Note the name, close the app completely, open it again: Settings shows the same
 name. Tokens refresh on their own every 15 minutes.
 
+To check that the app joins a battle (S3-11): sign in on "Daring (dev)" first, then
+"Bertarung (dev)" → **Gabung battle uji**. The card adds a test opponent (a battle needs two
+players), and shows "Soal diterima: 3" with the first question. The game-server address is
+`ws://localhost:2567` unless `EXPO_PUBLIC_GAME_SERVER_URL` is set.
+
+The app bundles an empty stand-in for Node's `ws` module (`shims/ws.js`, wired in
+`metro.config.cjs`): `@colyseus/sdk` imports it but uses React Native's own WebSocket.
+
 ## Without USB: EAS cloud build
 
 ```sh

@@ -4,6 +4,6 @@ export default {
   setupFiles: ['<rootDir>/jest.setup.js'],
   // pnpm keeps packages under node_modules/.pnpm, so it must be transformed like the others.
   transformIgnorePatterns: [
-    'node_modules/(?!(.pnpm|(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|standard-navigation))',
+    'node_modules/(?!(.pnpm|(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-navigation/.*|standard-navigation|@colyseus/.*|msgpackr))',
   ],
 };

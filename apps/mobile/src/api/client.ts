@@ -73,12 +73,15 @@ export class ApiClient {
     return this.authed<Profile>('PATCH', '/me/nickname', { nickname });
   }
 
-  /** The current access token, refreshed first if it has (nearly) expired. */
-  async accessToken(): Promise<string> {
+  /**
+   * The current access token, refreshed first if it has (nearly) expired, or always when
+   * `forceRefresh` (the server said `token-expired`).
+   */
+  async accessToken(forceRefresh = false): Promise<string> {
     const session = this.session;
     if (session === null) throw new SessionEndedError();
     const expiresAt = Date.parse(session.accessTokenExpiresAt);
-    if (expiresAt - EXPIRY_MARGIN_MS <= this.now().getTime()) {
+    if (forceRefresh || expiresAt - EXPIRY_MARGIN_MS <= this.now().getTime()) {
       return (await this.refresh()).accessToken;
     }
     return session.accessToken;

@@ -12,16 +12,17 @@ The docs are exported from the online "MathGo — PRD" doc (https://claude.ai/ar
 
 ## Layout
 
-| Path                 | What                                                                                                                               |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `apps/mobile`        | Expo app (SDK 57, dev builds, expo-router). How to run it on a phone: `apps/mobile/README.md`                                      |
-| `apps/api`           | Fastify HTTP API: guest auth, profile, trophies                                                                                    |
-| `apps/game-server`   | Colyseus: matchmaking and battle rooms                                                                                             |
-| `packages/game-core` | Seeded RNG, question generator, battle rules, trophy maths. Pure TS, no dependencies, no I/O. Runs in Node and in the app (Hermes) |
-| `packages/protocol`  | Message types + zod schemas shared by app and game-server                                                                          |
-| `packages/auth`      | Access tokens (JWT) and the online-play rule (adults, or minors with parent consent), shared by api and game-server                |
-| `packages/db`        | Drizzle schema and migrations                                                                                                      |
-| `packages/config`    | Shared tsconfig, ESLint and Prettier presets                                                                                       |
+| Path                     | What                                                                                                                                   |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/mobile`            | Expo app (SDK 57, dev builds, expo-router). How to run it on a phone: `apps/mobile/README.md`                                          |
+| `apps/api`               | Fastify HTTP API: guest auth, profile, trophies                                                                                        |
+| `apps/game-server`       | Colyseus: matchmaking and battle rooms                                                                                                 |
+| `packages/game-core`     | Seeded RNG, question generator, battle rules, trophy maths. Pure TS, no dependencies, no I/O. Runs in Node and in the app (Hermes)     |
+| `packages/protocol`      | Message types + zod schemas shared by app and game-server                                                                              |
+| `packages/auth`          | Access tokens (JWT) and the online-play rule (adults, or minors with parent consent), shared by api and game-server                    |
+| `packages/battle-client` | Joins a battle on game-server (typed protocol messages, join errors as codes, reconnect hooks). Used by the app; tested in game-server |
+| `packages/db`            | Drizzle schema and migrations                                                                                                          |
+| `packages/config`        | Shared tsconfig, ESLint and Prettier presets                                                                                           |
 
 ## Commands (run from the repo root)
 

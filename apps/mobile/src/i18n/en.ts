@@ -34,6 +34,18 @@ export const en: Translation = {
     expires: 'Token valid until {{value}}',
     error: 'Failed: {{value}}',
   },
+  battleDev: {
+    title: 'Battle (dev)',
+    hint: 'Sign in on the Online card first. A test opponent is created for you.',
+    join: 'Join test battle',
+    leave: 'Leave',
+    joining: 'Connecting…',
+    seat: 'Seat {{value}}',
+    questions: 'Questions received: {{value}}',
+    first: 'First question: {{value}}',
+    dropped: 'Connection lost, reconnecting…',
+    error: 'Failed: {{value}}',
+  },
   check: {
     title: 'game-core check (S1-08)',
     pass: 'PASS',

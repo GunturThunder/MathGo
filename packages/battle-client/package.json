@@ -1,0 +1,32 @@
+{
+  "name": "@mathgo/battle-client",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Joins a battle on game-server: typed messages from @mathgo/protocol, join errors as protocol codes, reconnect hooks. Platform-free: runs in the app and in Node tests.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@colyseus/sdk": "0.18.4",
+    "@mathgo/protocol": "workspace:*"
+  },
+  "devDependencies": {
+    "@mathgo/config": "workspace:*",
+    "eslint": "10.11.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.2"
+  }
+}

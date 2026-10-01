@@ -247,6 +247,9 @@ importers:
       '@colyseus/tools':
         specifier: 0.18.7
         version: 0.18.7(@colyseus/core@0.18.18)(@colyseus/ws-transport@0.18.4)(supports-color@8.1.1)
+      '@mathgo/battle-client':
+        specifier: workspace:*
+        version: link:../../packages/battle-client
       '@mathgo/config':
         specifier: workspace:*
         version: link:../../packages/config
@@ -268,6 +271,9 @@ importers:
       '@expo/metro-runtime':
         specifier: 57.0.16
         version: 57.0.16(@expo/log-box@57.0.4)(expo@57.0.26)(react-dom@19.2.3(react@19.2.3))(react-native@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(@react-native/jest-preset@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(react@19.2.3)(supports-color@8.1.1))(@react-native/metro-config@0.86.3(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(@types/react@19.2.18)(react@19.2.3)(supports-color@8.1.1))(react@19.2.3)
+      '@mathgo/battle-client':
+        specifier: workspace:*
+        version: link:../../packages/battle-client
       '@mathgo/game-core':
         specifier: workspace:*
         version: link:../../packages/game-core
@@ -360,6 +366,28 @@ importers:
       '@types/node':
         specifier: 26.6.3
         version: 26.6.3
+      eslint:
+        specifier: 10.11.0
+        version: 10.11.0(supports-color@8.1.1)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 5.0.2
+        version: 5.0.2(@types/node@26.6.3)(jsdom@20.0.3(supports-color@8.1.1))(vite@8.3.1(@types/node@26.6.3)(terser@5.51.2)(yaml@2.9.1))
+
+  packages/battle-client:
+    dependencies:
+      '@colyseus/sdk':
+        specifier: 0.18.4
+        version: 0.18.4(@colyseus/core@0.18.18)(typescript@6.0.3)(zod@4.6.5)
+      '@mathgo/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+    devDependencies:
+      '@mathgo/config':
+        specifier: workspace:*
+        version: link:../config
       eslint:
         specifier: 10.11.0
         version: 10.11.0(supports-color@8.1.1)
