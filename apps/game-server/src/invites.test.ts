@@ -115,16 +115,13 @@ describe('invite rooms through game-server (S4-02)', () => {
 
     const host = inbox();
     const hostRoom = await joinBattle(as('host'), host.handlers, invite.roomId);
-    // Random matchmaking never lands in an invite room.
-    const stranger = await joinBattle(as('stranger'), inbox().handlers);
-    expect(stranger.roomId).not.toBe(invite.roomId);
 
     const friend = inbox();
     const friendRoom = await joinByCode(as('friend'), friend.handlers, invite.code.toLowerCase());
     expect(friendRoom.roomId).toBe(invite.roomId);
     await until(() => [host, friend].every((p) => p.messages.some((m) => m.type === 'questions')));
 
-    await Promise.all([hostRoom, friendRoom, stranger].map((c) => c.leave()));
+    await Promise.all([hostRoom, friendRoom].map((c) => c.leave()));
   });
 
   it('Done when: an expired code gives a clear error', async () => {

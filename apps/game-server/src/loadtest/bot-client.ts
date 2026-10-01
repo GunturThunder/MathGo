@@ -1,8 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import { Client, type Room } from '@colyseus/sdk';
-import { signAccessToken, signingKey } from '@mathgo/auth';
 import { evaluate, parse } from '@mathgo/game-core';
-import { BATTLE_ROOM, PROTOCOL_VERSION, parseServerMessage } from '@mathgo/protocol';
+import { PROTOCOL_VERSION, QUEUE_ROOM, parseServerMessage } from '@mathgo/protocol';
 
 /** Shared counters for every bot in one load test (S4-07). */
 export class LoadStats {
@@ -18,9 +17,8 @@ export class LoadStats {
 
 export interface BotOptions {
   readonly endpoint: string;
-  readonly userId: string;
-  /** JWT_SECRET of the game-server under test. */
-  readonly secret: string;
+  /** An access token for a real account (from POST /auth/guest): the queue looks up trophies. */
+  readonly token: string;
   readonly stats: LoadStats;
   /** Time to "read and type" an answer, like a player (ms, inclusive). */
   readonly thinkMs?: readonly [number, number];
@@ -33,24 +31,32 @@ export interface BotOptions {
 const between = ([min, max]: readonly [number, number]) => min + Math.random() * (max - min);
 
 /**
- * One player for the load test: joins random matchmaking, reads each question's text, works out
+ * One player for the load test: queues for a random battle, reads each question's text, works out
  * the answer like a person would (game-core's parser), answers after a human pause, and records
  * the round trip from sending an answer to receiving its hit or miss. Resolves when it leaves.
  */
 export async function runBot(options: BotOptions): Promise<void> {
   const { stats, thinkMs = [2_000, 6_000], accuracy = 0.9, timeoutMs = 150_000 } = options;
-  const { token } = await signAccessToken(
-    { userId: options.userId, online: true },
-    signingKey(options.secret),
-    new Date(),
-  );
-
+  // Random matchmaking, like the app: wait in the queue, then take the reserved seat.
   let room: Room;
   try {
-    room = await new Client(options.endpoint).joinOrCreate(BATTLE_ROOM, {
+    const client = new Client(options.endpoint);
+    const queue = await client.joinOrCreate(QUEUE_ROOM, {
       protocolVersion: PROTOCOL_VERSION,
-      token,
+      token: options.token,
     });
+    queue.onMessage('queued', () => undefined);
+    const reservation = await new Promise<unknown>((resolve, reject) => {
+      const giveUp = setTimeout(() => reject(new Error('no match')), timeoutMs);
+      queue.onMessage('matched', (payload: { reservation: unknown }) => {
+        clearTimeout(giveUp);
+        resolve(payload.reservation);
+      });
+    });
+    void queue.leave(true);
+    room = await client.consumeSeatReservation(
+      reservation as Parameters<Client['consumeSeatReservation']>[0],
+    );
   } catch {
     stats.joinFailed++;
     return;
@@ -140,4 +146,15 @@ export async function runBot(options: BotOptions): Promise<void> {
       finish();
     });
   });
+}
+
+/** A new guest account's access token, from the api (adult birth year, so online play). */
+export async function guestToken(api: string): Promise<string> {
+  const res = await fetch(`${api}/auth/guest`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ birthYear: 1990 }),
+  });
+  if (!res.ok) throw new Error(`guest sign-up failed: ${res.status}`);
+  return ((await res.json()) as { accessToken: string }).accessToken;
 }

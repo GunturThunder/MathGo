@@ -7,6 +7,7 @@ import { BattleSession, type Outgoing } from './battle-session.js';
 import { authorizeJoin, JoinRefused } from './join.js';
 import type { InviteStore } from './invites.js';
 import type { MatchRecorder, RecordedMatch } from './match-recorder.js';
+import type { MatchQueueStore } from './matchmaking/queue-store.js';
 import { RateLimiter } from './rate-limit.js';
 
 /** Answers per second per player before the rest are dropped (S4-06 adds speed flags). */
@@ -25,6 +26,8 @@ export interface BattleRoomOptions {
   readonly key: SigningKey;
   readonly invites: InviteStore;
   readonly recorder: MatchRecorder;
+  /** Marks who is in a running battle, so they cannot queue for another (S5-02). */
+  readonly matchQueue: MatchQueueStore;
   readonly now?: () => Date;
   readonly reconnectSeconds?: number;
 }
@@ -49,12 +52,14 @@ export class BattleRoom extends Room {
   private static invites: InviteStore | undefined;
   private static reconnectSeconds = RECONNECT_SECONDS;
   private static recorder: MatchRecorder | undefined;
+  private static activity: MatchQueueStore | undefined;
 
   /** Called once at startup: the key that checks access tokens (JWT_SECRET) and the invite store. */
   static configure(options: BattleRoomOptions): void {
     BattleRoom.key = options.key;
     BattleRoom.invites = options.invites;
     BattleRoom.recorder = options.recorder;
+    BattleRoom.activity = options.matchQueue;
     BattleRoom.now = options.now ?? (() => new Date());
     BattleRoom.reconnectSeconds = options.reconnectSeconds ?? RECONNECT_SECONDS;
   }
@@ -97,6 +102,11 @@ export class BattleRoom extends Room {
    * options never pass the protocol schema with a `mode`, so they cannot ask for one.
    */
   override async onCreate(options?: { mode?: 'invite' | 'ranked'; matched?: boolean }) {
+    // Only the server opens battles: the queue (ranked, with reserved seats) or POST /invites.
+    // A client's joinOrCreate/create would skip matchmaking, and with it the trophy window.
+    if (options?.mode === undefined) {
+      throw new ServerError(403, 'room-not-found');
+    }
     if (options?.mode === 'invite') {
       this.mode = 'invite';
       // Random matchmaking must never fill an invite room; friends join it by id.
@@ -126,6 +136,7 @@ export class BattleRoom extends Room {
 
   /** Starts the clock of the current session and sends both players their first questions. */
   private beginBattle() {
+    void BattleRoom.activity?.setActive([...this.users], this.roomId).catch(() => undefined);
     this.startedAt = BattleRoom.now().getTime();
     this.lastAt = 0;
     this.recorded = null;
@@ -204,6 +215,8 @@ export class BattleRoom extends Room {
     if (player !== undefined && this.running) {
       this.dispatch(this.session.forfeit(player.seat, this.battleTime()));
     }
+    if (player !== undefined)
+      void BattleRoom.activity?.clearActive([player.userId]).catch(() => undefined);
     this.touchInvite();
   }
 
@@ -213,6 +226,9 @@ export class BattleRoom extends Room {
   }
 
   override async onDispose() {
+    await BattleRoom.activity
+      ?.clearActive(this.users.filter((u) => u !== ''))
+      .catch(() => undefined);
     if (this.mode === 'invite') await BattleRoom.invites?.removeRoom(this.roomId);
   }
 
@@ -274,6 +290,8 @@ export class BattleRoom extends Room {
    * changes (S5-03). If storing failed the battle still ends, without trophy changes.
    */
   private async sendEnd(end: Outgoing) {
+    // The battle is over: both may queue again (or rematch, which marks them again).
+    void BattleRoom.activity?.clearActive([...this.users]).catch(() => undefined);
     let message = end.message;
     const recorded = await this.recordMatch()?.catch(() => null);
     if (message.type === 'end' && recorded?.trophies != null) {

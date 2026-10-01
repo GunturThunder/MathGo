@@ -116,7 +116,7 @@ Goal: tapping Battle finds a random opponent near your trophy count, wins and lo
 | ID | Task | Owner | Days | Needs | Done when | Status |
 | --- | --- | --- | --- | --- | --- | --- |
 | S5-01 | Matchmaking queue (FR-02): Redis sorted set by trophies, 1 s tick, ±100 widening by 50 every 5 s, seats reserved for both players | Backend | 2.5 | S4-01 | 50 simulated players are all paired within the widening rules | Done |
-| S5-02 | Queue edge cases: cancel, joining twice, already in a match, stale entries after a crash | Backend | 1 | S5-01 | Each case has a test; no player is paired twice | Not started |
+| S5-02 | Queue edge cases: cancel, joining twice, already in a match, stale entries after a crash | Backend | 1 | S5-01 | Each case has a test; no player is paired twice | Done |
 | S5-03 | Trophy settlement (FR-08): one Postgres transaction writes `trophy_ledger` and updates `users.trophies`; ranked battles only | Backend | 1.5 | S4-03, S2-03 | Ledger sum equals each user's trophies; invite battles change nothing | Done |
 | S5-04 | Arena per match: questions from the lower arena, lower trophy count sets N\_max | Backend | 0.5 | S5-01 | A 250 vs 800 trophy match gets arena 1 questions | Not started |
 | S5-05 | Parent consent API: `POST /consent/start` (phone number) and `/consent/verify`; WhatsApp first, SMS fallback; 6-digit code, 5-minute expiry, attempt limits; consent record stored | Backend | 2.5 | S3-04, S3-13 | A test parent unlocks a child account; a 6th wrong code is blocked | Not started |

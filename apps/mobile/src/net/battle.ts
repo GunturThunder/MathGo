@@ -1,4 +1,4 @@
-import { joinBattle, type BattleConnection, type BattleHandlers } from '@mathgo/battle-client';
+import { findMatch, type BattleHandlers, type MatchSearch } from '@mathgo/battle-client';
 import { api } from '../api';
 
 /**
@@ -7,11 +7,14 @@ import { api } from '../api';
  */
 export const GAME_SERVER_URL = process.env.EXPO_PUBLIC_GAME_SERVER_URL ?? 'ws://localhost:2567';
 
-/** Joins a battle as the signed-in player (a given room, or any open one). */
-export function joinAsPlayer(handlers: BattleHandlers, roomId?: string): Promise<BattleConnection> {
-  return joinBattle(
+/** Queues the signed-in player for a random battle (FR-02); `match` resolves when paired. */
+export function findMatchAsPlayer(
+  handlers: BattleHandlers,
+  onQueued?: (trophies: number) => void,
+): Promise<MatchSearch> {
+  return findMatch(
     { endpoint: GAME_SERVER_URL, getToken: (force) => api.accessToken(force) },
     handlers,
-    roomId,
+    onQueued,
   );
 }

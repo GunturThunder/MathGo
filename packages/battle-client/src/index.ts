@@ -1,6 +1,5 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
-  BATTLE_ROOM,
   QUEUE_ROOM,
   ERROR_CODES,
   PROTOCOL_VERSION,
@@ -51,10 +50,6 @@ export interface BattleConnection {
 const isErrorCode = (value: unknown): value is ErrorCode =>
   typeof value === 'string' && (ERROR_CODES as readonly string[]).includes(value);
 
-/**
- * Joins a battle (a given room, or any open one) and wires the handlers. Join refusals become
- * `JoinError` with the protocol code; an expired token is refreshed and the join retried once.
- */
 /** Joins `roomName` (or a room by id) with the access token; refusals become JoinError. */
 async function enter(
   client: Client,
@@ -108,20 +103,17 @@ function connect(room: Room, handlers: BattleHandlers): BattleConnection {
 }
 
 /**
- * Joins a battle (a given room, or any open one) and wires the handlers. Join refusals become
- * `JoinError` with the protocol code; an expired token is refreshed and the join retried once.
+ * Joins a battle room by id: an invite room (joinByCode) or one the server made. Random battles
+ * go through findMatch(); clients cannot open battle rooms themselves (S5-02). Join refusals
+ * become `JoinError`; an expired token is refreshed and the join retried once.
  */
 export async function joinBattle(
   options: BattleClientOptions,
   handlers: BattleHandlers,
-  roomId?: string,
+  roomId: string,
 ): Promise<BattleConnection> {
   const client = new Client(options.endpoint);
-  const room = await enter(
-    client,
-    options,
-    roomId === undefined ? { roomName: BATTLE_ROOM } : { roomId },
-  );
+  const room = await enter(client, options, { roomId });
   return connect(room, handlers);
 }
 

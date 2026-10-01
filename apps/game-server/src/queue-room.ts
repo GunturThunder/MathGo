@@ -38,7 +38,7 @@ export interface QueueRoomOptions {
   readonly tickMs?: number;
 }
 
-type QueuedAuth = AccessClaims & { readonly trophies: number };
+type QueuedAuth = AccessClaims & { readonly trophies: number; readonly joinedAt: number };
 
 /**
  * Random matchmaking (FR-02, S5-01). Players wait here; every tick pairs them by trophies
@@ -65,11 +65,22 @@ export class QueueRoom extends Room {
   ): Promise<QueuedAuth> {
     const config = QueueRoom.options;
     if (config === undefined) throw new Error('QueueRoom.configure() was not called');
+    const now = (config.now ?? (() => new Date()))().getTime();
     try {
-      const claims = await authorizeJoin(options, config.key, (config.now ?? (() => new Date()))());
+      const claims = await authorizeJoin(options, config.key, new Date(now));
       const trophies = await config.trophies(claims.userId);
       if (trophies === null) throw new JoinRefused('invalid-token');
-      return { ...claims, trophies };
+      // In a running battle: reconnect to it, don't start another (S5-02).
+      if ((await config.matchmaker.store.activeRoom(claims.userId)) !== null) {
+        throw new JoinRefused('already-in-match');
+      }
+      // Atomic: of two simultaneous joins for one account, only one gets in (S5-02).
+      const queued = await config.matchmaker.join(
+        { userId: claims.userId, trophies, joinedAt: now },
+        now,
+      );
+      if (!queued) throw new JoinRefused('already-queued');
+      return { ...claims, trophies, joinedAt: now };
     } catch (error) {
       if (error instanceof JoinRefused) throw new ServerError(error.status, error.code);
       throw error;
@@ -86,13 +97,9 @@ export class QueueRoom extends Room {
   override async onJoin(client: Client, _options: unknown, auth: QueuedAuth) {
     const config = QueueRoom.options;
     if (config === undefined) return;
+    // Queued in onAuth already; from here the tick keeps the entry fresh.
     this.waiting.set(auth.userId, { client, auth });
     client.userData = { userId: auth.userId };
-    await config.matchmaker.join({
-      userId: auth.userId,
-      trophies: auth.trophies,
-      joinedAt: (config.now ?? (() => new Date()))().getTime(),
-    });
     client.send('queued', { trophies: auth.trophies });
   }
 
@@ -113,11 +120,25 @@ export class QueueRoom extends Room {
     if (config === undefined || this.ticking) return;
     this.ticking = true;
     try {
-      const pairs = await config.matchmaker.tick((config.now ?? (() => new Date()))().getTime());
+      const now = (config.now ?? (() => new Date()))().getTime();
+      // Still here: entries of players nobody has seen for a while are pruned as stale.
+      await config.matchmaker.store.touch([...this.waiting.keys()], now);
+      const pairs = await config.matchmaker.tick(now, (id) => this.waiting.has(id));
       for (const pair of pairs) {
-        const players = pair.map((e) => this.waiting.get(e.userId));
-        const [a, b] = players;
-        if (a === undefined || b === undefined) continue; // left meanwhile (S5-02 hardens this)
+        const [a, b] = pair.map((e) => this.waiting.get(e.userId));
+        if (a === undefined || b === undefined) {
+          // One of them left between the queue read and now: whoever is still waiting goes back
+          // into the queue, keeping their place in time (S5-02).
+          for (const p of [a, b]) {
+            if (p !== undefined) {
+              await config.matchmaker.join(
+                { userId: p.auth.userId, trophies: p.auth.trophies, joinedAt: p.auth.joinedAt },
+                now,
+              );
+            }
+          }
+          continue;
+        }
         // A private ranked room: only the two reserved players can enter it.
         const room = await matchMaker.createRoom(BATTLE_ROOM, { mode: 'ranked', matched: true });
         for (const player of [a, b]) {

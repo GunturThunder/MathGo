@@ -5,8 +5,9 @@ reconnects (S4-04), match records (S4-03), anti-cheat flags (S4-06) and rematche
 
 ## Load test (S4-07)
 
-Bots play like people: each reads its question text, works out the answer with game-core's
-parser, and answers after 2–6 s (about 1 in 10 wrong). Every answer's round trip (sent → hit or
+Bots play like people: each signs up as a guest on the api, waits in the random queue (S5-01),
+takes its reserved seat, reads its question text, works out the answer with game-core's parser,
+and answers after 2–6 s (about 1 in 10 wrong). Every answer's round trip (sent → hit or
 miss received) is measured. Start the stack with game-server limited like a small VPS (2 vCPU,
 4 GB), then run 200 battles (400 clients):
 
@@ -36,3 +37,8 @@ game-server in Docker limited to 2 vCPU and 4 GB, bots on the same machine:
 The round trips are over loopback, so they show the server's own processing time, not the
 network: on a phone in Jakarta add the network round trip (target under 150 ms, S6-05). Repeat the
 test on the production VPS once it exists.
+
+Since S5-02 the bots go through the random queue (guest sign-up, queue, reserved seat), as the
+app does. A rerun that way (`loadtest-results/2026-10-01-200-battles-via-queue-no-limits.json`,
+game-server without the 2 vCPU limit) also finished 200 of 200 battles with nothing dropped;
+round trip p50 4.8 ms, p95 15.4 ms; CPU peak 38 % of one core; memory peak 130 MiB.

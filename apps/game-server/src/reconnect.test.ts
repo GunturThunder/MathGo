@@ -2,12 +2,7 @@ import { Client, type Room } from '@colyseus/sdk';
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
 import { DEV_JWT_SECRET, signAccessToken, signingKey } from '@mathgo/auth';
 import { generateQuestion } from '@mathgo/game-core';
-import {
-  BATTLE_ROOM,
-  PROTOCOL_VERSION,
-  parseServerMessage,
-  type ServerMessage,
-} from '@mathgo/protocol';
+import { PROTOCOL_VERSION, parseServerMessage, type ServerMessage } from '@mathgo/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { RECONNECT_SECONDS } from './battle-room.js';
 import type { BattleSession } from './battle-session.js';
@@ -15,7 +10,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
-import { testDeps } from './test-deps.js';
+import { openBattle, testDeps } from './test-deps.js';
 
 /**
  * FR-07, scaled down: a 1.5 s reconnect window stands in for the real 15 s, so a 1 s outage
@@ -49,7 +44,7 @@ class Phone {
   private readonly client = new Client(endpoint);
   room!: Room;
 
-  static async join(userId: string, roomId?: string) {
+  static async join(userId: string, roomId: string) {
     const phone = new Phone();
     const { token } = await signAccessToken(
       { userId, online: true },
@@ -57,12 +52,7 @@ class Phone {
       new Date(),
     );
     const options = { protocolVersion: PROTOCOL_VERSION, token };
-    // A fresh room per battle, so tests never share one.
-    phone.attach(
-      roomId === undefined
-        ? await phone.client.create(BATTLE_ROOM, options)
-        : await phone.client.joinById(roomId, options),
-    );
+    phone.attach(await phone.client.joinById(roomId, options));
     return phone;
   }
 
@@ -94,8 +84,10 @@ async function until(check: () => boolean) {
 }
 
 async function battle() {
-  const a = await Phone.join('a');
-  const b = await Phone.join('b', a.room.roomId);
+  // A fresh room per battle, so tests never share one.
+  const roomId = await openBattle(colyseus);
+  const a = await Phone.join('a', roomId);
+  const b = await Phone.join('b', roomId);
   await until(() => a.messages('questions').length > 0 && b.messages('questions').length > 0);
   const session = (colyseus.getRoomById(a.room.roomId) as unknown as { session: BattleSession })
     .session;
@@ -162,7 +154,7 @@ describe('reconnect (S4-04, FR-07)', () => {
   });
 
   it('leaving before the opponent arrives is not a forfeit', async () => {
-    const a = await Phone.join('lonely');
+    const a = await Phone.join('lonely', await openBattle(colyseus));
     await a.room.leave(true);
     expect(a.messages('end')).toHaveLength(0);
   });

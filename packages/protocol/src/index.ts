@@ -159,6 +159,10 @@ export const ERROR_CODES = [
   /** Invite code past its 10-minute idle TTL. */
   'room-expired',
   'rate-limited',
+  /** Already waiting in the random queue (e.g. from another device). */
+  'already-queued',
+  /** Seated in a battle that is still running: reconnect to it instead. */
+  'already-in-match',
   /** A message that fails its schema. */
   'invalid-message',
 ] as const;

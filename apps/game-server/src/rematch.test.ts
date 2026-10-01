@@ -15,7 +15,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import type { FinishedMatch, MatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
-import { testDeps } from './test-deps.js';
+import { openBattle, testDeps } from './test-deps.js';
 
 let fakeNow = Date.parse('2026-11-26T09:00:00Z');
 const stored: FinishedMatch[] = [];
@@ -143,8 +143,9 @@ describe('rematch in an invite room (S4-05)', () => {
     await Promise.all([host.conn.leave(), friend.conn.leave()]);
 
     const inbox: ServerMessage[] = [];
-    const a = await joinBattle(as('a'), { onMessage: (m) => inbox.push(m) });
-    const b = await joinBattle(as('b'), { onMessage: () => undefined }, a.roomId);
+    const ranked = await openBattle(colyseus);
+    const a = await joinBattle(as('a'), { onMessage: (m) => inbox.push(m) }, ranked);
+    const b = await joinBattle(as('b'), { onMessage: () => undefined }, ranked);
     await b.leave(); // forfeit: the ranked battle ends
     a.requestRematch(true);
     await until(() => inbox.some((m) => m.type === 'error'));
