@@ -34,4 +34,15 @@ describe('app shell', () => {
     expect(screen.getByTestId('determinism-status')).toHaveTextContent('LULUS');
     expect(log).toHaveBeenCalledWith(expect.stringMatching(/^\[S1-08\] PASS /));
   });
+
+  it('Settings opens the keypad test (dev builds), which checks answers with game-core', () => {
+    renderRouter(APP_DIR, { initialUrl: '/settings' });
+    fireEvent.press(screen.getByTestId('settings-keypad-test'));
+    expect(screen).toHavePathname('/keypad-test');
+    fireEvent.press(screen.getByTestId('arena-1'));
+    fireEvent(screen.getByTestId('key-0'), 'pressIn');
+    fireEvent.press(screen.getByTestId('key-submit'));
+    // Right or wrong, a verdict shows.
+    expect(screen.getByTestId('keypad-result')).not.toHaveTextContent(/^\s*$/);
+  });
 });

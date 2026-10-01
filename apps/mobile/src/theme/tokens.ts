@@ -25,6 +25,8 @@ export const colors = {
   /** Captions: 5.4:1 on the ground. */
   ink2: '#5E6078',
   inkFaint: '#8C8FB0',
+  /** The "?" in an empty answer field. */
+  placeholder: '#C3C7DF',
   /** Screen background. */
   ground: '#EEF0FA',
   /** Cards, keys, buttons. */
@@ -109,6 +111,8 @@ export const radii = {
   md: 16,
   lg: 20,
   xl: 24,
+  /** Keypad keys. */
+  key: 18,
   card: 30,
   pill: 999,
 } as const;
@@ -117,7 +121,9 @@ export const radii = {
 export const sizes = {
   touch: 44,
   button: 56,
-  key: 52,
+  /** Keypad keys and the answer field's sign button. */
+  key: 56,
+  answerField: 72,
 } as const;
 
 /** Raised look: a solid base under the face, and a soft drop for cards. */

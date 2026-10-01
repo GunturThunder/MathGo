@@ -46,6 +46,21 @@ export const en: Translation = {
     dropped: 'Connection lost, reconnecting…',
     error: 'Failed: {{value}}',
   },
+  keypad: {
+    hit: 'Hit!',
+    submit: 'Attack with this answer',
+    delete: 'Delete',
+    sign: 'Switch between positive and negative',
+    answer: 'Answer: {{value}}',
+  },
+  keypadTest: {
+    open: 'Keypad test (dev)',
+    title: 'Keypad test',
+    arena: 'A{{value}}',
+    correct: 'Correct!',
+    wrong: 'Wrong. The answer is {{value}}. Locked for 1 second.',
+    latency: 'Last tap showed in {{value}} ms',
+  },
   check: {
     title: 'game-core check (S1-08)',
     pass: 'PASS',

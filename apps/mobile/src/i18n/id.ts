@@ -45,6 +45,21 @@ export const id = {
     dropped: 'Koneksi putus, menyambung lagi…',
     error: 'Gagal: {{value}}',
   },
+  keypad: {
+    hit: 'Serang!',
+    submit: 'Serang dengan jawaban ini',
+    delete: 'Hapus',
+    sign: 'Ganti tanda plus atau minus',
+    answer: 'Jawaban: {{value}}',
+  },
+  keypadTest: {
+    open: 'Uji keypad (dev)',
+    title: 'Uji keypad',
+    arena: 'A{{value}}',
+    correct: 'Benar!',
+    wrong: 'Salah. Jawabannya {{value}}. Terkunci 1 detik.',
+    latency: 'Ketukan terakhir tampil dalam {{value}} ms',
+  },
   check: {
     title: 'Pemeriksaan game-core (S1-08)',
     pass: 'LULUS',
