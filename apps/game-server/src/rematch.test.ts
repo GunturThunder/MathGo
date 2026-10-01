@@ -15,6 +15,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import type { FinishedMatch, MatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
+import { testDeps } from './test-deps.js';
 
 let fakeNow = Date.parse('2026-11-26T09:00:00Z');
 const stored: FinishedMatch[] = [];
@@ -29,7 +30,7 @@ let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
   colyseus = await boot(
-    createServer(loadConfig({}), { invites, recorder, now: () => new Date(fakeNow) }),
+    createServer(loadConfig({}), testDeps({ invites, recorder, now: () => new Date(fakeNow) })),
   );
 });
 afterAll(async () => {

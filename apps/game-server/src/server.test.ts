@@ -6,6 +6,7 @@ import { loadConfig } from './config.js';
 import { MemoryInviteStore } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
+import { testDeps } from './test-deps.js';
 
 const now = new Date('2026-11-09T10:00:00Z');
 const key = signingKey(DEV_JWT_SECRET);
@@ -13,11 +14,14 @@ let colyseus: ColyseusTestServer;
 
 beforeAll(async () => {
   colyseus = await boot(
-    createServer(loadConfig({}), {
-      invites: new MemoryInviteStore(),
-      recorder: noMatchRecorder,
-      now: () => now,
-    }),
+    createServer(
+      loadConfig({}),
+      testDeps({
+        invites: new MemoryInviteStore(),
+        recorder: noMatchRecorder,
+        now: () => now,
+      }),
+    ),
   );
 });
 afterAll(async () => {

@@ -3,6 +3,8 @@ import { createDatabase } from '@mathgo/db';
 import { Redis } from 'ioredis';
 import { RedisInviteStore } from './invites.js';
 import { DbMatchRecorder } from './match-recorder.js';
+import { RedisMatchQueue } from './matchmaking/queue-store.js';
+import { dbTrophyLookup } from './queue-room.js';
 import { createServer } from './server.js';
 
 let config;
@@ -19,4 +21,6 @@ const database = createDatabase(config.DATABASE_URL);
 await createServer(config, {
   invites: new RedisInviteStore(redis),
   recorder: new DbMatchRecorder(database.db),
+  matchQueue: new RedisMatchQueue(redis),
+  trophies: dbTrophyLookup(database.db),
 }).listen(config.PORT);

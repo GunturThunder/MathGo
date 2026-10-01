@@ -96,10 +96,14 @@ export class BattleRoom extends Room {
    * Only the server creates invite rooms (matchMaker.createRoom in POST /invites): clients' join
    * options never pass the protocol schema with a `mode`, so they cannot ask for one.
    */
-  override async onCreate(options?: { mode?: 'invite' }) {
+  override async onCreate(options?: { mode?: 'invite' | 'ranked'; matched?: boolean }) {
     if (options?.mode === 'invite') {
       this.mode = 'invite';
       // Random matchmaking must never fill an invite room; friends join it by id.
+      await this.setPrivate(true);
+    }
+    if (options?.matched === true) {
+      // Made by the queue (S5-01) with a seat reserved for each player: nobody else gets in.
       await this.setPrivate(true);
     }
     this.onMessage('*', (client: Client, type: string | number, payload: unknown) => {

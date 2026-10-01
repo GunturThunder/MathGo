@@ -1,6 +1,7 @@
 import { Client, type Room } from '@colyseus/sdk';
 import {
   BATTLE_ROOM,
+  QUEUE_ROOM,
   ERROR_CODES,
   PROTOCOL_VERSION,
   parseServerMessage,
@@ -11,7 +12,7 @@ import {
 /** A join the server refused, with the protocol error code to show (or `connection-failed`). */
 export class JoinError extends Error {
   constructor(
-    readonly code: ErrorCode | 'connection-failed',
+    readonly code: ErrorCode | 'connection-failed' | 'cancelled',
     readonly status?: number,
   ) {
     super(code);
@@ -54,22 +55,21 @@ const isErrorCode = (value: unknown): value is ErrorCode =>
  * Joins a battle (a given room, or any open one) and wires the handlers. Join refusals become
  * `JoinError` with the protocol code; an expired token is refreshed and the join retried once.
  */
-export async function joinBattle(
+/** Joins `roomName` (or a room by id) with the access token; refusals become JoinError. */
+async function enter(
+  client: Client,
   options: BattleClientOptions,
-  handlers: BattleHandlers,
-  roomId?: string,
-): Promise<BattleConnection> {
-  const client = new Client(options.endpoint);
-
+  target: { roomName: string } | { roomId: string },
+): Promise<Room> {
   const attempt = async (forceRefresh: boolean): Promise<Room> => {
     const joinOptions = {
       protocolVersion: PROTOCOL_VERSION,
       token: await options.getToken(forceRefresh),
     };
     try {
-      return roomId === undefined
-        ? await client.joinOrCreate(BATTLE_ROOM, joinOptions)
-        : await client.joinById(roomId, joinOptions);
+      return 'roomId' in target
+        ? await client.joinById(target.roomId, joinOptions)
+        : await client.joinOrCreate(target.roomName, joinOptions);
     } catch (error) {
       const { code, message } = (error ?? {}) as { code?: unknown; message?: unknown };
       if (isErrorCode(message)) {
@@ -78,15 +78,16 @@ export async function joinBattle(
       throw new JoinError('connection-failed');
     }
   };
-
-  let room: Room;
   try {
-    room = await attempt(false);
+    return await attempt(false);
   } catch (error) {
     if (!(error instanceof JoinError) || error.code !== 'token-expired') throw error;
-    room = await attempt(true);
+    return attempt(true);
   }
+}
 
+/** Wires a battle room to the handlers and returns the app's handle on it. */
+function connect(room: Room, handlers: BattleHandlers): BattleConnection {
   room.onMessage('*', (type: string | number, payload: unknown) => {
     const parsed = parseServerMessage(String(type), payload);
     if (parsed.ok) handlers.onMessage(parsed.message);
@@ -102,6 +103,79 @@ export async function joinBattle(
     requestRematch: (accept) => room.send('rematch', { accept }),
     leave: async () => {
       await room.leave(true);
+    },
+  };
+}
+
+/**
+ * Joins a battle (a given room, or any open one) and wires the handlers. Join refusals become
+ * `JoinError` with the protocol code; an expired token is refreshed and the join retried once.
+ */
+export async function joinBattle(
+  options: BattleClientOptions,
+  handlers: BattleHandlers,
+  roomId?: string,
+): Promise<BattleConnection> {
+  const client = new Client(options.endpoint);
+  const room = await enter(
+    client,
+    options,
+    roomId === undefined ? { roomName: BATTLE_ROOM } : { roomId },
+  );
+  return connect(room, handlers);
+}
+
+export interface MatchSearch {
+  /**
+   * Resolves with the battle once an opponent is found. Rejects with JoinError `cancelled` after
+   * cancel(), or `connection-failed` if the connection is lost.
+   */
+  readonly match: Promise<BattleConnection>;
+  /** Stops waiting (the matchmaking screen's Cancel, S5-07). */
+  cancel(): Promise<void>;
+}
+
+/**
+ * Waits in the random queue (FR-02) and enters the battle the server pairs this player into.
+ * `onQueued` gets the trophies the server matches on.
+ */
+export async function findMatch(
+  options: BattleClientOptions,
+  handlers: BattleHandlers,
+  onQueued?: (trophies: number) => void,
+): Promise<MatchSearch> {
+  const client = new Client(options.endpoint);
+  const queue = await enter(client, options, { roomName: QUEUE_ROOM });
+  let matched = false;
+  let cancelled = false;
+  const match = new Promise<BattleConnection>((resolve, reject) => {
+    queue.onMessage('*', (type: string | number, payload: unknown) => {
+      const parsed = parseServerMessage(String(type), payload);
+      if (!parsed.ok) return;
+      if (parsed.message.type === 'queued') onQueued?.(parsed.message.payload.trophies);
+      if (parsed.message.type === 'matched' && !cancelled) {
+        matched = true;
+        const reservation = parsed.message.payload.reservation as unknown as Parameters<
+          Client['consumeSeatReservation']
+        >[0];
+        void queue.leave(true);
+        client.consumeSeatReservation(reservation).then(
+          (room) => resolve(connect(room, handlers)),
+          () => reject(new JoinError('connection-failed')),
+        );
+      }
+    });
+    queue.onLeave(() => {
+      if (!matched) reject(new JoinError(cancelled ? 'cancelled' : 'connection-failed'));
+    });
+  });
+  match.catch(() => undefined); // a cancelled search is not an unhandled rejection
+  return {
+    match,
+    cancel: async () => {
+      if (matched || cancelled) return;
+      cancelled = true;
+      await queue.leave(true);
     },
   };
 }

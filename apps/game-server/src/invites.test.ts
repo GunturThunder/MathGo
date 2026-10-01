@@ -16,6 +16,7 @@ import {
 } from './invites.js';
 import { noMatchRecorder } from './match-recorder.js';
 import { createServer } from './server.js';
+import { testDeps } from './test-deps.js';
 
 describe('invite codes', () => {
   it('are 6 characters without look-alikes (0, O, 1, I, L)', () => {
@@ -88,7 +89,7 @@ describe('invite rooms through game-server (S4-02)', () => {
 
   beforeAll(async () => {
     colyseus = await boot(
-      createServer(loadConfig({}), { invites: store, recorder: noMatchRecorder }),
+      createServer(loadConfig({}), testDeps({ invites: store, recorder: noMatchRecorder })),
     );
   });
   afterAll(async () => {
