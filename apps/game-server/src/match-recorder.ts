@@ -1,5 +1,13 @@
-import { matchAnswers, matches, type Database } from '@mathgo/db';
-import type { BattleState, Seat } from '@mathgo/game-core';
+import {
+  eq,
+  inArray,
+  matchAnswers,
+  matches,
+  trophyLedger,
+  users as usersTable,
+  type Database,
+} from '@mathgo/db';
+import { settleTrophies, type BattleState, type Seat, type TrophyChange } from '@mathgo/game-core';
 import type { AnswerRecord } from './battle-session.js';
 
 /** A finished battle, ready to store (S4-03). */
@@ -13,12 +21,23 @@ export interface FinishedMatch {
   readonly answers: readonly AnswerRecord[];
 }
 
-export interface MatchRecorder {
-  /** Stores the match and its answers; resolves to the match id. */
-  record(match: FinishedMatch): Promise<string>;
+export interface RecordedMatch {
+  readonly matchId: string;
+  /** Each seat's trophy change; null for invite battles, which never change trophies (S5-03). */
+  readonly trophies: readonly [TrophyChange, TrophyChange] | null;
 }
 
-/** Postgres: one `matches` row and one `match_answers` row per counted answer, together. */
+export interface MatchRecorder {
+  /** Stores the match and its answers and, for ranked battles, settles the trophies. */
+  record(match: FinishedMatch): Promise<RecordedMatch>;
+}
+
+/**
+ * Postgres, in one transaction: one `matches` row, one `match_answers` row per counted answer,
+ * and for ranked battles the trophy settlement (FR-08): both players' rows locked, the change
+ * from game-core's settleTrophies on their current trophies, `users.trophies` updated and one
+ * `trophy_ledger` row each. Every trophy change goes through the ledger, so it always adds up.
+ */
 export class DbMatchRecorder implements MatchRecorder {
   constructor(private readonly db: Database) {}
 
@@ -29,7 +48,7 @@ export class DbMatchRecorder implements MatchRecorder {
     startedAt,
     endedAt,
     answers,
-  }: FinishedMatch): Promise<string> {
+  }: FinishedMatch): Promise<RecordedMatch> {
     const result = battle.result;
     if (result === null) throw new Error('Only finished battles are recorded');
     return this.db.transaction(async (tx) => {
@@ -67,10 +86,40 @@ export class DbMatchRecorder implements MatchRecorder {
           })),
         );
       }
-      return row.id;
+      if (mode !== 'ranked') return { matchId: row.id, trophies: null };
+
+      // Lock both players so concurrent settlements for the same player queue up.
+      const locked = await tx
+        .select({ id: usersTable.id, trophies: usersTable.trophies })
+        .from(usersTable)
+        .where(inArray(usersTable.id, [...users]))
+        .for('update');
+      const current = (seat: Seat) => {
+        const player = locked.find((u) => u.id === users[seat]);
+        if (player === undefined) throw new Error(`No user ${users[seat]} to settle`);
+        return player.trophies;
+      };
+      const changes = settleTrophies(result, [current(0), current(1)]);
+      for (const seat of [0, 1] as const) {
+        const change = changes[seat];
+        await tx
+          .update(usersTable)
+          .set({ trophies: change.trophies })
+          .where(eq(usersTable.id, users[seat]));
+        await tx.insert(trophyLedger).values({
+          userId: users[seat],
+          matchId: row.id,
+          delta: change.delta,
+          trophiesAfter: change.trophies,
+          reason: 'match',
+        });
+      }
+      return { matchId: row.id, trophies: changes };
     });
   }
 }
 
 /** Records nothing; for tests that are not about storage. */
-export const noMatchRecorder: MatchRecorder = { record: async () => 'not-recorded' };
+export const noMatchRecorder: MatchRecorder = {
+  record: async () => ({ matchId: 'not-recorded', trophies: null }),
+};

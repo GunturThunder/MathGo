@@ -54,7 +54,7 @@ async function account(nickname: string) {
   return { id: user.id, options };
 }
 
-type ServerRoom = { session: BattleSession; recorded: Promise<string> | null };
+type ServerRoom = { session: BattleSession; recorded: Promise<{ matchId: string } | null> | null };
 const serverRoom = (roomId: string) => colyseus.getRoomById(roomId) as unknown as ServerRoom;
 
 async function until(check: () => boolean) {
@@ -104,7 +104,7 @@ describe('match records (S4-03)', () => {
     for (let i = 1; i <= 6; i++) await answer(ca, 0, i * 1_000);
     expect(room.session.battle.result).toEqual({ outcome: 'win', winner: 0, reason: 'ko' });
 
-    const id = await room.recorded;
+    const id = (await room.recorded)?.matchId;
     expect(id).toBeTruthy();
     const [match] = await db
       .select()
@@ -154,7 +154,7 @@ describe('match records (S4-03)', () => {
     ca.sendAnswer(1, 0); // during the lock: refused
     await new Promise((r) => setTimeout(r, 50));
     await cb.leave(); // B quits: forfeit, A wins
-    const id = await room.recorded;
+    const id = (await room.recorded)?.matchId;
     const [match] = await db
       .select()
       .from(matches)
@@ -171,7 +171,7 @@ describe('match records (S4-03)', () => {
   it('invite battles are stored too, as mode invite', async () => {
     const { ca, cb, room } = await startBattle(true);
     await ca.leave(); // A quits
-    const id = await room.recorded;
+    const id = (await room.recorded)?.matchId;
     const [match] = await db
       .select()
       .from(matches)
