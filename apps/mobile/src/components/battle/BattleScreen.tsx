@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   allowsNegative,
@@ -8,10 +9,14 @@ import {
   type KeypadKey,
 } from '../../battle/answer-entry';
 import type { BattleView } from '../../battle/battle-view';
+import type { QueuedEffect } from '../../battle/effects';
 import { colors, radii, space, typography, type ShapeName } from '../../theme';
 import { FlagIcon, LockIcon } from '../icons';
 import { Keypad } from '../Keypad';
 import { BattleTimer } from './BattleTimer';
+import { BattleEnd } from './effects/BattleEnd';
+import { usePop } from './effects/pop';
+import { useEffectQueue } from './effects/use-effect-queue';
 import { FighterCard } from './FighterCard';
 import { QuestionPanel } from './QuestionPanel';
 
@@ -19,8 +24,9 @@ import { QuestionPanel } from './QuestionPanel';
 export const COMPACT_HEIGHT = 760;
 
 /**
- * The battle screen layout (S2-08, design: Battle board). Presentational only: practice (S2-10)
- * and online battles (S3-12) feed it a BattleView and handle the keys.
+ * The battle screen (S2-08 layout, S2-09 effects; design: Battle board). Presentational only:
+ * practice (S2-10) and online battles (S3-12) feed it a BattleView plus the effects to play
+ * (`battleEffects()` with increasing ids), and handle the keys.
  */
 export function BattleScreen({
   view,
@@ -31,6 +37,9 @@ export function BattleScreen({
   onQuit,
   myShape = 'triangle',
   rivalShape = 'circle',
+  effects = [],
+  onSeeResults,
+  onPlayAgain,
 }: {
   view: BattleView;
   question: string;
@@ -40,8 +49,13 @@ export function BattleScreen({
   onQuit: () => void;
   myShape?: ShapeName;
   rivalShape?: ShapeName;
+  effects?: readonly QueuedEffect[];
+  onSeeResults?: () => void;
+  onPlayAgain?: () => void;
 }) {
   const { t } = useTranslation();
+  const fx = useEffectQueue(effects);
+  const lockPop = usePop(view.locked ? fx.missKey + 1 : 0);
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const compact = height < COMPACT_HEIGHT;
@@ -83,6 +97,7 @@ export function BattleScreen({
         side="rival"
         compact={compact}
         testID="fighter-rival"
+        hit={fx.rivalHit}
       />
       <QuestionPanel
         question={question}
@@ -93,6 +108,7 @@ export function BattleScreen({
         showSign={allowsNegative(view.arena)}
         onKey={onKey}
         compact={compact}
+        missKey={fx.missKey}
       />
       <FighterCard
         fighter={view.me}
@@ -100,6 +116,7 @@ export function BattleScreen({
         side="me"
         compact={compact}
         testID="fighter-me"
+        hit={fx.meHit}
       />
       <View style={styles.spacer} />
       <View>
@@ -112,13 +129,21 @@ export function BattleScreen({
         />
         {view.locked ? (
           <View style={styles.lockScrim} testID="battle-locked" pointerEvents="none">
-            <View style={styles.lockBadge} accessibilityLiveRegion="assertive">
+            <Animated.View style={[styles.lockBadge, lockPop]} accessibilityLiveRegion="assertive">
               <LockIcon color={colors.danger} />
               <Text style={styles.lockText}>{t('battleScreen.locked')}</Text>
-            </View>
+            </Animated.View>
           </View>
         ) : null}
       </View>
+      {fx.end ? (
+        <BattleEnd
+          outcome={fx.end.outcome}
+          reason={fx.end.reason}
+          {...(onSeeResults ? { onSeeResults } : {})}
+          {...(onPlayAgain ? { onPlayAgain } : {})}
+        />
+      ) : null}
     </View>
   );
 }

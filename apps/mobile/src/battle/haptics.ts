@@ -4,3 +4,15 @@ import * as Haptics from 'expo-haptics';
 export function keyTap(): void {
   Haptics.selectionAsync().catch(() => undefined);
 }
+
+/** A thump when the rival hits you. */
+export function hitFeedback(): void {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+}
+
+/** The battle is over: success on a win, a warning buzz otherwise. */
+export function endFeedback(won: boolean): void {
+  Haptics.notificationAsync(
+    won ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning,
+  ).catch(() => undefined);
+}

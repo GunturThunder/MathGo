@@ -2,6 +2,8 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  # Copies its prebuilt native libraries into place (S2-09).
+  '@shopify/react-native-skia': true
   # drizzle-kit bundles its config with esbuild; its install script checks the native binary.
   esbuild: true
   # Optional native speed-up for msgpackr (Colyseus); prebuilt binaries load without it.

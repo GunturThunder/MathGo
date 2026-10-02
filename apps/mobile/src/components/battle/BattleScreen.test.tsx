@@ -1,8 +1,9 @@
 import { createBattle } from '@mathgo/game-core';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { EMPTY_ENTRY } from '../../battle/answer-entry';
 import { battleView, type BattleView } from '../../battle/battle-view';
+import type { QueuedEffect } from '../../battle/effects';
 import '../../i18n';
 import { BattleScreen } from './BattleScreen';
 import { questionFontSize } from './QuestionPanel';
@@ -28,7 +29,12 @@ const metrics = {
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
 };
 
-function show(view: Partial<BattleView> = {}, height = 844) {
+function show(
+  view: Partial<BattleView> = {},
+  height = 844,
+  effects: QueuedEffect[] = [],
+  onPlayAgain?: () => void,
+) {
   mockWindowHeight = height;
   const onQuit = jest.fn();
   render(
@@ -40,6 +46,8 @@ function show(view: Partial<BattleView> = {}, height = 844) {
         onKey={jest.fn()}
         onSubmit={jest.fn()}
         onQuit={onQuit}
+        effects={effects}
+        {...(onPlayAgain ? { onPlayAgain } : {})}
       />
     </SafeAreaProvider>,
   );
@@ -98,5 +106,65 @@ describe('battle screen layout (S2-08)', () => {
     expect(questionFontSize('12² − 45 ÷ 5 × 3', false)).toBe(36);
     expect(questionFontSize('(24 + 16) ÷ 8 × 3 − 1', false)).toBe(31);
     expect(questionFontSize('7 × 8', true)).toBe(44);
+  });
+});
+
+describe('battle effects (S2-09)', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => jest.useRealTimers());
+
+  it('my fast hit: a burst with the damage and FAST +5 on the rival, gone after 700 ms', () => {
+    show({}, 844, [{ id: 1, kind: 'hit', by: 'me', damage: 15, fast: true, combo: false }]);
+    expect(screen.getByTestId('hit-burst')).toHaveTextContent('−15');
+    expect(screen.getByTestId('fighter-rival-fast')).toHaveTextContent('CEPAT +5');
+    expect(screen.queryByTestId('fighter-me-fast')).toBeNull();
+    act(() => jest.advanceTimersByTime(700));
+    expect(screen.queryByTestId('hit-burst')).toBeNull();
+  });
+
+  it("the rival's hit lands on my card", () => {
+    show({}, 844, [{ id: 1, kind: 'hit', by: 'rival', damage: 10, fast: false, combo: false }]);
+    expect(screen.getByTestId('hit-burst')).toHaveTextContent('−10');
+    expect(screen.queryByTestId('fighter-rival-fast')).toBeNull();
+  });
+
+  it('a knockout shows the end card, with Play again', () => {
+    const again = jest.fn();
+    show({}, 844, [{ id: 1, kind: 'end', outcome: 'win', reason: 'ko' }], again);
+    expect(screen.getByTestId('battle-end-title')).toHaveTextContent('K.O.!');
+    fireEvent.press(screen.getByTestId('battle-end-again'));
+    expect(again).toHaveBeenCalled();
+  });
+
+  it.each([
+    ['lose', 'ko', 'Kena K.O.'],
+    ['lose', 'time', 'Kalah'],
+    ['win', 'forfeit', 'Menang!'],
+    ['draw', 'time', 'Seri!'],
+  ] as const)('%s by %s: "%s"', (outcome, reason, title) => {
+    show({}, 844, [{ id: 1, kind: 'end', outcome, reason }]);
+    expect(screen.getByTestId('battle-end-title')).toHaveTextContent(title);
+  });
+
+  it('effects already played are not replayed', () => {
+    const effects: QueuedEffect[] = [
+      { id: 1, kind: 'hit', by: 'me', damage: 10, fast: false, combo: false },
+    ];
+    show({}, 844, effects);
+    act(() => jest.advanceTimersByTime(700));
+    screen.rerender(
+      <SafeAreaProvider initialMetrics={metrics}>
+        <BattleScreen
+          view={base}
+          question="7 × 8 − 12"
+          entry={EMPTY_ENTRY}
+          onKey={jest.fn()}
+          onSubmit={jest.fn()}
+          onQuit={jest.fn()}
+          effects={[...effects]}
+        />
+      </SafeAreaProvider>,
+    );
+    expect(screen.queryByTestId('hit-burst')).toBeNull();
   });
 });
