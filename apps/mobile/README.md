@@ -102,5 +102,10 @@ Battles must hold 60 fps on a mid-range Android phone during hits.
    ```
    "Janky frames" under 5 % and a 90th percentile under 16 ms mean the battle holds 60 fps.
 
+Measured on 2026-10-02 on a Samsung Galaxy A07 (SM-A075F, budget, 90 Hz screen), dev build,
+practice vs a Sulit bot: **UI 90 fps** during hits, 4 stutters in the battle. The new
+architecture's Perf Monitor shows no JS frame rate, and its "dropped" count goes negative on
+90 Hz screens; ignore both. Tap speed is measured on the keypad test screen instead.
+
 Re-renders are kept down by tests (`src/battle-renders.test.tsx`): the fighter cards don't
 re-render while the clock runs or while you type.
