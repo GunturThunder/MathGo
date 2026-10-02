@@ -41,6 +41,21 @@ export const id = {
     retry: 'Coba lagi',
     skip: 'Latihan dulu tanpa internet',
   },
+  askParent: {
+    title: 'Minta orang tua membuka pertarungan online',
+    subtitle:
+      'Kamu bisa latihan melawan bot sekarang. Untuk melawan pemain lain, orang tua memberi izin dengan kode.',
+    step1: 'Orang tua memasukkan nomor HP-nya',
+    step1Text: 'Di HP ini, bersama kamu',
+    step2: 'Orang tua menerima kode 6 angka',
+    step2Text: 'Lewat WhatsApp, atau SMS',
+    step3: 'Pertarungan online terbuka',
+    step3Text: 'Lawan acak dan ruang teman',
+    ask: 'Minta Izin Orang Tua',
+    soon: 'Segera hadir: kode untuk orang tua lewat WhatsApp atau SMS.',
+    practice: 'Latihan vs Bot',
+    homeHint: 'Minta izin orang tua dulu',
+  },
   battle: {
     title: 'Bertarung',
     note: 'Pertarungan online segera hadir.',

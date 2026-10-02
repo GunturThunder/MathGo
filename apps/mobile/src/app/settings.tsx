@@ -7,6 +7,7 @@ import { router } from 'expo-router';
 import { api } from '../api';
 import { Button } from '../components/Button';
 import { NavButton } from '../components/NavButton';
+import { onlineLocked } from '../profile/online';
 import { profile } from '../profile/store';
 import { OnlineDevCard } from '../components/OnlineDevCard';
 import { colors, space, typography } from '../theme';
@@ -23,7 +24,7 @@ export default function Settings() {
       <Text style={styles.heading}>{t('settings.diagnostics')}</Text>
       <DeterminismCard />
       {__DEV__ ? <OnlineDevCard /> : null}
-      {__DEV__ ? <BattleDevCard /> : null}
+      {__DEV__ && !onlineLocked() ? <BattleDevCard /> : null}
       {__DEV__ ? (
         <NavButton
           href="/keypad-test"
