@@ -41,6 +41,11 @@ export const colors = {
   peach: '#FFE4CC',
   sky: '#DCE8FE',
   lilac: '#E4E3FF',
+  /** Battle timer ring: track, and the last 10 seconds. */
+  timerTrack: '#DCE0F5',
+  timerWarning: '#FF8A00',
+  /** An unlit combo flame on the night panel. */
+  comboOff: '#3A3953',
   /** The damage burst. */
   hit: '#FFD23F',
   /** "Oops! Locked for 1 second". */

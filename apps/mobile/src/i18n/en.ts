@@ -46,12 +46,27 @@ export const en: Translation = {
     dropped: 'Connection lost, reconnecting…',
     error: 'Failed: {{value}}',
   },
+  battleScreen: {
+    quit: 'Quit battle. Quitting counts as a loss',
+    timeLeft: '{{value}} left',
+    questionNumber: 'Q{{value}}',
+    hp: 'HP',
+    fighterHp: '{{name}}: {{value}} HP',
+    comboLabel: 'COMBO',
+    combo: 'Combo {{value}} of 3',
+    comboReady: '2× NEXT HIT',
+    arena: 'Arena {{number}} · {{name}}',
+    locked: 'Oops! Locked for 1 second',
+  },
   keypad: {
     hit: 'Hit!',
     submit: 'Attack with this answer',
     delete: 'Delete',
     sign: 'Switch between positive and negative',
     answer: 'Answer: {{value}}',
+  },
+  battlePreview: {
+    open: 'Battle preview, arena {{value}} (dev)',
   },
   keypadTest: {
     open: 'Keypad test (dev)',

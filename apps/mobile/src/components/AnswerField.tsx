@@ -14,10 +14,13 @@ export function AnswerField({
   entry,
   showSign,
   onKey,
+  compact = false,
 }: {
   entry: AnswerEntry;
   showSign: boolean;
   onKey: (key: KeypadKey) => void;
+  /** Small phones: a shorter field. */
+  compact?: boolean;
 }) {
   const { t } = useTranslation();
   const text = formatEntry(entry);
@@ -41,7 +44,7 @@ export function AnswerField({
         </Pressable>
       ) : null}
       <View
-        style={styles.field}
+        style={[styles.field, compact && styles.fieldCompact]}
         accessible
         accessibilityLabel={t('keypad.answer', { value: text === '' ? '–' : text })}
         testID="answer-field"
@@ -75,6 +78,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg + 2,
     backgroundColor: colors.white,
   },
+  fieldCompact: { height: sizes.answerField - 14 },
   value: { ...typography.question, color: colors.ink },
   placeholder: { color: colors.placeholder },
 });

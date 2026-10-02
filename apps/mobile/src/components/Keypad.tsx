@@ -17,6 +17,7 @@ export function Keypad({
   onSubmit,
   canSubmit,
   locked = false,
+  compact = false,
 }: {
   /** Must be stable (useCallback): keys are memoised on it. */
   onKey: (key: KeypadKey) => void;
@@ -25,21 +26,31 @@ export function Keypad({
   canSubmit: boolean;
   /** The 1 s lock after a wrong answer: keys show it and do nothing. */
   locked?: boolean;
+  /** Small phones: 48 pt keys instead of 56 (still above the 44 pt minimum). */
+  compact?: boolean;
 }) {
   const { t } = useTranslation();
   return (
     <View style={[styles.grid, locked && styles.locked]} testID="keypad">
       {DIGIT_ROWS.map((digit) => (
-        <Key key={digit} value={digit} label={digit} onKey={onKey} disabled={locked} />
+        <Key
+          key={digit}
+          value={digit}
+          label={digit}
+          onKey={onKey}
+          disabled={locked}
+          compact={compact}
+        />
       ))}
       <Key
         value="delete"
         label={t('keypad.delete')}
         onKey={onKey}
         disabled={locked}
+        compact={compact}
         variant="delete"
       />
-      <Key value="0" label="0" onKey={onKey} disabled={locked} />
+      <Key value="0" label="0" onKey={onKey} disabled={locked} compact={compact} />
       <Pressable
         testID="key-submit"
         accessibilityRole="button"
@@ -50,6 +61,7 @@ export function Keypad({
         onPress={onSubmit}
         style={({ pressed }) => [
           styles.key,
+          compact && styles.keyCompact,
           styles.submit,
           !canSubmit && styles.submitIdle,
           pressed && styles.pressed,
@@ -67,12 +79,14 @@ const Key = memo(function Key({
   label,
   onKey,
   disabled,
+  compact,
   variant = 'digit',
 }: {
   value: KeypadKey;
   label: string;
   onKey: (key: KeypadKey) => void;
   disabled: boolean;
+  compact: boolean;
   variant?: 'digit' | 'delete';
 }) {
   return (
@@ -87,6 +101,7 @@ const Key = memo(function Key({
       }}
       style={({ pressed }) => [
         styles.key,
+        compact && styles.keyCompact,
         variant === 'delete' ? styles.delete : styles.digit,
         pressed && styles.pressed,
       ]}
@@ -117,6 +132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radii.key,
   },
+  keyCompact: { height: sizes.key - 8 },
   digit: { backgroundColor: colors.white, boxShadow: `0 4px 0 ${colors.keyBase}` },
   delete: { backgroundColor: colors.line, boxShadow: `0 4px 0 ${colors.keyDeleteBase}` },
   submit: {
