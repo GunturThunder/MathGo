@@ -51,12 +51,21 @@ describe('practice vs bot (S2-10)', () => {
     expect(screen.getByTestId('fighter-rival-hp')).toHaveTextContent('100');
   });
 
-  it('Home on the end card leaves practice', () => {
+  it('Done when (S2-11): the result screen follows the battle, with Play again and Home', () => {
     renderRouter(APP_DIR);
     fireEvent.press(screen.getByTestId('home-practice'));
     fireEvent.press(screen.getByTestId('practice-start'));
     run(91_000);
-    fireEvent.press(screen.getByTestId('battle-end-exit'));
+    fireEvent.press(screen.getByTestId('battle-end-results'));
+    expect(screen.getByTestId('result-screen')).toBeOnTheScreen();
+    expect(screen.getByText('Latihan')).toBeOnTheScreen();
+    expect(screen.getByTestId('result-title')).toHaveTextContent(/^(Menang!|Kalah|Seri!)$/);
+    fireEvent.press(screen.getByTestId('result-again'));
+    expect(screen.getByTestId('battle-screen')).toBeOnTheScreen();
+    expect(screen.getByTestId('fighter-rival-hp')).toHaveTextContent('100');
+    run(91_000);
+    fireEvent.press(screen.getByTestId('battle-end-results'));
+    fireEvent.press(screen.getByTestId('result-home'));
     expect(screen).toHavePathname('/');
   });
 });

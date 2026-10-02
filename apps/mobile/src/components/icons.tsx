@@ -103,3 +103,88 @@ export function LockIcon({ color, size = 20 }: { color: string; size?: number })
     </Svg>
   );
 }
+
+export function CrownIcon({
+  fill,
+  stroke,
+  size = 40,
+}: {
+  fill: string;
+  stroke: string;
+  size?: number;
+}) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M3.5 8l4.5 4 4-6.5 4 6.5 4.5-4-1.8 10.5H5.3z"
+        fill={fill}
+        stroke={stroke}
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function StarIcon({ color, size = 13 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M12 3l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z"
+        fill={color}
+      />
+    </Svg>
+  );
+}
+
+export function CloseIcon({ color, size = 22 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.6}
+      strokeLinecap="round"
+    >
+      <Path d="M6 6l12 12" />
+      <Path d="M18 6L6 18" />
+    </Svg>
+  );
+}
+
+export function AgainIcon({ color, size = 20 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M20 12a8 8 0 1 1-2.4-5.7" />
+      <Path d="M20 4v5h-5" />
+    </Svg>
+  );
+}
+
+export function HomeIcon({ color, size = 20 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M4 10.5L12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5H15V15H9v5.5H5.5A1.5 1.5 0 0 1 4 19z" />
+    </Svg>
+  );
+}

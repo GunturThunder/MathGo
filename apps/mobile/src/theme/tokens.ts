@@ -20,6 +20,11 @@ export const colors = {
   night: '#16151F',
   nightRaised: '#2D2C45',
   nightMuted: '#B8BAD6',
+  /** Pills and dashed lines on the night panel. */
+  nightPill: '#2A2940',
+  /** Text on orange tiles that isn't the main number. */
+  orangeDeep: '#5A3300',
+  crownBase: '#D98300',
   /** Headings and body text. */
   ink: '#1B1A33',
   /** Captions: 5.4:1 on the ground. */
