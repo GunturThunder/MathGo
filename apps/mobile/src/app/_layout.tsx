@@ -22,7 +22,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.ground },
         }}
       >
-        <Stack.Screen name="index" options={{ title: t('app.name') }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="battle" options={{ headerShown: false }} />
         <Stack.Screen name="practice" options={{ title: t('practice.title') }} />
         <Stack.Screen name="settings" options={{ title: t('settings.title') }} />

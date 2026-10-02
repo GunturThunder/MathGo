@@ -44,7 +44,7 @@ describe('under-18 mode (S3-09)', () => {
   it('Home: Battle opens "Ask a parent", which offers practice', () => {
     asPlayer(thisYear - 10);
     renderRouter(APP_DIR);
-    expect(screen.getByTestId('home-locked-hint')).toHaveTextContent('Minta izin orang tua dulu');
+    expect(screen.getByTestId('home-battle')).toHaveTextContent(/Minta izin orang tua dulu/);
     fireEvent.press(screen.getByTestId('home-battle'));
     expect(screen).toHavePathname('/ask-parent');
     expect(screen.getByText('Minta orang tua membuka pertarungan online')).toBeOnTheScreen();
@@ -81,7 +81,7 @@ describe('under-18 mode (S3-09)', () => {
   it('adults are not locked: Battle opens the battle screen and matchmaking may connect', async () => {
     asPlayer(thisYear - 30);
     renderRouter(APP_DIR);
-    expect(screen.queryByTestId('home-locked-hint')).toBeNull();
+    expect(screen.getByTestId('home-battle')).not.toHaveTextContent(/Minta izin orang tua/);
     fireEvent.press(screen.getByTestId('home-battle'));
     expect(screen).toHavePathname('/battle');
     await act(async () => undefined); // the battle screen's own search settles

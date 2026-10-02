@@ -335,3 +335,67 @@ export function WifiIcon({
     </Svg>
   );
 }
+
+export function PlusIcon({ color, size = 22 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.8}
+      strokeLinecap="round"
+    >
+      <Path d="M12 5v14" />
+      <Path d="M5 12h14" />
+    </Svg>
+  );
+}
+
+export function HashIcon({ color, size = 22 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.4}
+      strokeLinecap="round"
+    >
+      <Path d="M4.5 9h15" />
+      <Path d="M4.5 15h15" />
+      <Path d="M10 4L8 20" />
+      <Path d="M16 4l-2 16" />
+    </Svg>
+  );
+}
+
+/** Three chevrons, fading in: "go". */
+export function ChevronsIcon({
+  color,
+  width = 40,
+  height = 24,
+}: {
+  color: string;
+  width?: number;
+  height?: number;
+}) {
+  return (
+    <Svg
+      width={width}
+      height={height}
+      viewBox="0 0 44 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M5 6l6 6-6 6" opacity={0.3} />
+      <Path d="M18 6l6 6-6 6" opacity={0.6} />
+      <Path d="M31 6l6 6-6 6" />
+    </Svg>
+  );
+}

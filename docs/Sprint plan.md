@@ -103,7 +103,7 @@ Goal: two friends battle online with a 6-character code by Nov 20 (week 7), and 
 | S4-10 | Online battle states: waiting, 3-2-1 countdown, "opponent reconnecting" banner, "you are reconnecting" overlay | Mobile | 2 | S4-04 | Each state shows in a two-phone test | Done |
 | S4-11 | App background and network loss: reconnect automatically within 15 s | Mobile | 1.5 | S4-04 | Switching apps for 5 s mid-battle resumes the battle | Done |
 | S4-12 | "Update required" screen when the server refuses the app version | Mobile | 0.5 | S3-05 | Old build shows the screen with a store link | Done |
-| S4-13 | Rematch UI in invite rooms | Mobile | 1 | S4-05 | Both players see the offer and the other's answer | In progress · needs phone test |
+| S4-13 | Rematch UI in invite rooms | Mobile | 1 | S4-05 | Both players see the offer and the other's answer | Done |
 | S4-14 | Online playtest on 4G with two phones in different places; note lag or unfairness | Product | 1 | S4-10 | Notes shared by Nov 27 | Not started |
 | S4-15 | Prepare the IGRS age-rating application | Product | 1 | – | Application ready to submit in Sprint 6 | Not started |
 
@@ -120,7 +120,7 @@ Goal: tapping Battle finds a random opponent near your trophy count, wins and lo
 | S5-03 | Trophy settlement (FR-08): one Postgres transaction writes `trophy_ledger` and updates `users.trophies`; ranked battles only | Backend | 1.5 | S4-03, S2-03 | Ledger sum equals each user's trophies; invite battles change nothing | Done |
 | S5-04 | Arena per match: questions from the lower arena, lower trophy count sets N\_max | Backend | 0.5 | S5-01 | A 250 vs 800 trophy match gets arena 1 questions | Done |
 | S5-05 | Parent consent API: `POST /consent/start` (phone number) and `/consent/verify`; WhatsApp first, SMS fallback; 6-digit code, 5-minute expiry, attempt limits; consent record stored | Backend | 2.5 | S3-04, S3-13 | A test parent unlocks a child account; a 6th wrong code is blocked | Not started |
-| S5-06 | Home: Battle button, trophy count, arena badge | Mobile | 1.5 | S5-03 | Trophies and arena update after each ranked battle | Not started |
+| S5-06 | Home: Battle button, trophy count, arena badge | Mobile | 1.5 | S5-03 | Trophies and arena update after each ranked battle | In progress · needs phone test |
 | S5-07 | Matchmaking screen: searching animation, time waited, cancel; at 30 s offer practice vs bot | Mobile | 1.5 | S5-01 | Cancel returns to Home; bot offer appears at 30 s | Not started |
 | S5-08 | Result screen: trophy change animation, arena unlock moment | Mobile | 1.5 | S5-03 | Crossing 300 trophies shows the Plus Plains unlock | Not started |
 | S5-09 | Parent consent screens: phone input, code entry, resend timer, success unlocks online play | Mobile | 2 | S5-05 | Under-18 player goes from "Ask a parent" to a random battle | Not started |
