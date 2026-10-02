@@ -40,6 +40,9 @@ export function BattleScreen({
   effects = [],
   onSeeResults,
   onPlayAgain,
+  onExit,
+  quitLabel,
+  modeLabel,
 }: {
   view: BattleView;
   question: string;
@@ -52,6 +55,12 @@ export function BattleScreen({
   effects?: readonly QueuedEffect[];
   onSeeResults?: () => void;
   onPlayAgain?: () => void;
+  /** "Home" on the end card. */
+  onExit?: () => void;
+  /** Overrides "Quitting counts as a loss" (practice has nothing to lose). */
+  quitLabel?: string;
+  /** Replaces the arena label in the question panel, e.g. "Latihan · Times Tower". */
+  modeLabel?: string;
 }) {
   const { t } = useTranslation();
   const fx = useEffectQueue(effects);
@@ -76,7 +85,7 @@ export function BattleScreen({
         <Pressable
           testID="battle-quit"
           accessibilityRole="button"
-          accessibilityLabel={t('battleScreen.quit')}
+          accessibilityLabel={quitLabel ?? t('battleScreen.quit')}
           onPress={onQuit}
           style={styles.quit}
         >
@@ -103,7 +112,9 @@ export function BattleScreen({
         question={question}
         comboLit={view.comboLit}
         comboReady={view.comboReady}
-        arenaLabel={t('battleScreen.arena', { number: view.arena, name: view.arenaName })}
+        arenaLabel={
+          modeLabel ?? t('battleScreen.arena', { number: view.arena, name: view.arenaName })
+        }
         entry={entry}
         showSign={allowsNegative(view.arena)}
         onKey={onKey}
@@ -142,6 +153,7 @@ export function BattleScreen({
           reason={fx.end.reason}
           {...(onSeeResults ? { onSeeResults } : {})}
           {...(onPlayAgain ? { onPlayAgain } : {})}
+          {...(onExit ? { onExit } : {})}
         />
       ) : null}
     </View>
