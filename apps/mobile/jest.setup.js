@@ -29,3 +29,9 @@ jest.mock('@shopify/react-native-skia', () => {
   const nothing = () => null;
   return { Canvas: View, Group: nothing, Path: nothing, Circle: nothing, RoundedRect: nothing };
 });
+
+// No game server in tests: matchmaking stays "searching" unless a test fakes the server.
+jest.mock('@mathgo/battle-client', () => ({
+  ...jest.requireActual('@mathgo/battle-client'),
+  findMatch: jest.fn(() => new Promise(() => undefined)),
+}));

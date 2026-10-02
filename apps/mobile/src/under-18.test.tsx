@@ -1,5 +1,5 @@
 import * as battleClient from '@mathgo/battle-client';
-import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
 import { api } from './api';
 import { findMatchAsPlayer } from './net/battle';
 import { OnlineLockedError, onlineLocked } from './profile/online';
@@ -84,6 +84,7 @@ describe('under-18 mode (S3-09)', () => {
     expect(screen.queryByTestId('home-locked-hint')).toBeNull();
     fireEvent.press(screen.getByTestId('home-battle'));
     expect(screen).toHavePathname('/battle');
+    await act(async () => undefined); // the battle screen's own search settles
     await expect(findMatchAsPlayer({ onMessage: () => undefined })).rejects.toThrow(
       'should not connect',
     );

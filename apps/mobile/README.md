@@ -109,3 +109,17 @@ architecture's Perf Monitor shows no JS frame rate, and its "dropped" count goes
 
 Re-renders are kept down by tests (`src/battle-renders.test.tsx`): the fighter cards don't
 re-render while the clock runs or while you type.
+
+## Online battle with one phone (S3-12)
+
+A random battle needs two players. With one phone, a test opponent plays the other seat from the
+computer: it signs up as a guest, waits in the queue and answers like a person.
+
+```sh
+docker compose up -d --wait
+adb reverse tcp:3000 tcp:3000 && adb reverse tcp:2567 tcp:2567
+pnpm opponent                    # one battle; -- --games 3 for more
+```
+
+Then tap **Bertarung** on the phone (adult profile). Options: `--accuracy 0.6` (share of right
+answers), `--think 4000-8000` (ms per answer). With two phones, both tap **Bertarung** instead.
