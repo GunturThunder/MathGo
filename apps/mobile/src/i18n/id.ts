@@ -45,12 +45,27 @@ export const id = {
     dropped: 'Koneksi putus, menyambung lagi…',
     error: 'Gagal: {{value}}',
   },
+  battleScreen: {
+    quit: 'Keluar dari pertarungan. Keluar dihitung kalah',
+    timeLeft: 'Sisa waktu {{value}}',
+    questionNumber: 'S{{value}}',
+    hp: 'HP',
+    fighterHp: '{{name}}: HP {{value}}',
+    comboLabel: 'KOMBO',
+    combo: 'Kombo {{value}} dari 3',
+    comboReady: '2× SERANGAN BERIKUTNYA',
+    arena: 'Arena {{number}} · {{name}}',
+    locked: 'Ups! Terkunci 1 detik',
+  },
   keypad: {
     hit: 'Serang!',
     submit: 'Serang dengan jawaban ini',
     delete: 'Hapus',
     sign: 'Ganti tanda plus atau minus',
     answer: 'Jawaban: {{value}}',
+  },
+  battlePreview: {
+    open: 'Pratinjau battle, arena {{value}} (dev)',
   },
   keypadTest: {
     open: 'Uji keypad (dev)',

@@ -27,6 +27,7 @@ export default function RootLayout() {
         <Stack.Screen name="practice" options={{ title: t('practice.title') }} />
         <Stack.Screen name="settings" options={{ title: t('settings.title') }} />
         <Stack.Screen name="keypad-test" options={{ title: t('keypadTest.title') }} />
+        <Stack.Screen name="battle-preview" options={{ headerShown: false }} />
       </Stack>
     </QueryClientProvider>
   );
