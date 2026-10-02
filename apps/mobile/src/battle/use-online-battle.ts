@@ -1,6 +1,8 @@
 import { JoinError, type BattleConnection, type MatchSearch } from '@mathgo/battle-client';
 import type { ErrorCode, ServerMessage } from '@mathgo/protocol';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
+import { clockNow } from '../lib/clock';
 import { api } from '../api';
 import { findMatchAsPlayer } from '../net/battle';
 import { profile } from '../profile/store';
@@ -31,7 +33,7 @@ export function useOnlineBattle() {
   const [error, setError] = useState<OnlineErrorCode | null>(null);
   const [battle, setBattle] = useState<OnlineBattle>(NEW_ONLINE_BATTLE);
   const [effects, setEffects] = useState<QueuedEffect[]>([]);
-  const [now, setNow] = useState(() => performance.now());
+  const [now, setNow] = useState(() => clockNow());
   const [round, setRound] = useState(0);
   /** Local time our connection dropped, while the SDK reconnects (S4-10); null when connected. */
   const [droppedAt, setDroppedAt] = useState<number | null>(null);
@@ -44,7 +46,7 @@ export function useOnlineBattle() {
   const effectId = useRef(0);
 
   const onMessage = useCallback((message: ServerMessage) => {
-    const at = performance.now();
+    const at = clockNow();
     const update = reduceOnline(ref.current, message, at);
     ref.current = update.battle;
     setBattle(update.battle);
@@ -70,7 +72,7 @@ export function useOnlineBattle() {
         const s = await findMatchAsPlayer({
           onMessage,
           onDrop: () => {
-            const at = performance.now();
+            const at = clockNow();
             setDroppedAt(at);
             setNow(at);
           },
@@ -111,7 +113,7 @@ export function useOnlineBattle() {
   useEffect(() => {
     if (phase !== 'battle') return;
     const timer = setInterval(() => {
-      const at = performance.now();
+      const at = clockNow();
       const b = ref.current;
       if (b.end !== null || b.seat === null) return;
       const lockedUntil = b.players[b.seat].lockedUntil;
@@ -131,6 +133,15 @@ export function useOnlineBattle() {
     }, TICK_MS);
     return () => clearInterval(timer);
   }, [phase]);
+
+  // Back from the background (S4-11): catch the screen up at once. The connection resumes or
+  // reconnects on its own (the SDK), and the server resends the state after a reconnect.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setNow(clockNow());
+    });
+    return () => sub.remove();
+  }, []);
 
   const submit = useCallback((value: number) => {
     const q = currentQuestion(ref.current);

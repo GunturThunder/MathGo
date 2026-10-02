@@ -107,7 +107,7 @@ describe('@mathgo/battle-client against BattleRoom (S3-11)', () => {
 });
 
 describe('dev drop helper (S4-10)', () => {
-  it('drops like a lost network, the opponent is told, and the player comes back', async () => {
+  it('drops like a lost network right after joining (S4-11), the opponent is told, and the player comes back', async () => {
     const roomId = await openBattle(colyseus);
     const events: string[] = [];
     const aliceInbox: ServerMessage[] = [];

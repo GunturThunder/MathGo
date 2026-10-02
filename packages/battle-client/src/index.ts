@@ -59,6 +59,24 @@ export interface BattleConnection {
 /** The Colyseus close code for "connection lost, may reconnect" (as when the phone goes offline). */
 const MAY_TRY_RECONNECT = 4010;
 
+interface Reconnection {
+  minDelay: number;
+  maxDelay: number;
+  minUptime: number;
+}
+const reconnectionOf = (room: Room) =>
+  (room as unknown as { reconnection: Reconnection }).reconnection;
+
+/**
+ * Reconnect from the first second (S4-11). The SDK normally won't for a room joined less than
+ * 5 s ago, so switching apps during the 3-2-1 would lose the battle. The server holds a dropped
+ * seat for 15 s either way, and the SDK's retry limit still applies.
+ */
+function reconnectFromTheStart(room: Room): Room {
+  reconnectionOf(room).minUptime = 0;
+  return room;
+}
+
 const isErrorCode = (value: unknown): value is ErrorCode =>
   typeof value === 'string' && (ERROR_CODES as readonly string[]).includes(value);
 
@@ -95,6 +113,7 @@ async function enter(
 
 /** Wires a battle room to the handlers and returns the app's handle on it. */
 function connect(room: Room, handlers: BattleHandlers): BattleConnection {
+  reconnectFromTheStart(room);
   room.onMessage('*', (type: string | number, payload: unknown) => {
     const parsed = parseServerMessage(String(type), payload);
     if (parsed.ok) handlers.onMessage(parsed.message);
@@ -112,18 +131,13 @@ function connect(room: Room, handlers: BattleHandlers): BattleConnection {
       await room.leave(true);
     },
     devSimulateDrop: (ms) => {
-      const { reconnection } = room as unknown as {
-        reconnection: { minDelay: number; maxDelay: number; minUptime: number };
-      };
-      const saved = { ...reconnection };
+      const reconnection = reconnectionOf(room);
+      const saved = { minDelay: reconnection.minDelay, maxDelay: reconnection.maxDelay };
       reconnection.minDelay = ms;
       reconnection.maxDelay = Math.max(saved.maxDelay, ms);
-      // The SDK won't reconnect a room joined less than 5 s ago; a test drop may come sooner.
-      reconnection.minUptime = 0;
       room.onReconnect(() => {
         reconnection.minDelay = saved.minDelay;
         reconnection.maxDelay = saved.maxDelay;
-        reconnection.minUptime = saved.minUptime;
       });
       room.connection.close(MAY_TRY_RECONNECT, 'dev: simulated drop');
     },
@@ -165,7 +179,7 @@ export async function findMatch(
   onQueued?: (trophies: number) => void,
 ): Promise<MatchSearch> {
   const client = new Client(options.endpoint);
-  const queue = await enter(client, options, { roomName: QUEUE_ROOM });
+  const queue = reconnectFromTheStart(await enter(client, options, { roomName: QUEUE_ROOM }));
   let matched = false;
   let cancelled = false;
   const match = new Promise<BattleConnection>((resolve, reject) => {
