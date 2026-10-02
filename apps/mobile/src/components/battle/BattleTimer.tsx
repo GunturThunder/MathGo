@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
@@ -9,7 +10,7 @@ const R = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * R;
 
 /** The round timer: a ring that empties over 90 s, orange in the last 10 s. */
-export function BattleTimer({
+export const BattleTimer = memo(function BattleTimer({
   text,
   share,
   warning,
@@ -51,7 +52,7 @@ export function BattleTimer({
       <Text style={styles.text}>{text}</Text>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   wrap: {

@@ -85,3 +85,22 @@ Open the link or QR code on the phone to install the APK, then run
 
 Not set up yet: it needs an Apple Developer account. Then `npx eas-cli@latest device:create` and
 `npx eas-cli@latest build --profile development --platform ios`.
+
+## Measuring performance (S2-12)
+
+Battles must hold 60 fps on a mid-range Android phone during hits.
+
+1. **Dev build, Perf Monitor:** in a battle, shake the phone › **Perf Monitor**. Watch the **UI**
+   frame rate during hits, combo and the KO confetti; it should stay near 60. Dev builds run
+   slower JavaScript than release builds, so passing here is a safe margin.
+2. **Release build, jank count:** build without the dev tools and let Android count slow frames.
+   ```sh
+   pnpm --filter @mathgo/mobile exec expo run:android --variant release
+   adb shell dumpsys gfxinfo com.mathgo.app reset
+   # play one full practice battle, then:
+   adb shell dumpsys gfxinfo com.mathgo.app | grep -E "Total frames|Janky frames|percentile"
+   ```
+   "Janky frames" under 5 % and a 90th percentile under 16 ms mean the battle holds 60 fps.
+
+Re-renders are kept down by tests (`src/battle-renders.test.tsx`): the fighter cards don't
+re-render while the clock runs or while you type.

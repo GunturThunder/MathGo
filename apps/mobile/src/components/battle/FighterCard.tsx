@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { memo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -23,15 +23,7 @@ export interface HitOn {
   readonly fast: boolean;
 }
 
-/** One player's strip: shape, name, trophies, HP bar and HP number (design: Battle board). */
-export function FighterCard({
-  fighter,
-  shape,
-  side,
-  compact,
-  testID,
-  hit,
-}: {
+interface FighterCardProps {
   fighter: FighterView;
   shape: ShapeName;
   side: 'me' | 'rival';
@@ -39,7 +31,17 @@ export function FighterCard({
   testID: string;
   /** Shown while the burst plays (S2-09). */
   hit?: HitOn | null;
-}) {
+}
+
+/** One player's strip: shape, name, trophies, HP bar and HP number (design: Battle board). */
+export const FighterCard = memo(function FighterCard({
+  fighter,
+  shape,
+  side,
+  compact,
+  testID,
+  hit,
+}: FighterCardProps) {
   const { t } = useTranslation();
   const tile = compact ? 44 : 50;
 
@@ -118,6 +120,21 @@ export function FighterCard({
         </Animated.View>
       ) : null}
     </View>
+  );
+}, sameFighterCard);
+
+/** Re-render only when what the card shows changes, not on every new view object. */
+function sameFighterCard(a: FighterCardProps, b: FighterCardProps): boolean {
+  return (
+    a.fighter.name === b.fighter.name &&
+    a.fighter.trophies === b.fighter.trophies &&
+    a.fighter.hp === b.fighter.hp &&
+    a.fighter.hpShare === b.fighter.hpShare &&
+    a.shape === b.shape &&
+    a.side === b.side &&
+    a.compact === b.compact &&
+    a.testID === b.testID &&
+    a.hit === b.hit
   );
 }
 
