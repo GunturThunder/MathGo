@@ -1,10 +1,18 @@
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { ARENAS } from '@mathgo/game-core';
 import { DEFAULT_LANGUAGE, i18n } from './i18n';
 
 const APP_DIR = './src/app';
 const ROUTES = ['/', '/battle', '/practice', '/settings'];
 /** The same in both languages: the brand, and language names written in their own language. */
-const SAME_IN_EVERY_LANGUAGE = new Set(['MathBattle', 'Bahasa Indonesia', 'English']);
+const SAME_IN_EVERY_LANGUAGE = new Set([
+  'MathBattle',
+  'Arena',
+  'Bahasa Indonesia',
+  'English',
+  // Arena names are proper names (PRD), the same in both languages.
+  ...ARENAS.map((a) => a.name),
+]);
 
 /** The shape of `screen.toJSON()`. */
 type Node = string | { type: string; children: Node[] | null };
@@ -66,7 +74,7 @@ describe('language', () => {
       expect(was.length).toBeGreaterThan(0);
       expect({ route, count: now.length }).toEqual({ route, count: was.length });
       now.forEach((text, j) => {
-        if (!SAME_IN_EVERY_LANGUAGE.has(text)) {
+        if (!SAME_IN_EVERY_LANGUAGE.has(text) && !/^\d+$/.test(text)) {
           expect({ route, text }).not.toEqual({ route, text: was[j] });
         }
       });

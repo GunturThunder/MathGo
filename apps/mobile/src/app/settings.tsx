@@ -28,22 +28,6 @@ export default function Settings() {
           variant="secondary"
         />
       ) : null}
-      {__DEV__ ? (
-        <NavButton
-          href="/battle-preview?arena=3"
-          label={t('battlePreview.open', { value: 3 })}
-          testID="settings-battle-preview"
-          variant="secondary"
-        />
-      ) : null}
-      {__DEV__ ? (
-        <NavButton
-          href="/battle-preview?arena=5"
-          label={t('battlePreview.open', { value: 5 })}
-          testID="settings-battle-preview-5"
-          variant="secondary"
-        />
-      ) : null}
     </ScrollView>
   );
 }

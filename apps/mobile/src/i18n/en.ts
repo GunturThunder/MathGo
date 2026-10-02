@@ -15,7 +15,23 @@ export const en: Translation = {
   },
   practice: {
     title: 'Practice',
-    note: 'Practice against the bot is coming soon.',
+    setupTitle: 'Practice vs Bot',
+    setupNote: 'No trophies, and it works without internet.',
+    arena: 'Arena',
+    level: 'Bot level',
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard',
+    start: 'Start',
+    botName: 'Bot · {{level}}',
+    you: 'You',
+    mode: 'Practice · {{name}}',
+    quit: 'Leave practice',
+    arena1: 'Add and subtract to 20',
+    arena2: 'Add and subtract to 100',
+    arena3: 'Times tables up to 12',
+    arena4: 'All four operations with brackets',
+    arena5: 'Powers, roots and negatives',
   },
   settings: {
     title: 'Settings',
@@ -68,6 +84,7 @@ export const en: Translation = {
       text: 'Same HP when time ran out.',
     },
     seeResults: 'See Results',
+    exit: 'Home',
     playAgain: 'Play Again',
   },
   battleScreen: {
@@ -89,9 +106,6 @@ export const en: Translation = {
     delete: 'Delete',
     sign: 'Switch between positive and negative',
     answer: 'Answer: {{value}}',
-  },
-  battlePreview: {
-    open: 'Battle preview, arena {{value}} (dev)',
   },
   keypadTest: {
     open: 'Keypad test (dev)',

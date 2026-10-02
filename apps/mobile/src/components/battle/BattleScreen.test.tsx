@@ -61,6 +61,7 @@ describe('battle screen layout (S2-08)', () => {
     expect(screen.getByTestId('fighter-me-hp')).toHaveTextContent('100');
     expect(screen.getByTestId('fighter-rival-bar')).toHaveStyle({ width: '60%' });
     expect(screen.getByText('ZippyPrism08')).toBeOnTheScreen();
+    expect(screen.getByTestId('fighter-rival-trophies')).toHaveTextContent('865');
     expect(screen.getByTestId('question-number')).toHaveTextContent('S12');
     expect(screen.getByLabelText('Sisa waktu 0:58')).toBeOnTheScreen();
     expect(screen.getByTestId('question')).toHaveTextContent('7 × 8 − 12');

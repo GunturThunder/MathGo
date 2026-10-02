@@ -14,7 +14,23 @@ export const id = {
   },
   practice: {
     title: 'Latihan',
-    note: 'Latihan melawan bot segera hadir.',
+    setupTitle: 'Latihan vs Bot',
+    setupNote: 'Tanpa trofi, dan bisa dimainkan tanpa internet.',
+    arena: 'Arena',
+    level: 'Tingkat bot',
+    easy: 'Mudah',
+    medium: 'Sedang',
+    hard: 'Sulit',
+    start: 'Mulai',
+    botName: 'Bot · {{level}}',
+    you: 'Kamu',
+    mode: 'Latihan · {{name}}',
+    quit: 'Keluar dari latihan',
+    arena1: 'Tambah dan kurang sampai 20',
+    arena2: 'Tambah dan kurang sampai 100',
+    arena3: 'Perkalian dan pembagian sampai 12',
+    arena4: 'Empat operasi dengan kurung',
+    arena5: 'Pangkat, akar dan bilangan negatif',
   },
   settings: {
     title: 'Pengaturan',
@@ -67,6 +83,7 @@ export const id = {
       text: 'HP sama saat waktu habis.',
     },
     seeResults: 'Lihat Hasil',
+    exit: 'Beranda',
     playAgain: 'Main Lagi',
   },
   battleScreen: {
@@ -88,9 +105,6 @@ export const id = {
     delete: 'Hapus',
     sign: 'Ganti tanda plus atau minus',
     answer: 'Jawaban: {{value}}',
-  },
-  battlePreview: {
-    open: 'Pratinjau battle, arena {{value}} (dev)',
   },
   keypadTest: {
     open: 'Uji keypad (dev)',

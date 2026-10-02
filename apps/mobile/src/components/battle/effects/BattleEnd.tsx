@@ -42,11 +42,13 @@ export function BattleEnd({
   reason,
   onSeeResults,
   onPlayAgain,
+  onExit,
 }: {
   outcome: Outcome;
   reason: BattleResult['reason'];
   onSeeResults?: () => void;
   onPlayAgain?: () => void;
+  onExit?: () => void;
 }) {
   const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
@@ -114,6 +116,16 @@ export function BattleEnd({
                 testID="battle-end-again"
               >
                 <Text style={styles.buttonLabel}>{t('battleEnd.playAgain')}</Text>
+              </Pressable>
+            ) : null}
+            {onExit ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={onExit}
+                style={styles.textButton}
+                testID="battle-end-exit"
+              >
+                <Text style={styles.textButtonLabel}>{t('battleEnd.exit')}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -223,4 +235,6 @@ const styles = StyleSheet.create({
   secondary: { borderWidth: 2, borderColor: colors.line, backgroundColor: colors.white },
   buttonLabel: { ...typography.button, color: colors.ink },
   primaryLabel: { color: colors.white },
+  textButton: { minHeight: sizes.touch, alignItems: 'center', justifyContent: 'center' },
+  textButtonLabel: { ...typography.bodyLarge, color: colors.blue },
 });

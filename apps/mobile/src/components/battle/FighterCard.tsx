@@ -77,10 +77,12 @@ export function FighterCard({
             <Text style={styles.name} numberOfLines={1}>
               {fighter.name}
             </Text>
-            <View style={styles.trophies}>
-              <TrophyIcon color={colors.ink2} />
-              <Text style={styles.trophyText}>{fighter.trophies}</Text>
-            </View>
+            {fighter.trophies === null ? null : (
+              <View style={styles.trophies} testID={`${testID}-trophies`}>
+                <TrophyIcon color={colors.ink2} />
+                <Text style={styles.trophyText}>{fighter.trophies}</Text>
+              </View>
+            )}
           </View>
           <View
             style={[

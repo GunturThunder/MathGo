@@ -5,7 +5,8 @@ import { getArena, type ArenaId, type BattleState, type Seat } from '@mathgo/gam
 
 export interface FighterView {
   readonly name: string;
-  readonly trophies: number;
+  /** Null in practice: no trophies at stake, none shown. */
+  readonly trophies: number | null;
   readonly hp: number;
   /** 0 to 1, for the HP bar. */
   readonly hpShare: number;
@@ -33,8 +34,8 @@ export interface BattleView {
 }
 
 export interface Fighters {
-  readonly me: { readonly name: string; readonly trophies: number };
-  readonly rival: { readonly name: string; readonly trophies: number };
+  readonly me: { readonly name: string; readonly trophies: number | null };
+  readonly rival: { readonly name: string; readonly trophies: number | null };
 }
 
 const WARNING_MS = 10_000;
