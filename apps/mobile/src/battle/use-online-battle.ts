@@ -65,11 +65,14 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
   const onMessage = useCallback((message: ServerMessage) => {
     const at = clockNow();
     const update = reduceOnline(ref.current, message, at);
+    // A new battle in the same room (rematch, S4-13): the last one's effects must not replay.
+    const newBattle = update.battle.round !== ref.current.round;
     ref.current = update.battle;
     setBattle(update.battle);
     setNow(at);
     const fresh = update.effects.map((e) => ({ ...e, id: ++effectId.current }));
-    if (fresh.length > 0) setEffects((list) => [...list.slice(-MAX_EFFECTS), ...fresh]);
+    if (newBattle) setEffects(fresh);
+    else if (fresh.length > 0) setEffects((list) => [...list.slice(-MAX_EFFECTS), ...fresh]);
   }, []);
 
   useEffect(() => {
@@ -184,6 +187,9 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
     await connection.current?.leave();
   }, []);
 
+  /** "Play again?" after a friendly match (S4-13); the server starts it when both say yes. */
+  const rematch = useCallback((accept: boolean) => connection.current?.requestRematch(accept), []);
+
   /** Dev builds: drop the connection for `ms`, to check the reconnect states (S4-10). */
   const devDrop = useCallback((ms: number) => connection.current?.devSimulateDrop(ms), []);
 
@@ -207,5 +213,6 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
     reconnectSecondsLeft,
     devDrop,
     invite,
+    rematch,
   };
 }

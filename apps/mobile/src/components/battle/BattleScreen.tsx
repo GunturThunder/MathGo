@@ -42,6 +42,8 @@ export function BattleScreen({
   onSeeResults,
   onPlayAgain,
   onExit,
+  playAgainNote,
+  playAgainDisabled,
   quitLabel,
   modeLabel,
   banner,
@@ -60,6 +62,9 @@ export function BattleScreen({
   onPlayAgain?: () => void;
   /** "Home" on the end card. */
   onExit?: () => void;
+  /** Under "play again" on the end card: where a friendly rematch stands (S4-13). */
+  playAgainNote?: string;
+  playAgainDisabled?: boolean;
   /** Overrides "Quitting counts as a loss" (practice has nothing to lose). */
   quitLabel?: string;
   /** Replaces the arena label in the question panel, e.g. "Latihan · Times Tower". */
@@ -163,6 +168,8 @@ export function BattleScreen({
           {...(onSeeResults ? { onSeeResults } : {})}
           {...(onPlayAgain ? { onPlayAgain } : {})}
           {...(onExit ? { onExit } : {})}
+          {...(playAgainNote === undefined ? {} : { playAgainNote })}
+          {...(playAgainDisabled === undefined ? {} : { playAgainDisabled })}
         />
       ) : null}
     </View>

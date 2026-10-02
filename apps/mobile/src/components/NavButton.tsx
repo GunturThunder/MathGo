@@ -1,4 +1,4 @@
-import { Link, type Href } from 'expo-router';
+import { router, type Href } from 'expo-router';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors, radii, shadows, sizes, space, typography } from '../theme';
 
@@ -16,16 +16,17 @@ export function NavButton({
   testID: string;
   variant?: ButtonVariant;
 }) {
+  // Navigates itself rather than through <Link asChild>: Link drops a style given as a function,
+  // which left these buttons with no colour at all.
   return (
-    <Link href={href} asChild>
-      <Pressable
-        style={({ pressed }) => [styles.button, styles[variant], pressed && styles.pressed]}
-        testID={testID}
-        accessibilityRole="button"
-      >
-        <Text style={[styles.label, styles[`${variant}Label`]]}>{label}</Text>
-      </Pressable>
-    </Link>
+    <Pressable
+      onPress={() => router.push(href)}
+      style={({ pressed }) => [styles.button, styles[variant], pressed && styles.pressed]}
+      testID={testID}
+      accessibilityRole="button"
+    >
+      <Text style={[styles.label, styles[`${variant}Label`]]}>{label}</Text>
+    </Pressable>
   );
 }
 

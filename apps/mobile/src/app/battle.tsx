@@ -10,6 +10,7 @@ import {
   onlineSummary,
   onlineView,
   preStart,
+  rematchStatus,
   rivalAwaySeconds,
 } from '../battle/online';
 import {
@@ -77,6 +78,23 @@ function OnlineBattle() {
     if (online.error === 'update-required') router.replace('/update-required');
   }, [online.error]);
 
+  // A rematch started in the friend's room: back from the results to the new battle (S4-13).
+  const round = online.battle.round;
+  useEffect(() => {
+    setSummary(null);
+    setEntry(EMPTY_ENTRY);
+  }, [round]);
+
+  // Friendly matches: "play again" asks the friend, and a line says where it stands (S4-13).
+  const rematch = rematchStatus(online.battle);
+  const playAgainProps = friendly
+    ? {
+        onPlayAgain: () => online.rematch(true),
+        playAgainNote: t(`rematch.${rematch.note}`),
+        playAgainDisabled: !rematch.canAsk,
+      }
+    : { onPlayAgain: () => playAgain() };
+
   const playAgain = () => {
     setSummary(null);
     setEntry(EMPTY_ENTRY);
@@ -95,8 +113,8 @@ function OnlineBattle() {
         <ResultScreen
           summary={summary}
           modeLabel={friendly ? t('online.modeFriend') : t('online.modeRanked')}
-          // Play again in a friend's room is the rematch (S4-13); random battles search again.
-          {...(friendly ? {} : { onPlayAgain: playAgain })}
+          // In a friend's room "play again" is the rematch (S4-13); random battles search again.
+          {...playAgainProps}
           onHome={home}
         />
       </>
@@ -122,6 +140,8 @@ function OnlineBattle() {
       <>
         <Stack.Screen options={{ headerShown: false }} />
         <BattleScreen
+          // A new battle in the same room (rematch) starts with fresh effects.
+          key={online.battle.round}
           view={view}
           question={question?.text ?? WAITING}
           entry={entry}
@@ -135,7 +155,7 @@ function OnlineBattle() {
           onQuit={home}
           effects={online.effects}
           onSeeResults={() => setSummary(onlineSummary(online.battle, fighters))}
-          {...(friendly ? {} : { onPlayAgain: playAgain })}
+          {...playAgainProps}
           banner={
             away === null ? null : <RivalAwayBanner name={fighters.rival.name} secondsLeft={away} />
           }

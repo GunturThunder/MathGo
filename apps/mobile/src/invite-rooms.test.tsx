@@ -23,17 +23,18 @@ const client = jest.mocked(battleClient);
 function fakeRoom() {
   let push: (m: ServerMessage) => void = () => undefined;
   const leave = jest.fn(async () => undefined);
+  const requestRematch = jest.fn();
   client.joinBattle.mockImplementation(async (_o, handlers) => {
     push = (m) => handlers.onMessage(m);
     return {
       roomId: 'room-1',
       sendAnswer: jest.fn(),
-      requestRematch: jest.fn(),
+      requestRematch,
       leave,
       devSimulateDrop: jest.fn(),
     };
   });
-  return { leave, send: (m: ServerMessage) => act(() => push(m)) };
+  return { leave, requestRematch, send: (m: ServerMessage) => act(() => push(m)) };
 }
 
 beforeEach(async () => {
@@ -79,29 +80,16 @@ describe('create a room (S4-08)', () => {
     expect(screen.getByText('Tersalin!')).toBeOnTheScreen();
   });
 
-  it('when the friend joins, the battle starts; a friendly match, no "play again" yet', async () => {
+  it('when the friend joins, the battle starts; the result says friendly match', async () => {
     const room = fakeRoom();
     renderRouter(APP_DIR, { initialUrl: '/battle?mode=create' });
     await act(async () => undefined);
     expect(client.joinBattle).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'room-1');
-    room.send({ type: 'joined', payload: { seat: 0, arena: 2, durationMs: 90_000 } });
-    room.send({ type: 'questions', payload: { questions: [{ index: 0, text: '12 + 9' }] } });
+    await startFriendBattle(room);
     expect(screen.getByTestId('battle-screen')).toBeOnTheScreen();
-    room.send({
-      type: 'end',
-      payload: {
-        result: { outcome: 'draw', reason: 'time' },
-        stats: [
-          { correct: 0, wrong: 0, bestStreak: 0 },
-          { correct: 0, wrong: 0, bestStreak: 0 },
-        ],
-        trophies: null,
-      },
-    });
-    expect(screen.queryByTestId('battle-end-again')).toBeNull();
+    room.send(drawEnd);
     fireEvent.press(screen.getByTestId('battle-end-results'));
     expect(screen.getByText('Pertandingan teman')).toBeOnTheScreen();
-    expect(screen.queryByTestId('result-again')).toBeNull();
   });
 
   it('back leaves the room', async () => {
@@ -177,5 +165,102 @@ describe('under 18 (S3-09)', () => {
     expect(screen).toHavePathname('/ask-parent');
     expect(client.createInvite).not.toHaveBeenCalled();
     expect(client.findInvite).not.toHaveBeenCalled();
+  });
+});
+
+const drawEnd: ServerMessage = {
+  type: 'end',
+  payload: {
+    result: { outcome: 'draw', reason: 'time' },
+    stats: [
+      { correct: 0, wrong: 0, bestStreak: 0 },
+      { correct: 0, wrong: 0, bestStreak: 0 },
+    ],
+    trophies: null,
+  },
+};
+
+async function startFriendBattle(room: ReturnType<typeof fakeRoom>) {
+  room.send({ type: 'joined', payload: { seat: 0, arena: 2, durationMs: 90_000 } });
+  room.send({ type: 'questions', payload: { questions: [{ index: 0, text: '12 + 9' }] } });
+}
+
+describe('rematch in a friend room (S4-13)', () => {
+  beforeEach(() => {
+    client.createInvite.mockResolvedValue({
+      code: 'K7M2QX',
+      roomId: 'room-1',
+      expiresAt: '2026-10-02T12:10:00Z',
+    });
+  });
+
+  async function finished() {
+    const room = fakeRoom();
+    renderRouter(APP_DIR, { initialUrl: '/battle?mode=create' });
+    await act(async () => undefined);
+    await startFriendBattle(room);
+    room.send(drawEnd);
+    return room;
+  }
+
+  it('Done when: I offer, and see my friend’s answer; a rematch starts when both say yes', async () => {
+    const room = await finished();
+    expect(screen.getByTestId('battle-end-rematch')).toHaveTextContent(
+      'Main lagi dimulai saat kalian berdua menekannya.',
+    );
+    fireEvent.press(screen.getByTestId('battle-end-again'));
+    expect(room.requestRematch).toHaveBeenCalledWith(true);
+    room.send({ type: 'rematch', payload: { seat: 0, accepted: true } });
+    expect(screen.getByTestId('battle-end-rematch')).toHaveTextContent('Menunggu jawaban temanmu…');
+    expect(screen.getByTestId('battle-end-again')).toBeDisabled();
+    // The friend says yes: the server starts the next battle in the same room.
+    room.send({ type: 'rematch', payload: { seat: 1, accepted: true } });
+    room.send({ type: 'joined', payload: { seat: 0, arena: 2, durationMs: 90_000 } });
+    room.send({ type: 'countdown', payload: { startsInMs: 3_000 } });
+    expect(screen.queryByTestId('battle-end')).toBeNull();
+    expect(screen.getByTestId('online-countdown')).toBeOnTheScreen();
+    expect(screen.getByTestId('fighter-rival-hp')).toHaveTextContent('100');
+  });
+
+  it('Done when: my friend offers first, and I see it, on the results too', async () => {
+    const room = await finished();
+    fireEvent.press(screen.getByTestId('battle-end-results'));
+    room.send({ type: 'rematch', payload: { seat: 1, accepted: true } });
+    expect(screen.getByTestId('result-rematch')).toHaveTextContent('Temanmu mau main lagi!');
+    fireEvent.press(screen.getByTestId('result-again'));
+    expect(room.requestRematch).toHaveBeenCalledWith(true);
+  });
+
+  it('my friend left: said plainly, and play again is off', async () => {
+    const room = await finished();
+    room.send({ type: 'rematch', payload: { seat: 1, accepted: false } });
+    expect(screen.getByTestId('battle-end-rematch')).toHaveTextContent(
+      'Temanmu sudah keluar dari ruang.',
+    );
+    expect(screen.getByTestId('battle-end-again')).toBeDisabled();
+  });
+
+  it('random battles: play again still means a new search, no rematch line', async () => {
+    let push: (m: ServerMessage) => void = () => undefined;
+    client.findMatch.mockImplementation(async (_o, h) => {
+      push = (m) => h.onMessage(m);
+      return {
+        match: Promise.resolve({
+          roomId: 'r',
+          sendAnswer: jest.fn(),
+          requestRematch: jest.fn(),
+          leave: jest.fn(async () => undefined),
+          devSimulateDrop: jest.fn(),
+        }),
+        cancel: jest.fn(async () => undefined),
+      };
+    });
+    renderRouter(APP_DIR, { initialUrl: '/battle' });
+    await act(async () => undefined);
+    act(() => push({ type: 'joined', payload: { seat: 0, arena: 1, durationMs: 90_000 } }));
+    act(() => push({ type: 'questions', payload: { questions: [{ index: 0, text: '1 + 1' }] } }));
+    act(() => push(drawEnd));
+    expect(screen.queryByTestId('battle-end-rematch')).toBeNull();
+    expect(screen.getByTestId('battle-end-again')).toBeEnabled();
   });
 });

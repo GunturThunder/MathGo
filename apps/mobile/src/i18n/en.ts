@@ -113,6 +113,12 @@ export const en: Translation = {
     join: 'Join Battle',
     joining: 'Joining…',
   },
+  rematch: {
+    both: 'The rematch starts when you both tap it.',
+    waiting: 'Waiting for your friend’s answer…',
+    theyWant: 'Your friend wants to play again!',
+    left: 'Your friend has left the room.',
+  },
   battle: {
     title: 'Battle',
   },
