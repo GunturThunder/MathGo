@@ -1,18 +1,11 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { profile } from '../profile/store';
 import { en } from './en';
 import { id } from './id';
+import { DEFAULT_LANGUAGE, LANGUAGES } from './languages';
 
-export const LANGUAGES = ['id', 'en'] as const;
-export type Language = (typeof LANGUAGES)[number];
-
-/** Each language's name in itself, so a player can always find their own. */
-export const LANGUAGE_NAMES: Record<Language, string> = {
-  id: 'Bahasa Indonesia',
-  en: 'English',
-};
-
-export const DEFAULT_LANGUAGE: Language = 'id';
+export { DEFAULT_LANGUAGE, LANGUAGES, LANGUAGE_NAMES, type Language } from './languages';
 
 export const resources = {
   id: { translation: id },
@@ -22,7 +15,8 @@ export const resources = {
 // Resources are bundled, so initialise synchronously: the first render already has strings.
 void i18n.use(initReactI18next).init({
   resources,
-  lng: DEFAULT_LANGUAGE,
+  // The language picked at first launch or in Settings, kept between launches.
+  lng: profile.get().language ?? DEFAULT_LANGUAGE,
   fallbackLng: DEFAULT_LANGUAGE,
   supportedLngs: LANGUAGES,
   initAsync: false,

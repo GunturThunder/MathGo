@@ -1,4 +1,5 @@
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { profile } from './profile/store';
 import { ARENAS } from '@mathgo/game-core';
 import { DEFAULT_LANGUAGE, i18n } from './i18n';
 
@@ -41,6 +42,9 @@ function textsPerRoute(): string[][] {
     return texts;
   });
 }
+
+// These tests start on Home: the first launch flow is done (onboarding.test.tsx covers it).
+beforeEach(() => profile.completeOnboarding());
 
 describe('language', () => {
   beforeEach(() => {

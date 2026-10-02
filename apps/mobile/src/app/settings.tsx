@@ -3,7 +3,11 @@ import { ScrollView, StyleSheet, Text } from 'react-native';
 import { BattleDevCard } from '../components/BattleDevCard';
 import { DeterminismCard } from '../components/DeterminismCard';
 import { LanguagePicker } from '../components/LanguagePicker';
+import { router } from 'expo-router';
+import { api } from '../api';
+import { Button } from '../components/Button';
 import { NavButton } from '../components/NavButton';
+import { profile } from '../profile/store';
 import { OnlineDevCard } from '../components/OnlineDevCard';
 import { colors, space, typography } from '../theme';
 
@@ -26,6 +30,18 @@ export default function Settings() {
           label={t('keypadTest.open')}
           testID="settings-keypad-test"
           variant="secondary"
+        />
+      ) : null}
+      {__DEV__ ? (
+        <Button
+          label={t('settings.resetOnboarding')}
+          variant="secondary"
+          onPress={() => {
+            profile.reset();
+            api.signOut();
+            router.replace('/');
+          }}
+          testID="settings-reset-onboarding"
         />
       ) : null}
     </ScrollView>

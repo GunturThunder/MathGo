@@ -1,7 +1,11 @@
 import { fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { profile } from './profile/store';
 
 // Route tests live outside src/app, where every file would become a screen.
 const APP_DIR = './src/app';
+
+// These tests start on Home: the first launch flow is done (onboarding.test.tsx covers it).
+beforeEach(() => profile.completeOnboarding());
 
 describe('app shell', () => {
   // Settings logs the S1-08 check; keep test output clean and assert on it instead.

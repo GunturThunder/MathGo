@@ -1,10 +1,14 @@
+import { Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavButton } from '../components/NavButton';
+import { profile } from '../profile/store';
 import { colors, space, typography } from '../theme';
 
 export default function Home() {
   const { t } = useTranslation();
+  // A new install starts with the first launch flow (S3-08).
+  if (!profile.get().onboarded) return <Redirect href="/welcome" />;
   return (
     <View style={styles.screen}>
       <Text style={styles.title}>{t('app.name')}</Text>

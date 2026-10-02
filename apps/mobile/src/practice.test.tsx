@@ -1,9 +1,14 @@
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library';
+import { profile } from './profile/store';
 
 // Route tests live outside src/app, where every file would become a screen.
 const APP_DIR = './src/app';
 
-beforeEach(() => jest.useFakeTimers());
+beforeEach(() => {
+  jest.useFakeTimers();
+  // These tests start on Home: the first launch flow is done.
+  profile.completeOnboarding();
+});
 afterEach(() => jest.useRealTimers());
 
 function startPractice(arena = 1, level: 'easy' | 'medium' | 'hard' = 'medium') {
