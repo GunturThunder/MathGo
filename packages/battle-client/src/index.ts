@@ -48,7 +48,16 @@ export interface BattleConnection {
   /** After a battle in an invite room: play again or not (S4-05). */
   requestRematch(accept: boolean): void;
   leave(): Promise<void>;
+  /**
+   * Dev builds only: drop the connection as a lost network would and come back after `ms`, to
+   * check the reconnect states (S4-10) over USB, where airplane mode doesn't cut the link. The
+   * server sees a real drop (`onDrop`) and holds the seat for 15 s.
+   */
+  devSimulateDrop(ms: number): void;
 }
+
+/** The Colyseus close code for "connection lost, may reconnect" (as when the phone goes offline). */
+const MAY_TRY_RECONNECT = 4010;
 
 const isErrorCode = (value: unknown): value is ErrorCode =>
   typeof value === 'string' && (ERROR_CODES as readonly string[]).includes(value);
@@ -101,6 +110,22 @@ function connect(room: Room, handlers: BattleHandlers): BattleConnection {
     requestRematch: (accept) => room.send('rematch', { accept }),
     leave: async () => {
       await room.leave(true);
+    },
+    devSimulateDrop: (ms) => {
+      const { reconnection } = room as unknown as {
+        reconnection: { minDelay: number; maxDelay: number; minUptime: number };
+      };
+      const saved = { ...reconnection };
+      reconnection.minDelay = ms;
+      reconnection.maxDelay = Math.max(saved.maxDelay, ms);
+      // The SDK won't reconnect a room joined less than 5 s ago; a test drop may come sooner.
+      reconnection.minUptime = 0;
+      room.onReconnect(() => {
+        reconnection.minDelay = saved.minDelay;
+        reconnection.maxDelay = saved.maxDelay;
+        reconnection.minUptime = saved.minUptime;
+      });
+      room.connection.close(MAY_TRY_RECONNECT, 'dev: simulated drop');
     },
   };
 }

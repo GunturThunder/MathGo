@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -43,6 +44,8 @@ export function BattleScreen({
   onExit,
   quitLabel,
   modeLabel,
+  banner,
+  overlay,
 }: {
   view: BattleView;
   question: string;
@@ -61,6 +64,10 @@ export function BattleScreen({
   quitLabel?: string;
   /** Replaces the arena label in the question panel, e.g. "Latihan · Times Tower". */
   modeLabel?: string;
+  /** Under the top bar, e.g. "opponent reconnecting" (S4-10). */
+  banner?: ReactNode;
+  /** Over everything but the end card, e.g. the 3-2-1 or "reconnecting" (S4-10). */
+  overlay?: ReactNode;
 }) {
   const { t } = useTranslation();
   const fx = useEffectQueue(effects);
@@ -100,6 +107,7 @@ export function BattleScreen({
           </View>
         </View>
       </View>
+      {banner}
       <FighterCard
         fighter={view.rival}
         shape={rivalShape}
@@ -147,6 +155,7 @@ export function BattleScreen({
           </View>
         ) : null}
       </View>
+      {fx.end ? null : overlay}
       {fx.end ? (
         <BattleEnd
           outcome={fx.end.outcome}

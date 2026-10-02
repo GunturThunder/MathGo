@@ -65,6 +65,18 @@ export const id = {
     devPretend: 'Pura-pura versi lama (dev)',
     devPretendOn: 'Pura-pura versi lama: AKTIF (dev)',
   },
+  onlineStates: {
+    waiting: 'Menunggu lawan…',
+    waitingNote: 'Pertarungan dimulai begitu lawan masuk.',
+    startsIn: 'Pertarungan dimulai dalam',
+    rivalAway: '{{name}} terputus',
+    rivalAwayNote: 'Terus jawab. Tidak kembali dalam {{time}}, kamu menang.',
+    reconnecting: 'Menyambung lagi…',
+    reconnectingNote: 'Pertarungan tetap berjalan selagi kami menyambungkanmu.',
+    reconnectingLeft: 'Sisa {{time}} · setelah itu dihitung kalah',
+    leave: 'Keluar dari pertarungan',
+    dropDev: 'Putus 5 detik (dev)',
+  },
   battle: {
     title: 'Bertarung',
   },
@@ -95,6 +107,7 @@ export const id = {
     diagnostics: 'Diagnostik',
   },
   online: {
+    connectionLost: 'Koneksi terputus terlalu lama, jadi pertarungan dihitung kalah.',
     rival: 'Lawan',
     modeRanked: 'Pertarungan peringkat',
     searching: 'Mencari lawan…',

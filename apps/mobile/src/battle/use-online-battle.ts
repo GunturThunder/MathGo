@@ -14,7 +14,10 @@ import {
 } from './online';
 
 export type OnlinePhase = 'searching' | 'battle' | 'error';
-export type OnlineErrorCode = ErrorCode | 'connection-failed';
+export type OnlineErrorCode = ErrorCode | 'connection-failed' | 'connection-lost';
+
+/** How long the server holds a dropped player's seat (FR-07; game-server RECONNECT_SECONDS). */
+export const RECONNECT_WINDOW_MS = 15_000;
 
 const TICK_MS = 250;
 const MAX_EFFECTS = 20;
@@ -30,6 +33,11 @@ export function useOnlineBattle() {
   const [effects, setEffects] = useState<QueuedEffect[]>([]);
   const [now, setNow] = useState(() => performance.now());
   const [round, setRound] = useState(0);
+  /** Local time our connection dropped, while the SDK reconnects (S4-10); null when connected. */
+  const [droppedAt, setDroppedAt] = useState<number | null>(null);
+  const leaving = useRef(false);
+  const dropped = useRef<number | null>(null);
+  dropped.current = droppedAt;
   const ref = useRef(battle);
   const search = useRef<MatchSearch | null>(null);
   const connection = useRef<BattleConnection | null>(null);
@@ -52,12 +60,30 @@ export function useOnlineBattle() {
     setEffects([]);
     setError(null);
     setPhase('searching');
+    setDroppedAt(null);
+    leaving.current = false;
     (async () => {
       try {
         // An adult who skipped sign-up offline at first launch gets their account now.
         const { birthYear } = profile.get();
         if (api.session === null && birthYear !== null) await api.signUpGuest(birthYear);
-        const s = await findMatchAsPlayer({ onMessage, onLeave: () => undefined });
+        const s = await findMatchAsPlayer({
+          onMessage,
+          onDrop: () => {
+            const at = performance.now();
+            setDroppedAt(at);
+            setNow(at);
+          },
+          onReconnect: () => setDroppedAt(null),
+          // Gone for good mid-battle (not our own Leave, not after the end): the seat is lost.
+          onLeave: () => {
+            setDroppedAt(null);
+            if (!leaving.current && ref.current.end === null && ref.current.seat !== null) {
+              setError('connection-lost');
+              setPhase('error');
+            }
+          },
+        });
         search.current = s;
         const conn = await s.match;
         if (cancelled) {
@@ -89,9 +115,17 @@ export function useOnlineBattle() {
       const b = ref.current;
       if (b.end !== null || b.seat === null) return;
       const lockedUntil = b.players[b.seat].lockedUntil;
+      // Everything on screen that moves with time: the clock, the lock, the 3-2-1, the
+      // opponent's reconnect countdown and our own.
       const shown = (t: number) => {
         const bt = battleTime(b, t);
-        return `${Math.floor(bt / 1000)}|${bt < lockedUntil}`;
+        return [
+          Math.floor(bt / 1000),
+          bt < lockedUntil,
+          b.startsAt === null ? '' : Math.ceil((b.startsAt - t) / 1000),
+          b.rivalAwayUntil === null ? '' : Math.ceil((b.rivalAwayUntil - bt) / 1000),
+          dropped.current === null ? '' : Math.ceil((t - dropped.current) / 1000),
+        ].join('|');
       };
       setNow((prev) => (shown(prev) === shown(at) ? prev : at));
     }, TICK_MS);
@@ -106,11 +140,32 @@ export function useOnlineBattle() {
 
   /** Leaves the queue or the battle (quitting a battle counts as a loss). */
   const leave = useCallback(async () => {
+    leaving.current = true;
     await search.current?.cancel();
     await connection.current?.leave();
   }, []);
 
+  /** Dev builds: drop the connection for `ms`, to check the reconnect states (S4-10). */
+  const devDrop = useCallback((ms: number) => connection.current?.devSimulateDrop(ms), []);
+
+  /** Whole seconds left to get back before the seat is lost, while reconnecting. */
+  const reconnectSecondsLeft =
+    droppedAt === null
+      ? null
+      : Math.max(0, Math.ceil((droppedAt + RECONNECT_WINDOW_MS - now) / 1000));
+
   const again = useCallback(() => setRound((r) => r + 1), []);
 
-  return { phase, error, battle, effects, now, submit, leave, again };
+  return {
+    phase,
+    error,
+    battle,
+    effects,
+    now,
+    submit,
+    leave,
+    again,
+    reconnectSecondsLeft,
+    devDrop,
+  };
 }

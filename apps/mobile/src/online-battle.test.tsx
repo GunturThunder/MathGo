@@ -16,8 +16,11 @@ function fakeServer() {
   const sendAnswer = jest.fn();
   const cancel = jest.fn(async () => undefined);
   const leave = jest.fn(async () => undefined);
-  findMatch.mockImplementation(async (_options, handlers) => {
-    push = (m) => handlers.onMessage(m);
+  const devSimulateDrop = jest.fn();
+  const handlers: { current: battleClient.BattleHandlers | null } = { current: null };
+  findMatch.mockImplementation(async (_options, h) => {
+    handlers.current = h;
+    push = (m) => h.onMessage(m);
     return {
       match: new Promise((resolve) => (resolveMatch = resolve)),
       cancel,
@@ -28,8 +31,20 @@ function fakeServer() {
     cancel,
     leave,
     matched: () =>
-      act(async () => resolveMatch({ roomId: 'r1', sendAnswer, requestRematch: jest.fn(), leave })),
+      act(async () =>
+        resolveMatch({
+          roomId: 'r1',
+          sendAnswer,
+          requestRematch: jest.fn(),
+          leave,
+          devSimulateDrop,
+        }),
+      ),
     send: (m: ServerMessage) => act(() => push(m)),
+    /** The connection drops / comes back / is gone, as the SDK reports it. */
+    drop: () => act(() => handlers.current?.onDrop?.(4010)),
+    reconnect: () => act(() => handlers.current?.onReconnect?.()),
+    lost: () => act(() => handlers.current?.onLeave?.(4003)),
   };
 }
 
@@ -153,5 +168,61 @@ describe('online battle screen (S3-12)', () => {
     fakeServer();
     await act(async () => fireEvent.press(screen.getByTestId('online-retry')));
     expect(screen.getByTestId('online-searching')).toBeOnTheScreen();
+  });
+
+  it('S4-10: waiting, then the 3-2-1, then the first question', async () => {
+    jest.useFakeTimers();
+    const server = fakeServer();
+    renderRouter(APP_DIR, { initialUrl: '/battle' });
+    await act(async () => undefined);
+    await server.matched();
+    server.send({ type: 'joined', payload: { seat: 0, arena: 1, durationMs: 90_000 } });
+    expect(screen.getByTestId('online-prestart')).toHaveTextContent(/Menunggu lawan/);
+    server.send({ type: 'countdown', payload: { startsInMs: 3_000 } });
+    expect(screen.getByTestId('online-countdown')).toHaveTextContent('3');
+    await act(async () => jest.advanceTimersByTime(1_100));
+    expect(screen.getByTestId('online-countdown')).toHaveTextContent('2');
+    await act(async () => jest.advanceTimersByTime(1_000));
+    expect(screen.getByTestId('online-countdown')).toHaveTextContent('1');
+    server.send({ type: 'questions', payload: { questions: [{ index: 0, text: '3 + 4' }] } });
+    expect(screen.queryByTestId('online-prestart')).toBeNull();
+    expect(screen.getByTestId('question')).toHaveTextContent('3 + 4');
+    jest.useRealTimers();
+  });
+
+  it('S4-10: "opponent reconnecting" banner with its countdown, gone when they’re back', async () => {
+    const server = await startBattle();
+    server.send({
+      type: 'state',
+      payload: { now: 10_000, players: [player(100), player(100)], events: [] },
+    });
+    server.send({ type: 'presence', payload: { seat: 1, connected: false, reconnectBy: 21_000 } });
+    expect(screen.getByTestId('rival-away')).toHaveTextContent(/Lawan terputus/);
+    expect(screen.getByTestId('rival-away')).toHaveTextContent(/0:11, kamu menang/);
+    server.send({ type: 'presence', payload: { seat: 1, connected: true } });
+    expect(screen.queryByTestId('rival-away')).toBeNull();
+  });
+
+  it('S4-10: "you are reconnecting" overlay while the connection is down', async () => {
+    const server = await startBattle();
+    await server.drop();
+    expect(screen.getByTestId('reconnecting')).toHaveTextContent(/Menyambung lagi/);
+    expect(screen.getByTestId('reconnecting')).toHaveTextContent(/Sisa 0:15/);
+    await server.reconnect();
+    expect(screen.queryByTestId('reconnecting')).toBeNull();
+  });
+
+  it('S4-10: gone for good: the battle counts as a loss, said plainly', async () => {
+    const server = await startBattle();
+    await server.drop();
+    await server.lost();
+    expect(screen.getByTestId('online-error')).toHaveTextContent(/dihitung kalah/);
+  });
+
+  it('S4-10: leaving from the reconnecting overlay leaves the battle', async () => {
+    const server = await startBattle();
+    await server.drop();
+    await act(async () => fireEvent.press(screen.getByTestId('reconnecting-leave')));
+    expect(server.leave).toHaveBeenCalled();
   });
 });

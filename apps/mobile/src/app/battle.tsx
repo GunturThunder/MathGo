@@ -1,14 +1,25 @@
 import { Redirect, router, Stack } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useMe } from '../api/queries';
 import { EMPTY_ENTRY, entryValue, pressKey, type KeypadKey } from '../battle/answer-entry';
 import type { BattleSummary } from '../battle/battle-result';
-import { currentQuestion, onlineSummary, onlineView } from '../battle/online';
-import { useOnlineBattle } from '../battle/use-online-battle';
+import {
+  currentQuestion,
+  onlineSummary,
+  onlineView,
+  preStart,
+  rivalAwaySeconds,
+} from '../battle/online';
+import { RECONNECT_WINDOW_MS, useOnlineBattle } from '../battle/use-online-battle';
 import { Button } from '../components/Button';
 import { BattleScreen } from '../components/battle/BattleScreen';
+import {
+  PreStartOverlay,
+  ReconnectingOverlay,
+  RivalAwayBanner,
+} from '../components/battle/OnlineStates';
 import { ResultScreen } from '../components/battle/ResultScreen';
 import { errorText } from '../lib/server-errors';
 import { updateRequired } from '../net/update-required';
@@ -79,6 +90,18 @@ function OnlineBattle() {
   const view = onlineView(online.battle, fighters, online.now);
   if (online.phase === 'battle' && view !== null) {
     const question = currentQuestion(online.battle);
+    const before = preStart(online.battle, online.now);
+    const away = rivalAwaySeconds(online.battle, online.now);
+    const overlay =
+      online.reconnectSecondsLeft !== null ? (
+        <ReconnectingOverlay
+          secondsLeft={online.reconnectSecondsLeft}
+          windowSeconds={RECONNECT_WINDOW_MS / 1000}
+          onLeave={home}
+        />
+      ) : before !== null ? (
+        <PreStartOverlay countdown={before.kind === 'countdown' ? before.n : null} />
+      ) : null;
     return (
       <>
         <Stack.Screen options={{ headerShown: false }} />
@@ -97,7 +120,21 @@ function OnlineBattle() {
           effects={online.effects}
           onSeeResults={() => setSummary(onlineSummary(online.battle, fighters))}
           onPlayAgain={playAgain}
+          banner={
+            away === null ? null : <RivalAwayBanner name={fighters.rival.name} secondsLeft={away} />
+          }
+          overlay={overlay}
         />
+        {__DEV__ && before === null && online.reconnectSecondsLeft === null ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => online.devDrop(5_000)}
+            style={styles.devDrop}
+            testID="dev-drop"
+          >
+            <Text style={styles.devDropText}>{t('onlineStates.dropDev')}</Text>
+          </Pressable>
+        ) : null}
       </>
     );
   }
@@ -113,7 +150,9 @@ function OnlineBattle() {
           <Text style={styles.text}>
             {online.error === 'connection-failed'
               ? t('online.connectionFailed')
-              : errorText(online.error, t)}
+              : online.error === 'connection-lost'
+                ? t('online.connectionLost')
+                : errorText(online.error, t)}
           </Text>
           <View style={styles.buttons}>
             <Button label={t('onboarding.retry')} onPress={playAgain} testID="online-retry" />
@@ -156,4 +195,13 @@ const styles = StyleSheet.create({
   title: { ...typography.headline, color: colors.ink, textAlign: 'center' },
   text: { ...typography.body, color: colors.ink2, textAlign: 'center' },
   buttons: { alignSelf: 'stretch', gap: space.md, marginTop: space.xl },
+  devDrop: {
+    position: 'absolute',
+    left: space.sm,
+    bottom: space.sm,
+    padding: space.xs,
+    borderRadius: 8,
+    backgroundColor: colors.peach,
+  },
+  devDropText: { ...typography.caption, fontSize: 11, color: colors.orangeDeep },
 });
