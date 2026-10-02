@@ -20,6 +20,11 @@ export const colors = {
   night: '#16151F',
   nightRaised: '#2D2C45',
   nightMuted: '#B8BAD6',
+  /** Soft white circles on the coloured Home cards. */
+  glow: 'rgba(255, 255, 255, 0.10)',
+  glowStrong: 'rgba(255, 255, 255, 0.22)',
+  /** The arena card's progress track. */
+  trackOnBlue: 'rgba(255, 255, 255, 0.28)',
   /** Pills and dashed lines on the night panel. */
   nightPill: '#2A2940',
   /** Text on orange tiles that isn't the main number. */

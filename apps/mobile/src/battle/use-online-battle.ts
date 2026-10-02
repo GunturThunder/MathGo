@@ -9,7 +9,8 @@ import type { ErrorCode, ServerMessage } from '@mathgo/protocol';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { clockNow } from '../lib/clock';
-import { api } from '../api';
+import { api, type Profile } from '../api';
+import { meQueryKey, queryClient } from '../api/queries';
 import { createInviteAsPlayer, findMatchAsPlayer, joinRoomAsPlayer } from '../net/battle';
 import { profile } from '../profile/store';
 import type { QueuedEffect } from './effects';
@@ -65,6 +66,16 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
   const onMessage = useCallback((message: ServerMessage) => {
     const at = clockNow();
     const update = reduceOnline(ref.current, message, at);
+    // A ranked battle settled trophies (S5-03): Home shows the new count and arena at once
+    // (S5-06), then confirms it with the server.
+    const seat = update.battle.seat;
+    if (message.type === 'end' && message.payload.trophies !== null && seat !== null) {
+      const { trophies } = message.payload.trophies[seat];
+      queryClient.setQueryData<Profile>(meQueryKey, (old) =>
+        old === undefined ? old : { ...old, trophies },
+      );
+      void queryClient.invalidateQueries({ queryKey: meQueryKey });
+    }
     // A new battle in the same room (rematch, S4-13): the last one's effects must not replay.
     const newBattle = update.battle.round !== ref.current.round;
     ref.current = update.battle;

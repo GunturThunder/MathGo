@@ -9,11 +9,19 @@ const ROUTES = ['/', '/battle', '/practice', '/settings'];
 const SAME_IN_EVERY_LANGUAGE = new Set([
   'MathBattle',
   'Arena',
+  'ARENA',
   'Bahasa Indonesia',
   'English',
   // Arena names are proper names (PRD), the same in both languages.
   ...ARENAS.map((a) => a.name),
 ]);
+
+/** Text made only of words that never change, numbers and separators (e.g. "Arena 1 · Counting Camp"). */
+function sameInEveryLanguage(text: string): boolean {
+  let rest = text;
+  for (const word of SAME_IN_EVERY_LANGUAGE) rest = rest.split(word).join('');
+  return /^[\d\s.,·/]*$/.test(rest);
+}
 
 /** The shape of `screen.toJSON()`. */
 type Node = string | { type: string; children: Node[] | null };
@@ -57,8 +65,8 @@ describe('language', () => {
 
   it('starts in Bahasa Indonesia', () => {
     renderRouter(APP_DIR);
-    expect(screen.getByTestId('home-battle')).toHaveTextContent('Bertarung');
-    expect(screen.getByTestId('home-settings')).toHaveTextContent('Pengaturan');
+    expect(screen.getByTestId('home-battle')).toHaveTextContent(/^Bertarung/);
+    expect(screen.getByLabelText('Profil dan pengaturan')).toBeOnTheScreen();
   });
 
   it('switching to English in Settings changes every string on every screen', () => {
@@ -78,12 +86,14 @@ describe('language', () => {
       expect(was.length).toBeGreaterThan(0);
       expect({ route, count: now.length }).toEqual({ route, count: was.length });
       now.forEach((text, j) => {
-        if (!SAME_IN_EVERY_LANGUAGE.has(text) && !/^\d+$/.test(text)) {
+        if (!sameInEveryLanguage(text)) {
           expect({ route, text }).not.toEqual({ route, text: was[j] });
         }
       });
     });
-    expect(after[0]).toEqual(expect.arrayContaining(['Battle', 'Practice', 'Settings']));
+    expect(after[0]).toEqual(
+      expect.arrayContaining(['Battle', 'Battle a Friend', 'Practice vs Bot']),
+    );
   });
 
   it('switches back to Bahasa Indonesia', () => {
