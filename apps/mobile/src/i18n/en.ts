@@ -41,6 +41,21 @@ export const en: Translation = {
     retry: 'Try again',
     skip: 'Practise offline for now',
   },
+  askParent: {
+    title: 'Ask a parent to unlock online battles',
+    subtitle:
+      'You can practise against the bot right now. To battle real players, a parent says yes with a code.',
+    step1: 'A parent enters their phone number',
+    step1Text: 'On this phone, with you',
+    step2: 'They get a 6-digit code',
+    step2Text: 'By WhatsApp, or SMS',
+    step3: 'Online battles unlock',
+    step3Text: 'Random rivals and friend rooms',
+    ask: 'Ask a Parent',
+    soon: 'Coming soon: a code for your parent by WhatsApp or SMS.',
+    practice: 'Practice vs Bot',
+    homeHint: 'Ask a parent first',
+  },
   battle: {
     title: 'Battle',
     note: 'Online battles are coming soon.',
