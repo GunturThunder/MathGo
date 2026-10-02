@@ -114,6 +114,12 @@ export const id = {
     join: 'Gabung Bertarung',
     joining: 'Bergabung…',
   },
+  rematch: {
+    both: 'Main lagi dimulai saat kalian berdua menekannya.',
+    waiting: 'Menunggu jawaban temanmu…',
+    theyWant: 'Temanmu mau main lagi!',
+    left: 'Temanmu sudah keluar dari ruang.',
+  },
   battle: {
     title: 'Bertarung',
   },

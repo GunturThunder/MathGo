@@ -29,6 +29,10 @@ export interface OnlineBattle {
   readonly startsAt: number | null;
   /** The opponent dropped and has until this battle time to come back (FR-07). */
   readonly rivalAwayUntil: number | null;
+  /** Battles played in this room so far; a rematch starts the next one (S4-13). */
+  readonly round: number;
+  /** Each side's answer to "play again?" after a friendly match; null until given (S4-13). */
+  readonly rematch: { readonly mine: boolean | null; readonly theirs: boolean | null };
 }
 
 const fresh = (hp: number): PlayerView => ({
@@ -50,6 +54,8 @@ export const NEW_ONLINE_BATTLE: OnlineBattle = {
   end: null,
   startsAt: null,
   rivalAwayUntil: null,
+  round: 0,
+  rematch: { mine: null, theirs: null },
 };
 
 function outcomeFor(result: EndMessage['result'], seat: Seat): Outcome {
@@ -72,6 +78,7 @@ export function reduceOnline(
           seat: message.payload.seat,
           arena: message.payload.arena,
           durationMs: message.payload.durationMs,
+          round: battle.round + 1,
         },
         effects: [],
       };
@@ -80,6 +87,14 @@ export function reduceOnline(
         battle: { ...battle, startsAt: localNow + message.payload.startsInMs },
         effects: [],
       };
+    case 'rematch': {
+      if (battle.seat === null) return { battle, effects: [] };
+      const key = message.payload.seat === battle.seat ? 'mine' : 'theirs';
+      return {
+        battle: { ...battle, rematch: { ...battle.rematch, [key]: message.payload.accepted } },
+        effects: [],
+      };
+    }
     case 'presence':
       // Only the opponent's comings and goings are sent to us.
       if (battle.seat === null || message.payload.seat === battle.seat)
@@ -220,4 +235,16 @@ export function onlineSummary(battle: OnlineBattle, fighters: Fighters): BattleS
     me: { name: fighters.me.name, damage: ONLINE_HP - rival.hp },
     rival: { name: fighters.rival.name, damage: ONLINE_HP - me.hp },
   };
+}
+
+/** What the "play again" line says after a friendly match (S4-13), and whether the button works. */
+export function rematchStatus(battle: OnlineBattle): {
+  readonly note: 'both' | 'waiting' | 'theyWant' | 'left';
+  readonly canAsk: boolean;
+} {
+  const { mine, theirs } = battle.rematch;
+  if (theirs === false) return { note: 'left', canAsk: false };
+  if (mine === true) return { note: 'waiting', canAsk: false };
+  if (theirs === true) return { note: 'theyWant', canAsk: true };
+  return { note: 'both', canAsk: true };
 }

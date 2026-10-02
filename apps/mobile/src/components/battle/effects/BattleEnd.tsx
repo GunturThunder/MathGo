@@ -43,12 +43,17 @@ export function BattleEnd({
   onSeeResults,
   onPlayAgain,
   onExit,
+  playAgainNote,
+  playAgainDisabled = false,
 }: {
   outcome: Outcome;
   reason: BattleResult['reason'];
   onSeeResults?: () => void;
   onPlayAgain?: () => void;
   onExit?: () => void;
+  /** Under "play again": where a friendly rematch stands (S4-13). */
+  playAgainNote?: string;
+  playAgainDisabled?: boolean;
 }) {
   const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
@@ -111,12 +116,23 @@ export function BattleEnd({
             {onPlayAgain ? (
               <Pressable
                 accessibilityRole="button"
+                accessibilityState={{ disabled: playAgainDisabled }}
+                disabled={playAgainDisabled}
                 onPress={onPlayAgain}
-                style={[styles.button, styles.secondary]}
+                style={[styles.button, styles.secondary, playAgainDisabled && styles.off]}
                 testID="battle-end-again"
               >
                 <Text style={styles.buttonLabel}>{t('battleEnd.playAgain')}</Text>
               </Pressable>
+            ) : null}
+            {playAgainNote ? (
+              <Text
+                style={styles.note}
+                accessibilityLiveRegion="polite"
+                testID="battle-end-rematch"
+              >
+                {playAgainNote}
+              </Text>
             ) : null}
             {onExit ? (
               <Pressable
@@ -235,6 +251,8 @@ const styles = StyleSheet.create({
   secondary: { borderWidth: 2, borderColor: colors.line, backgroundColor: colors.white },
   buttonLabel: { ...typography.button, color: colors.ink },
   primaryLabel: { color: colors.white },
+  off: { opacity: 0.5 },
+  note: { ...typography.caption, color: colors.ink2, textAlign: 'center' },
   textButton: { minHeight: sizes.touch, alignItems: 'center', justifyContent: 'center' },
   textButtonLabel: { ...typography.bodyLarge, color: colors.blue },
 });

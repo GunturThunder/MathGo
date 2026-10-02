@@ -12,6 +12,8 @@ export function ResultScreen({
   modeLabel,
   onPlayAgain,
   onHome,
+  playAgainNote,
+  playAgainDisabled = false,
   myShape = 'triangle',
   rivalShape = 'circle',
 }: {
@@ -21,6 +23,9 @@ export function ResultScreen({
   /** Left out where there's no "play again" (friendly matches until the rematch, S4-13). */
   onPlayAgain?: () => void;
   onHome: () => void;
+  /** Under "play again": where a friendly rematch stands (S4-13). */
+  playAgainNote?: string;
+  playAgainDisabled?: boolean;
   myShape?: ShapeName;
   rivalShape?: ShapeName;
 }) {
@@ -110,8 +115,15 @@ export function ResultScreen({
         {onPlayAgain ? (
           <Pressable
             accessibilityRole="button"
+            accessibilityState={{ disabled: playAgainDisabled }}
+            disabled={playAgainDisabled}
             onPress={onPlayAgain}
-            style={({ pressed }) => [styles.button, styles.primary, pressed && styles.pressed]}
+            style={({ pressed }) => [
+              styles.button,
+              styles.primary,
+              playAgainDisabled && styles.off,
+              pressed && styles.pressed,
+            ]}
             testID="result-again"
           >
             <AgainIcon color={colors.white} />
@@ -128,6 +140,11 @@ export function ResultScreen({
           <Text style={[styles.buttonText, styles.inkText]}>{t('result.home')}</Text>
         </Pressable>
       </View>
+      {playAgainNote ? (
+        <Text style={styles.note} accessibilityLiveRegion="polite" testID="result-rematch">
+          {playAgainNote}
+        </Text>
+      ) : null}
     </ScrollView>
   );
 }
@@ -289,4 +306,6 @@ const styles = StyleSheet.create({
   secondary: { backgroundColor: colors.white, boxShadow: `0 6px 0 ${colors.keyBase}` },
   pressed: { transform: [{ translateY: 4 }], boxShadow: 'none' },
   buttonText: { ...typography.button },
+  off: { opacity: 0.5 },
+  note: { ...typography.caption, color: colors.ink2, textAlign: 'center', marginTop: space.md },
 });

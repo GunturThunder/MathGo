@@ -136,6 +136,17 @@ describe('rematch in an invite room (S4-05)', () => {
     await Promise.all([host.conn.leave(), friend.conn.leave()]);
   });
 
+  it('leaving after the battle tells the other player: no rematch (S4-13)', async () => {
+    const { host, friend, invite } = await inviteBattle();
+    await knockOut(host, invite.roomId);
+    host.conn.requestRematch(true);
+    await friend.conn.leave();
+    await until(() =>
+      host.inbox.some((m) => m.type === 'rematch' && m.payload.seat === 1 && !m.payload.accepted),
+    );
+    await host.conn.leave();
+  });
+
   it('is refused mid-battle and in random battles', async () => {
     const { host, friend } = await inviteBattle();
     host.conn.requestRematch(true); // the battle is still running

@@ -298,6 +298,17 @@ export class BattleRoom extends Room {
     if (player !== undefined && this.running) {
       this.dispatch(this.session.forfeit(player.seat, this.battleTime()));
     }
+    // Gone after the battle in a friend's room: the other player isn't left waiting for an
+    // answer to "play again?" (S4-13). Leaving counts as no.
+    if (
+      player !== undefined &&
+      this.mode === 'invite' &&
+      this.startedAt !== null &&
+      !this.running
+    ) {
+      this.rematch.delete(player.seat);
+      this.broadcast('rematch', { seat: player.seat, accepted: false }, { except: client });
+    }
     if (player !== undefined)
       void BattleRoom.activity?.clearActive([player.userId]).catch(() => undefined);
     this.touchInvite();
