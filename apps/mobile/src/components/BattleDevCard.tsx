@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, radii, shadows, sizes, space, typography } from '../theme';
 import { API_URL } from '../api';
+import { router } from 'expo-router';
 import { findMatchAsPlayer, GAME_SERVER_URL } from '../net/battle';
+import { isUpdateRequiredError } from '../net/update-required';
 
 type Status = 'idle' | 'joining' | 'joined' | 'dropped';
 
@@ -59,8 +61,13 @@ export function BattleDevCard() {
       connections.current.push(...(await Promise.all([mine.match, theirs.match])));
       setStatus('joined');
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
       await leave();
+      // An old app: the update screen says what to do (S4-12).
+      if (isUpdateRequiredError(e)) {
+        router.push('/update-required');
+        return;
+      }
+      setError(e instanceof Error ? e.message : String(e));
     }
   };
 

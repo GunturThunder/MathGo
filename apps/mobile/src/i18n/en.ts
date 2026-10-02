@@ -56,6 +56,15 @@ export const en: Translation = {
     practice: 'Practice vs Bot',
     homeHint: 'Ask a parent first',
   },
+  updateRequired: {
+    title: 'Time to update!',
+    text: 'This version can’t battle online any more. Update MathBattle to keep fighting rivals.',
+    update: 'Update Now',
+    practice: 'Practice vs Bot',
+    note: 'Practice vs bot works without updating.',
+    devPretend: 'Pretend to be an old version (dev)',
+    devPretendOn: 'Pretending to be an old version: ON (dev)',
+  },
   battle: {
     title: 'Battle',
     note: 'Online battles are coming soon.',

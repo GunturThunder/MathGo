@@ -1,19 +1,22 @@
+import { router } from 'expo-router';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text } from 'react-native';
+import { api } from '../api';
 import { BattleDevCard } from '../components/BattleDevCard';
+import { Button } from '../components/Button';
 import { DeterminismCard } from '../components/DeterminismCard';
 import { LanguagePicker } from '../components/LanguagePicker';
-import { router } from 'expo-router';
-import { api } from '../api';
-import { Button } from '../components/Button';
 import { NavButton } from '../components/NavButton';
+import { OnlineDevCard } from '../components/OnlineDevCard';
+import { devPretendOldVersion, setDevPretendOldVersion } from '../net/update-required';
 import { onlineLocked } from '../profile/online';
 import { profile } from '../profile/store';
-import { OnlineDevCard } from '../components/OnlineDevCard';
 import { colors, space, typography } from '../theme';
 
 export default function Settings() {
   const { t } = useTranslation();
+  const [pretendOld, setPretendOld] = useState(devPretendOldVersion());
   return (
     <ScrollView
       style={styles.screen}
@@ -31,6 +34,17 @@ export default function Settings() {
           label={t('keypadTest.open')}
           testID="settings-keypad-test"
           variant="secondary"
+        />
+      ) : null}
+      {__DEV__ ? (
+        <Button
+          label={pretendOld ? t('updateRequired.devPretendOn') : t('updateRequired.devPretend')}
+          variant={pretendOld ? 'battle' : 'secondary'}
+          onPress={() => {
+            setDevPretendOldVersion(!pretendOld);
+            setPretendOld(!pretendOld);
+          }}
+          testID="settings-pretend-old"
         />
       ) : null}
       {__DEV__ ? (

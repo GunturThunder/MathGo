@@ -56,6 +56,15 @@ export const id = {
     practice: 'Latihan vs Bot',
     homeHint: 'Minta izin orang tua dulu',
   },
+  updateRequired: {
+    title: 'Saatnya update!',
+    text: 'Versi ini tidak bisa lagi bertarung online. Update MathBattle untuk terus melawan pemain lain.',
+    update: 'Update Sekarang',
+    practice: 'Latihan vs Bot',
+    note: 'Latihan melawan bot tetap bisa tanpa update.',
+    devPretend: 'Pura-pura versi lama (dev)',
+    devPretendOn: 'Pura-pura versi lama: AKTIF (dev)',
+  },
   battle: {
     title: 'Bertarung',
     note: 'Pertarungan online segera hadir.',

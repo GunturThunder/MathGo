@@ -75,7 +75,7 @@ Goal: `api` and `game-server` run in Docker Compose, a guest can sign in, and th
 | S3-06 | BattleRoom core: 2 seats, secret seed, 3 questions queued per player, answers checked with `game-core`, per-player rate limit | Backend | 2.5 | S3-05, S2-01 | Two test clients get the same questions; a wrong answer is rejected | Done |
 | S3-07 | Multi-stage Dockerfiles for `api` and `game-server` (`turbo prune`); Compose runs all 4 services | Backend | 1 | S3-01, S3-05 | `docker compose up` starts everything on a clean machine | Done |
 | S3-08 | First-launch flow: language, birth-year picker, nickname choice | Mobile | 2 | S2-13, S3-03 | A new player reaches Home in 3 taps after the birth year | Done |
-| S3-09 | Under-18 mode: practice vs bot only; online buttons open "Ask a parent" | Mobile | 1 | S3-08 | No network call to battle services is made for under-18 players | In progress · needs phone test |
+| S3-09 | Under-18 mode: practice vs bot only; online buttons open "Ask a parent" | Mobile | 1 | S3-08 | No network call to battle services is made for under-18 players | Done |
 | S3-10 | API client: TanStack Query, token in MMKV, automatic refresh on 401 | Mobile | 1.5 | S3-02 | Token survives app restart; refresh is invisible to the player | Done |
 | S3-11 | Colyseus client wrapper: connect with JWT, join by room id, typed messages from `protocol`, reconnect hooks | Mobile | 2 | S3-05 | App joins a test BattleRoom and receives questions | Done |
 | S3-12 | Battle screen reads from either the local engine (practice) or server state (online), same UI | Mobile | 2 | S3-11, S2-10 | One online battle plays end to end between two dev phones | Not started |
@@ -102,7 +102,7 @@ Goal: two friends battle online with a 6-character code by Nov 20 (week 7), and 
 | S4-09 | Join with code screen: 6-character input, uppercase, look-alike characters mapped, errors for expired or full rooms | Mobile | 1.5 | S4-02 | Friend joins in 3 taps or fewer from Home | Not started |
 | S4-10 | Online battle states: waiting, 3-2-1 countdown, "opponent reconnecting" banner, "you are reconnecting" overlay | Mobile | 2 | S4-04 | Each state shows in a two-phone test | Not started |
 | S4-11 | App background and network loss: reconnect automatically within 15 s | Mobile | 1.5 | S4-04 | Switching apps for 5 s mid-battle resumes the battle | Not started |
-| S4-12 | "Update required" screen when the server refuses the app version | Mobile | 0.5 | S3-05 | Old build shows the screen with a store link | Not started |
+| S4-12 | "Update required" screen when the server refuses the app version | Mobile | 0.5 | S3-05 | Old build shows the screen with a store link | In progress · needs phone test |
 | S4-13 | Rematch UI in invite rooms | Mobile | 1 | S4-05 | Both players see the offer and the other's answer | Not started |
 | S4-14 | Online playtest on 4G with two phones in different places; note lag or unfairness | Product | 1 | S4-10 | Notes shared by Nov 27 | Not started |
 | S4-15 | Prepare the IGRS age-rating application | Product | 1 | – | Application ready to submit in Sprint 6 | Not started |

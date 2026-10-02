@@ -24,6 +24,9 @@ export interface BattleClientOptions {
   readonly endpoint: string;
   /** A fresh access token; `forceRefresh` when the server said `token-expired`. */
   readonly getToken: (forceRefresh: boolean) => Promise<string>;
+  /** Defaults to this build's PROTOCOL_VERSION. Dev builds can send an old one to check the
+   * "update required" screen (S4-12). */
+  readonly protocolVersion?: number;
 }
 
 export interface BattleHandlers {
@@ -58,7 +61,7 @@ async function enter(
 ): Promise<Room> {
   const attempt = async (forceRefresh: boolean): Promise<Room> => {
     const joinOptions = {
-      protocolVersion: PROTOCOL_VERSION,
+      protocolVersion: options.protocolVersion ?? PROTOCOL_VERSION,
       token: await options.getToken(forceRefresh),
     };
     try {
