@@ -30,8 +30,16 @@ export function usePractice(arena: ArenaId, difficulty: BotDifficulty) {
   const effectId = useRef(0);
 
   const clock = () => Math.round(performance.now() - startedAt.current);
-  const commit = useCallback((update: PracticeUpdate) => {
+  // What the screen shows besides events: the timer's second and the lock. The engine runs every
+  // tick, but React only re-renders when one of these changes (S2-12).
+  const shown = useRef('');
+  const commit = useCallback((update: PracticeUpdate, at: number) => {
     ref.current = update.practice;
+    const { state } = update.practice;
+    const key = `${Math.ceil((state.rules.durationMs - at) / 1000)}|${at < state.players[PLAYER_SEAT].lockedUntil}`;
+    if (update.events.length === 0 && key === shown.current) return;
+    shown.current = key;
+    setNow(at);
     setPractice(update.practice);
     const fresh = battleEffects(update.events, PLAYER_SEAT).map((e) => ({
       ...e,
@@ -44,8 +52,7 @@ export function usePractice(arena: ArenaId, difficulty: BotDifficulty) {
     const timer = setInterval(() => {
       if (ref.current.state.result !== null) return;
       const at = clock();
-      setNow(at);
-      commit(advance(ref.current, at));
+      commit(advance(ref.current, at), at);
     }, TICK_MS);
     return () => clearInterval(timer);
   }, [commit]);
@@ -54,8 +61,7 @@ export function usePractice(arena: ArenaId, difficulty: BotDifficulty) {
     (value: number) => {
       if (ref.current.state.result !== null) return;
       const at = clock();
-      setNow(at);
-      commit(answer(ref.current, value, at));
+      commit(answer(ref.current, value, at), at);
     },
     [commit],
   );
