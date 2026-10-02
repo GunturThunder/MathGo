@@ -46,7 +46,32 @@ export const en: Translation = {
     dropped: 'Connection lost, reconnecting…',
     error: 'Failed: {{value}}',
   },
+  battleEnd: {
+    winKo: {
+      title: 'K.O.!',
+      text: 'You knocked out your rival!',
+    },
+    win: {
+      title: 'You Win!',
+      text: 'You had more HP when time ran out.',
+    },
+    loseKo: {
+      title: 'Knocked Out',
+      text: 'So close. Try again and get them back.',
+    },
+    lose: {
+      title: 'You Lost',
+      text: 'Your rival had more HP. Try again!',
+    },
+    draw: {
+      title: 'Draw!',
+      text: 'Same HP when time ran out.',
+    },
+    seeResults: 'See Results',
+    playAgain: 'Play Again',
+  },
   battleScreen: {
+    fast: 'FAST +5',
     quit: 'Quit battle. Quitting counts as a loss',
     timeLeft: '{{value}} left',
     questionNumber: 'Q{{value}}',

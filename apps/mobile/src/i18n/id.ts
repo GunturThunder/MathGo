@@ -45,7 +45,32 @@ export const id = {
     dropped: 'Koneksi putus, menyambung lagi…',
     error: 'Gagal: {{value}}',
   },
+  battleEnd: {
+    winKo: {
+      title: 'K.O.!',
+      text: 'Kamu menjatuhkan lawan!',
+    },
+    win: {
+      title: 'Menang!',
+      text: 'HP kamu lebih banyak saat waktu habis.',
+    },
+    loseKo: {
+      title: 'Kena K.O.',
+      text: 'Hampir! Coba lagi dan balas.',
+    },
+    lose: {
+      title: 'Kalah',
+      text: 'Lawan punya HP lebih banyak. Coba lagi!',
+    },
+    draw: {
+      title: 'Seri!',
+      text: 'HP sama saat waktu habis.',
+    },
+    seeResults: 'Lihat Hasil',
+    playAgain: 'Main Lagi',
+  },
   battleScreen: {
+    fast: 'CEPAT +5',
     quit: 'Keluar dari pertarungan. Keluar dihitung kalah',
     timeLeft: 'Sisa waktu {{value}}',
     questionNumber: 'S{{value}}',

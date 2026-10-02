@@ -20,6 +20,7 @@
     "@mathgo/battle-client": "workspace:*",
     "@mathgo/game-core": "workspace:*",
     "@mathgo/protocol": "workspace:*",
+    "@shopify/react-native-skia": "2.6.2",
     "@tanstack/react-query": "5.104.0",
     "expo": "57.0.26",
     "expo-constants": "57.0.20",
@@ -35,9 +36,11 @@
     "react-native": "0.86.3",
     "react-native-mmkv": "4.3.2",
     "react-native-nitro-modules": "0.37.1",
+    "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "5.7.0",
     "react-native-screens": "4.26.2",
-    "react-native-svg": "15.15.4"
+    "react-native-svg": "15.15.4",
+    "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
     "@mathgo/config": "workspace:*",

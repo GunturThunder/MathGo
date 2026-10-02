@@ -1,9 +1,12 @@
+import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import type { AnswerEntry, KeypadKey } from '../../battle/answer-entry';
 import { colors, radii, space, typography } from '../../theme';
 import { AnswerField } from '../AnswerField';
 import { FlameIcon } from '../icons';
+import { usePop, useShake } from './effects/pop';
 
 /** Long questions shrink to stay on one line (design: 52 → 31 px). */
 export function questionFontSize(text: string, compact: boolean): number {
@@ -22,6 +25,7 @@ export function QuestionPanel({
   showSign,
   onKey,
   compact,
+  missKey = 0,
 }: {
   question: string;
   comboLit: number;
@@ -31,9 +35,13 @@ export function QuestionPanel({
   showSign: boolean;
   onKey: (key: KeypadKey) => void;
   compact: boolean;
+  /** Changes on each wrong answer: the answer field shakes (S2-09). */
+  missKey?: number;
 }) {
   const { t } = useTranslation();
   const fontSize = questionFontSize(question, compact);
+  const shake = useShake(missKey);
+  const readyPop = usePop(comboReady ? 1 : 0);
   return (
     <View style={[styles.panel, compact && styles.panelCompact]}>
       <View style={styles.top}>
@@ -46,14 +54,14 @@ export function QuestionPanel({
           <Text style={styles.comboLabel}>{t('battleScreen.comboLabel')}</Text>
           <View style={styles.flames}>
             {[1, 2, 3].map((i) => (
-              <FlameIcon key={i} color={i <= comboLit ? colors.orange : colors.comboOff} />
+              <Flame key={i} lit={i <= comboLit} />
             ))}
           </View>
         </View>
         {comboReady ? (
-          <View style={styles.ready} testID="combo-ready">
+          <Animated.View style={[styles.ready, readyPop]} testID="combo-ready">
             <Text style={styles.readyText}>{t('battleScreen.comboReady')}</Text>
-          </View>
+          </Animated.View>
         ) : (
           <Text style={styles.arena} numberOfLines={1}>
             {arenaLabel}
@@ -73,8 +81,24 @@ export function QuestionPanel({
       >
         {question}
       </Text>
-      <AnswerField entry={entry} showSign={showSign} onKey={onKey} compact={compact} />
+      <Animated.View style={shake}>
+        <AnswerField entry={entry} showSign={showSign} onKey={onKey} compact={compact} />
+      </Animated.View>
     </View>
+  );
+}
+
+/** A combo flame that pops each time it lights. */
+function Flame({ lit }: { lit: boolean }) {
+  const lights = useRef(0);
+  const wasLit = useRef(lit);
+  if (lit && !wasLit.current) lights.current += 1;
+  wasLit.current = lit;
+  const pop = usePop(lights.current);
+  return (
+    <Animated.View style={lit ? pop : null}>
+      <FlameIcon color={lit ? colors.orange : colors.comboOff} />
+    </Animated.View>
   );
 }
 

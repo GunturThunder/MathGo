@@ -46,8 +46,13 @@ export const colors = {
   timerWarning: '#FF8A00',
   /** An unlit combo flame on the night panel. */
   comboOff: '#3A3953',
-  /** The damage burst. */
+  /** The damage burst: yellow when you hit, pink when you're hit. */
   hit: '#FFD23F',
+  hitTaken: '#FF8FB5',
+  /** Text on light orange tiles; the "Knocked Out" title. */
+  orangeInk: '#A85200',
+  /** Behind the end-of-battle card. */
+  nightScrim: 'rgba(22, 21, 31, 0.74)',
   /** "Oops! Locked for 1 second". */
   danger: '#D2336C',
   /** "Room found". */

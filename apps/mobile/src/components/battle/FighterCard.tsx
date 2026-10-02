@@ -1,9 +1,27 @@
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import type { FighterView } from '../../battle/battle-view';
 import { colors, radii, shapes, space, typography, type ShapeName } from '../../theme';
 import { TrophyIcon } from '../icons';
 import { ShapeFighter } from '../ShapeFighter';
+import { HitBurst } from './effects/HitBurst';
+import { useFlinch, usePop } from './effects/pop';
+
+export const HP_DRAIN_MS = 350;
+
+/** The latest hit on this fighter; `id` 0 = none yet. */
+export interface HitOn {
+  readonly id: number;
+  readonly damage: number;
+  readonly fast: boolean;
+}
 
 /** One player's strip: shape, name, trophies, HP bar and HP number (design: Battle board). */
 export function FighterCard({
@@ -12,61 +30,91 @@ export function FighterCard({
   side,
   compact,
   testID,
+  hit,
 }: {
   fighter: FighterView;
   shape: ShapeName;
   side: 'me' | 'rival';
   compact: boolean;
   testID: string;
+  /** Shown while the burst plays (S2-09). */
+  hit?: HitOn | null;
 }) {
   const { t } = useTranslation();
   const tile = compact ? 44 : 50;
+
+  // HP drains smoothly instead of jumping.
+  const share = useSharedValue(fighter.hpShare);
+  useEffect(() => {
+    share.value = withTiming(fighter.hpShare, {
+      duration: HP_DRAIN_MS,
+      easing: Easing.out(Easing.quad),
+    });
+  }, [fighter.hpShare, share]);
+  const barStyle = useAnimatedStyle(() => ({ width: `${share.value * 100}%` }));
+  const flinch = useFlinch(hit?.id ?? 0, side);
+  const fastPop = usePop(hit?.fast ? hit.id : 0);
+
   return (
-    <View
-      style={[styles.card, compact && styles.cardCompact]}
-      testID={testID}
-      accessible
-      accessibilityLabel={t('battleScreen.fighterHp', { name: fighter.name, value: fighter.hp })}
-    >
+    <View>
       <View
-        style={[styles.tile, { width: tile, height: tile, backgroundColor: shapes[shape].tile }]}
+        style={[styles.card, compact && styles.cardCompact]}
+        testID={testID}
+        accessible
+        accessibilityLabel={t('battleScreen.fighterHp', { name: fighter.name, value: fighter.hp })}
       >
-        <ShapeFighter shape={shape} size={tile * 0.72} />
-      </View>
-      <View style={styles.middle}>
-        <View style={styles.nameRow}>
-          <Text style={styles.name} numberOfLines={1}>
-            {fighter.name}
-          </Text>
-          <View style={styles.trophies}>
-            <TrophyIcon color={colors.ink2} />
-            <Text style={styles.trophyText}>{fighter.trophies}</Text>
-          </View>
-        </View>
-        <View
+        <Animated.View
           style={[
-            styles.track,
-            { backgroundColor: side === 'me' ? colors.blueTrack : colors.orangeTrack },
+            styles.tile,
+            { width: tile, height: tile, backgroundColor: shapes[shape].tile },
+            flinch,
           ]}
         >
+          <ShapeFighter shape={shape} size={tile * 0.72} />
+        </Animated.View>
+        <View style={styles.middle}>
+          <View style={styles.nameRow}>
+            <Text style={styles.name} numberOfLines={1}>
+              {fighter.name}
+            </Text>
+            <View style={styles.trophies}>
+              <TrophyIcon color={colors.ink2} />
+              <Text style={styles.trophyText}>{fighter.trophies}</Text>
+            </View>
+          </View>
           <View
-            testID={`${testID}-bar`}
             style={[
-              styles.bar,
-              {
-                width: `${fighter.hpShare * 100}%`,
-                backgroundColor: side === 'me' ? colors.blue : colors.orange,
-              },
+              styles.track,
+              { backgroundColor: side === 'me' ? colors.blueTrack : colors.orangeTrack },
             ]}
-          />
+          >
+            <Animated.View
+              testID={`${testID}-bar`}
+              style={[
+                styles.bar,
+                { backgroundColor: side === 'me' ? colors.blue : colors.orange },
+                barStyle,
+              ]}
+            />
+          </View>
+        </View>
+        <View style={styles.hp}>
+          <Text style={styles.hpValue} testID={`${testID}-hp`}>
+            {fighter.hp}
+          </Text>
+          <Text style={styles.hpLabel}>{t('battleScreen.hp')}</Text>
         </View>
       </View>
-      <View style={styles.hp}>
-        <Text style={styles.hpValue} testID={`${testID}-hp`}>
-          {fighter.hp}
-        </Text>
-        <Text style={styles.hpLabel}>{t('battleScreen.hp')}</Text>
-      </View>
+      {hit ? <HitBurst key={hit.id} damage={hit.damage} taken={side === 'me'} /> : null}
+      {hit?.fast ? (
+        <Animated.View
+          style={[styles.fast, fastPop]}
+          pointerEvents="none"
+          testID={`${testID}-fast`}
+        >
+          <Text style={styles.fastText}>{t('battleScreen.fast')}</Text>
+        </Animated.View>
+      ) : null}
     </View>
   );
 }
@@ -100,4 +148,15 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     color: colors.ink2,
   },
+  fast: {
+    position: 'absolute',
+    right: 64,
+    top: -13,
+    height: 26,
+    justifyContent: 'center',
+    paddingHorizontal: space.md - 2,
+    borderRadius: 13,
+    backgroundColor: colors.orange,
+  },
+  fastText: { ...typography.label, letterSpacing: 0.5, color: colors.ink },
 });
