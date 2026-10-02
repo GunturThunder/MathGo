@@ -1,6 +1,6 @@
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
 import { DEV_JWT_SECRET, signAccessToken, signingKey } from '@mathgo/auth';
-import { createInvite, joinBattle, joinByCode, JoinError } from '@mathgo/battle-client';
+import { createInvite, findInvite, joinBattle, joinByCode, JoinError } from '@mathgo/battle-client';
 import type { ServerMessage } from '@mathgo/protocol';
 import { Redis } from 'ioredis';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -134,6 +134,15 @@ describe('invite rooms through game-server (S4-02)', () => {
     expect(error).toBeInstanceOf(JoinError);
     expect(error).toMatchObject({ code: 'room-expired', status: 410 });
     await hostRoom.leave();
+  });
+
+  it('findInvite looks a room up without joining it (S4-09)', async () => {
+    const invite = await createInvite(as('host3'));
+    expect(await findInvite(as('friend3'), ` ${invite.code.toLowerCase()} `)).toEqual({
+      roomId: invite.roomId,
+    });
+    const missing = await findInvite(as('friend3'), 'QQQQQQ').catch((e: unknown) => e);
+    expect(missing).toMatchObject({ code: 'room-not-found', status: 404 });
   });
 
   it('an unknown code is room-not-found', async () => {

@@ -18,7 +18,8 @@ export function ResultScreen({
   summary: BattleSummary;
   /** "Latihan" in practice, "Pertarungan peringkat" in ranked. */
   modeLabel: string;
-  onPlayAgain: () => void;
+  /** Left out where there's no "play again" (friendly matches until the rematch, S4-13). */
+  onPlayAgain?: () => void;
   onHome: () => void;
   myShape?: ShapeName;
   rivalShape?: ShapeName;
@@ -106,15 +107,17 @@ export function ResultScreen({
 
       <View style={styles.spacer} />
       <View style={styles.buttons}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={onPlayAgain}
-          style={({ pressed }) => [styles.button, styles.primary, pressed && styles.pressed]}
-          testID="result-again"
-        >
-          <AgainIcon color={colors.white} />
-          <Text style={[styles.buttonText, styles.whiteText]}>{t('result.playAgain')}</Text>
-        </Pressable>
+        {onPlayAgain ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onPlayAgain}
+            style={({ pressed }) => [styles.button, styles.primary, pressed && styles.pressed]}
+            testID="result-again"
+          >
+            <AgainIcon color={colors.white} />
+            <Text style={[styles.buttonText, styles.whiteText]}>{t('result.playAgain')}</Text>
+          </Pressable>
+        ) : null}
         <Pressable
           accessibilityRole="button"
           onPress={onHome}

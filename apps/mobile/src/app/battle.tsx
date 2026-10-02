@@ -1,4 +1,4 @@
-import { Redirect, router, Stack } from 'expo-router';
+import { Redirect, router, Stack, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -12,9 +12,14 @@ import {
   preStart,
   rivalAwaySeconds,
 } from '../battle/online';
-import { RECONNECT_WINDOW_MS, useOnlineBattle } from '../battle/use-online-battle';
+import {
+  RECONNECT_WINDOW_MS,
+  useOnlineBattle,
+  type BattleSource,
+} from '../battle/use-online-battle';
 import { Button } from '../components/Button';
 import { BattleScreen } from '../components/battle/BattleScreen';
+import { CreateRoom } from '../components/battle/CreateRoom';
 import {
   PreStartOverlay,
   ReconnectingOverlay,
@@ -41,10 +46,20 @@ export default function Battle() {
   return <OnlineBattle />;
 }
 
+/** `/battle` (random), `/battle?mode=create` (open a room, S4-08), `/battle?mode=join&room=ID` (S4-09). */
+function sourceFrom(mode: string | undefined, room: string | undefined): BattleSource {
+  if (mode === 'create') return { kind: 'create' };
+  if (mode === 'join' && room) return { kind: 'join', roomId: room };
+  return { kind: 'random' };
+}
+
 function OnlineBattle() {
   const { t } = useTranslation();
   const me = useMe();
-  const online = useOnlineBattle();
+  const params = useLocalSearchParams<{ mode?: string; room?: string }>();
+  const source = useMemo(() => sourceFrom(params.mode, params.room), [params.mode, params.room]);
+  const friendly = source.kind !== 'random';
+  const online = useOnlineBattle(source);
   const [entry, setEntry] = useState(EMPTY_ENTRY);
   const [summary, setSummary] = useState<BattleSummary | null>(null);
   const fighters = useMemo(
@@ -79,8 +94,9 @@ function OnlineBattle() {
         <Stack.Screen options={{ headerShown: false }} />
         <ResultScreen
           summary={summary}
-          modeLabel={t('online.modeRanked')}
-          onPlayAgain={playAgain}
+          modeLabel={friendly ? t('online.modeFriend') : t('online.modeRanked')}
+          // Play again in a friend's room is the rematch (S4-13); random battles search again.
+          {...(friendly ? {} : { onPlayAgain: playAgain })}
           onHome={home}
         />
       </>
@@ -119,7 +135,7 @@ function OnlineBattle() {
           onQuit={home}
           effects={online.effects}
           onSeeResults={() => setSummary(onlineSummary(online.battle, fighters))}
-          onPlayAgain={playAgain}
+          {...(friendly ? {} : { onPlayAgain: playAgain })}
           banner={
             away === null ? null : <RivalAwayBanner name={fighters.rival.name} secondsLeft={away} />
           }
@@ -135,6 +151,16 @@ function OnlineBattle() {
             <Text style={styles.devDropText}>{t('onlineStates.dropDev')}</Text>
           </Pressable>
         ) : null}
+      </>
+    );
+  }
+
+  // A room of our own, before the friend arrives (S4-08).
+  if (source.kind === 'create' && online.phase !== 'error') {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <CreateRoom code={online.invite?.code ?? null} onBack={home} />
       </>
     );
   }
@@ -167,8 +193,12 @@ function OnlineBattle() {
       ) : (
         <>
           <ActivityIndicator size="large" color={colors.blue} />
-          <Text style={styles.title}>{t('online.searching')}</Text>
-          <Text style={styles.text}>{t('online.searchingNote')}</Text>
+          <Text style={styles.title}>
+            {source.kind === 'join' ? t('join.joining') : t('online.searching')}
+          </Text>
+          {source.kind === 'join' ? null : (
+            <Text style={styles.text}>{t('online.searchingNote')}</Text>
+          )}
           <View style={styles.buttons}>
             <Button
               label={t('online.cancel')}

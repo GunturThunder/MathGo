@@ -35,3 +35,16 @@ jest.mock('@mathgo/battle-client', () => ({
   ...jest.requireActual('@mathgo/battle-client'),
   findMatch: jest.fn(() => new Promise(() => undefined)),
 }));
+
+// No system clipboard in Node: an in-memory one tests can fill.
+jest.mock('expo-clipboard', () => {
+  let text = '';
+  return {
+    setStringAsync: jest.fn(async (value) => {
+      text = value;
+      return true;
+    }),
+    getStringAsync: jest.fn(async () => text),
+    hasStringAsync: jest.fn(async () => text !== ''),
+  };
+});
