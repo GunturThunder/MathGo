@@ -1,5 +1,7 @@
 import type { ArenaId, BotDifficulty } from '@mathgo/game-core';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
+import { clockNow } from '../lib/clock';
 import { battleEffects, type QueuedEffect } from './effects';
 import {
   PLAYER_SEAT,
@@ -26,10 +28,12 @@ export function usePractice(arena: ArenaId, difficulty: BotDifficulty) {
   const [now, setNow] = useState(0);
   // The engine runs on refs; React state mirrors them for rendering.
   const ref = useRef(practice);
-  const startedAt = useRef(performance.now());
+  const startedAt = useRef(clockNow());
+  /** Set while the app is in the background: the battle doesn't move. */
+  const pausedAt = useRef<number | null>(null);
   const effectId = useRef(0);
 
-  const clock = () => Math.round(performance.now() - startedAt.current);
+  const clock = () => Math.round(clockNow() - startedAt.current);
   // What the screen shows besides events: the timer's second and the lock. The engine runs every
   // tick, but React only re-renders when one of these changes (S2-12).
   const shown = useRef('');
@@ -50,12 +54,26 @@ export function usePractice(arena: ArenaId, difficulty: BotDifficulty) {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      if (ref.current.state.result !== null) return;
+      if (ref.current.state.result !== null || pausedAt.current !== null) return;
       const at = clock();
       commit(advance(ref.current, at), at);
     }, TICK_MS);
     return () => clearInterval(timer);
   }, [commit]);
+
+  // Practice pauses in the background (S4-11): no one is waiting, so the bot shouldn't keep
+  // hitting a player who switched apps. The time away is taken off the battle clock.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        if (pausedAt.current !== null) startedAt.current += clockNow() - pausedAt.current;
+        pausedAt.current = null;
+      } else if (pausedAt.current === null) {
+        pausedAt.current = clockNow();
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   const submit = useCallback(
     (value: number) => {
