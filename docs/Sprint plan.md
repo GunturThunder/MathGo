@@ -98,8 +98,8 @@ Goal: two friends battle online with a 6-character code by Nov 20 (week 7), and 
 | S4-05 | Rematch in an invite room: the same room stays open; starts when both accept | Backend | 0.5 | S4-02 | Two rematches in a row work without a new code | Done |
 | S4-06 | Anti-cheat basics: answers-per-second limit; flag answers under 300 ms in the match record | Backend | 1 | S4-03 | Scripted fast answers are rate-limited and flagged | Done |
 | S4-07 | Load test with the Colyseus loadtest tool: 200 concurrent bot battles on a VPS-sized machine | Backend | 1 | S4-04 | CPU, memory and round-trip times recorded; no dropped rooms | Done |
-| S4-08 | Create room screen: show the code, share sheet, waiting for friend | Mobile | 1.5 | S4-02 | Code shared through WhatsApp from the share sheet | In progress · needs phone test |
-| S4-09 | Join with code screen: 6-character input, uppercase, look-alike characters mapped, errors for expired or full rooms | Mobile | 1.5 | S4-02 | Friend joins in 3 taps or fewer from Home | In progress · needs phone test |
+| S4-08 | Create room screen: show the code, share sheet, waiting for friend | Mobile | 1.5 | S4-02 | Code shared through WhatsApp from the share sheet | Done |
+| S4-09 | Join with code screen: 6-character input, uppercase, look-alike characters mapped, errors for expired or full rooms | Mobile | 1.5 | S4-02 | Friend joins in 3 taps or fewer from Home | Done |
 | S4-10 | Online battle states: waiting, 3-2-1 countdown, "opponent reconnecting" banner, "you are reconnecting" overlay | Mobile | 2 | S4-04 | Each state shows in a two-phone test | Done |
 | S4-11 | App background and network loss: reconnect automatically within 15 s | Mobile | 1.5 | S4-04 | Switching apps for 5 s mid-battle resumes the battle | Done |
 | S4-12 | "Update required" screen when the server refuses the app version | Mobile | 0.5 | S3-05 | Old build shows the screen with a store link | Done |
