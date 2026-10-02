@@ -62,6 +62,31 @@ export const en: Translation = {
     dropped: 'Connection lost, reconnecting…',
     error: 'Failed: {{value}}',
   },
+  result: {
+    close: 'Close',
+    you: 'You',
+    answers: 'Right answers',
+    answersValue: '{{correct}}/{{answered}}',
+    bestCombo: 'Best combo',
+    damage: '{{value}} damage',
+    playAgain: 'Play Again',
+    home: 'Home',
+    modePractice: 'Practice',
+    title: {
+      win: 'Victory!',
+      lose: 'Defeat',
+      draw: 'Draw!',
+    },
+    subtitle: {
+      win_ko: 'Knocked out {{name}} with {{seconds}} s left.',
+      win_time: 'You had more HP when time ran out.',
+      win_forfeit: '{{name}} left the battle.',
+      lose_ko: '{{name}} knocked you out with {{seconds}} s left.',
+      lose_time: '{{name}} had more HP when time ran out.',
+      lose_forfeit: 'You left the battle.',
+      draw: 'Same HP when time ran out.',
+    },
+  },
   battleEnd: {
     winKo: {
       title: 'K.O.!',

@@ -61,6 +61,31 @@ export const id = {
     dropped: 'Koneksi putus, menyambung lagi…',
     error: 'Gagal: {{value}}',
   },
+  result: {
+    close: 'Tutup',
+    you: 'Kamu',
+    answers: 'Jawaban benar',
+    answersValue: '{{correct}}/{{answered}}',
+    bestCombo: 'Kombo terbaik',
+    damage: '{{value}} serangan',
+    playAgain: 'Main Lagi',
+    home: 'Beranda',
+    modePractice: 'Latihan',
+    title: {
+      win: 'Menang!',
+      lose: 'Kalah',
+      draw: 'Seri!',
+    },
+    subtitle: {
+      win_ko: 'Kamu menjatuhkan {{name}} dengan sisa {{seconds}} detik.',
+      win_time: 'HP kamu lebih banyak saat waktu habis.',
+      win_forfeit: '{{name}} keluar dari pertarungan.',
+      lose_ko: '{{name}} menjatuhkanmu dengan sisa {{seconds}} detik.',
+      lose_time: '{{name}} punya HP lebih banyak saat waktu habis.',
+      lose_forfeit: 'Kamu keluar dari pertarungan.',
+      draw: 'HP sama saat waktu habis.',
+    },
+  },
   battleEnd: {
     winKo: {
       title: 'K.O.!',

@@ -10,28 +10,47 @@ import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { EMPTY_ENTRY, entryValue, pressKey, type KeypadKey } from '../battle/answer-entry';
+import { battleSummary, type BattleSummary } from '../battle/battle-result';
 import { battleView } from '../battle/battle-view';
 import { PLAYER_SEAT } from '../battle/practice';
 import { usePractice } from '../battle/use-practice';
 import { BattleScreen } from '../components/battle/BattleScreen';
+import { ResultScreen } from '../components/battle/ResultScreen';
 import { colors, radii, shadows, sizes, space, typography } from '../theme';
 
 const ARENAS: ArenaId[] = [1, 2, 3, 4, 5];
 
 /** Practice vs bot (S2-10, FR-13): offline, clearly labelled, no trophies. */
 export default function Practice() {
+  const { t } = useTranslation();
   const [setup, setSetup] = useState<{ arena: ArenaId; difficulty: BotDifficulty } | null>(null);
   const [round, setRound] = useState(0);
+  const [summary, setSummary] = useState<BattleSummary | null>(null);
+  const playAgain = () => {
+    setSummary(null);
+    setRound((r) => r + 1);
+  };
   if (setup === null) return <PracticeSetup onStart={setSetup} />;
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
-      <PracticeBattle
-        key={round}
-        arena={setup.arena}
-        difficulty={setup.difficulty}
-        onPlayAgain={() => setRound((r) => r + 1)}
-      />
+      {summary === null ? (
+        <PracticeBattle
+          key={round}
+          arena={setup.arena}
+          difficulty={setup.difficulty}
+          onPlayAgain={playAgain}
+          onSeeResults={setSummary}
+        />
+      ) : (
+        <ResultScreen
+          summary={summary}
+          modeLabel={t('result.modePractice')}
+          onPlayAgain={playAgain}
+          onHome={() => router.back()}
+          rivalShape="square"
+        />
+      )}
     </>
   );
 }
@@ -114,10 +133,12 @@ function PracticeBattle({
   arena,
   difficulty,
   onPlayAgain,
+  onSeeResults,
 }: {
   arena: ArenaId;
   difficulty: BotDifficulty;
   onPlayAgain: () => void;
+  onSeeResults: (summary: BattleSummary) => void;
 }) {
   const { t } = useTranslation();
   const { state, effects, now, submit } = usePractice(arena, difficulty);
@@ -158,7 +179,10 @@ function PracticeBattle({
       rivalShape="square"
       effects={effects}
       onPlayAgain={onPlayAgain}
-      onExit={() => router.back()}
+      onSeeResults={() => {
+        const summary = battleSummary(state, PLAYER_SEAT, fighters);
+        if (summary !== null) onSeeResults(summary);
+      }}
     />
   );
 }
