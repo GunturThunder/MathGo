@@ -248,6 +248,24 @@ export async function createInvite(options: BattleClientOptions): Promise<Invite
 }
 
 /**
+ * Finds a friend's room by its 6-character code (S4-09), without joining: the join screen shows
+ * "room found" first. An unknown or expired code throws JoinError `room-not-found` /
+ * `room-expired`.
+ */
+export async function findInvite(
+  options: BattleClientOptions,
+  code: string,
+): Promise<{ roomId: string }> {
+  const res = await fetch(
+    `${httpBase(options.endpoint)}/invites/${encodeURIComponent(code.trim().toUpperCase())}`,
+  ).catch(() => null);
+  if (res === null) throw new JoinError('connection-failed');
+  if (!res.ok) throw new JoinError(await errorCodeOf(res), res.status);
+  const { roomId } = (await res.json()) as { roomId: string };
+  return { roomId };
+}
+
+/**
  * Joins a friend's room by its 6-character code (S4-09). An unknown or expired code throws
  * JoinError `room-not-found` / `room-expired`.
  */
@@ -256,11 +274,6 @@ export async function joinByCode(
   handlers: BattleHandlers,
   code: string,
 ): Promise<BattleConnection> {
-  const res = await fetch(
-    `${httpBase(options.endpoint)}/invites/${encodeURIComponent(code.trim().toUpperCase())}`,
-  ).catch(() => null);
-  if (res === null) throw new JoinError('connection-failed');
-  if (!res.ok) throw new JoinError(await errorCodeOf(res), res.status);
-  const { roomId } = (await res.json()) as { roomId: string };
+  const { roomId } = await findInvite(options, code);
   return joinBattle(options, handlers, roomId);
 }

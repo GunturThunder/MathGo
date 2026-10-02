@@ -28,6 +28,20 @@ export default function Home() {
             {t('askParent.homeHint')}
           </Text>
         ) : null}
+        <NavButton
+          href={
+            updateRequired() ? '/update-required' : locked ? '/ask-parent' : '/battle?mode=create'
+          }
+          label={t('home.createRoom')}
+          testID="home-create-room"
+          variant="secondary"
+        />
+        <NavButton
+          href={updateRequired() ? '/update-required' : locked ? '/ask-parent' : '/join-room'}
+          label={t('home.joinRoom')}
+          testID="home-join-room"
+          variant="secondary"
+        />
         <NavButton href="/practice" label={t('home.practice')} testID="home-practice" />
         <NavButton
           href="/settings"

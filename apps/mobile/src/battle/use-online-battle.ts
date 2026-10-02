@@ -1,10 +1,16 @@
-import { JoinError, type BattleConnection, type MatchSearch } from '@mathgo/battle-client';
+import {
+  JoinError,
+  type BattleConnection,
+  type BattleHandlers,
+  type Invite,
+  type MatchSearch,
+} from '@mathgo/battle-client';
 import type { ErrorCode, ServerMessage } from '@mathgo/protocol';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { clockNow } from '../lib/clock';
 import { api } from '../api';
-import { findMatchAsPlayer } from '../net/battle';
+import { createInviteAsPlayer, findMatchAsPlayer, joinRoomAsPlayer } from '../net/battle';
 import { profile } from '../profile/store';
 import type { QueuedEffect } from './effects';
 import {
@@ -16,6 +22,12 @@ import {
 } from './online';
 
 export type OnlinePhase = 'searching' | 'battle' | 'error';
+
+/** Where the battle comes from: the random queue, a room this player opens, or a friend's room. */
+export type BattleSource =
+  | { readonly kind: 'random' }
+  | { readonly kind: 'create' }
+  | { readonly kind: 'join'; readonly roomId: string };
 export type OnlineErrorCode = ErrorCode | 'connection-failed' | 'connection-lost';
 
 /** How long the server holds a dropped player's seat (FR-07; game-server RECONNECT_SECONDS). */
@@ -25,10 +37,11 @@ const TICK_MS = 250;
 const MAX_EFFECTS = 20;
 
 /**
- * A random online battle (S3-12): queue (FR-02), then show what the server sends and send the
- * player's answers. The screen re-renders on server messages and when the timer's second changes.
+ * An online battle (S3-12): a random one from the queue (FR-02), or a friend's room (S4-08,
+ * S4-09). It shows what the server sends and sends the player's answers. The screen re-renders on
+ * server messages and when the timer's second changes.
  */
-export function useOnlineBattle() {
+export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
   const [phase, setPhase] = useState<OnlinePhase>('searching');
   const [error, setError] = useState<OnlineErrorCode | null>(null);
   const [battle, setBattle] = useState<OnlineBattle>(NEW_ONLINE_BATTLE);
@@ -37,6 +50,10 @@ export function useOnlineBattle() {
   const [round, setRound] = useState(0);
   /** Local time our connection dropped, while the SDK reconnects (S4-10); null when connected. */
   const [droppedAt, setDroppedAt] = useState<number | null>(null);
+  /** The room this player opened, with its code to share (S4-08). */
+  const [invite, setInvite] = useState<Invite | null>(null);
+  const sourceKind = source.kind;
+  const roomId = source.kind === 'join' ? source.roomId : null;
   const leaving = useRef(false);
   const dropped = useRef<number | null>(null);
   dropped.current = droppedAt;
@@ -63,13 +80,14 @@ export function useOnlineBattle() {
     setError(null);
     setPhase('searching');
     setDroppedAt(null);
+    setInvite(null);
     leaving.current = false;
     (async () => {
       try {
         // An adult who skipped sign-up offline at first launch gets their account now.
         const { birthYear } = profile.get();
         if (api.session === null && birthYear !== null) await api.signUpGuest(birthYear);
-        const s = await findMatchAsPlayer({
+        const handlers: BattleHandlers = {
           onMessage,
           onDrop: () => {
             const at = clockNow();
@@ -85,9 +103,19 @@ export function useOnlineBattle() {
               setPhase('error');
             }
           },
-        });
-        search.current = s;
-        const conn = await s.match;
+        };
+        let conn: BattleConnection;
+        if (sourceKind === 'random') {
+          const s = await findMatchAsPlayer(handlers);
+          search.current = s;
+          conn = await s.match;
+        } else if (sourceKind === 'create') {
+          const created = await createInviteAsPlayer();
+          if (!cancelled) setInvite(created);
+          conn = await joinRoomAsPlayer(created.roomId, handlers);
+        } else {
+          conn = await joinRoomAsPlayer(roomId ?? '', handlers);
+        }
         if (cancelled) {
           void conn.leave();
           return;
@@ -107,7 +135,7 @@ export function useOnlineBattle() {
       search.current = null;
       connection.current = null;
     };
-  }, [onMessage, round]);
+  }, [onMessage, round, sourceKind, roomId]);
 
   // The timer: re-render when its second changes, not on every tick.
   useEffect(() => {
@@ -178,5 +206,6 @@ export function useOnlineBattle() {
     again,
     reconnectSecondsLeft,
     devDrop,
+    invite,
   };
 }

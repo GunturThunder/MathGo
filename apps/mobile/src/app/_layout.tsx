@@ -30,6 +30,7 @@ export default function RootLayout() {
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
         <Stack.Screen name="ask-parent" options={{ headerShown: false }} />
         <Stack.Screen name="update-required" options={{ headerShown: false }} />
+        <Stack.Screen name="join-room" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding/language" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding/birth-year" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding/name" options={{ headerShown: false }} />
