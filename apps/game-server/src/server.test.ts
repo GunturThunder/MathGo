@@ -1,5 +1,6 @@
 import { boot, type ColyseusTestServer } from '@colyseus/testing';
 import { DEV_JWT_SECRET, signAccessToken, signingKey } from '@mathgo/auth';
+import { findMatch, JoinError } from '@mathgo/battle-client';
 import { PROTOCOL_VERSION } from '@mathgo/protocol';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from './config.js';
@@ -76,6 +77,17 @@ describe('joining a battle room (S3-05)', () => {
     expect(await refusal({ protocolVersion: PROTOCOL_VERSION - 1, token: await token() })).toBe(
       '426 update-required',
     );
+  });
+
+  it('the battle client reports an old app version as update-required (S4-12)', async () => {
+    const client = {
+      endpoint: 'ws://localhost:2568',
+      getToken: () => token(),
+      protocolVersion: PROTOCOL_VERSION - 1,
+    };
+    const error = await findMatch(client, { onMessage: () => undefined }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(JoinError);
+    expect(error).toMatchObject({ code: 'update-required', status: 426 });
   });
 
   it('refuses players under 18 without parent consent (S3-04)', async () => {

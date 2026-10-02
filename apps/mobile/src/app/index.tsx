@@ -2,6 +2,7 @@ import { Redirect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavButton } from '../components/NavButton';
+import { updateRequired } from '../net/update-required';
 import { onlineLocked } from '../profile/online';
 import { profile } from '../profile/store';
 import { colors, space, typography } from '../theme';
@@ -17,7 +18,7 @@ export default function Home() {
       <Text style={styles.title}>{t('app.name')}</Text>
       <View style={styles.buttons}>
         <NavButton
-          href={locked ? '/ask-parent' : '/battle'}
+          href={updateRequired() ? '/update-required' : locked ? '/ask-parent' : '/battle'}
           label={t('home.battle')}
           testID="home-battle"
           variant="battle"
