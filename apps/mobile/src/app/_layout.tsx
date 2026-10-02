@@ -23,7 +23,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ title: t('app.name') }} />
-        <Stack.Screen name="battle" options={{ title: t('battle.title') }} />
+        <Stack.Screen name="battle" options={{ headerShown: false }} />
         <Stack.Screen name="practice" options={{ title: t('practice.title') }} />
         <Stack.Screen name="settings" options={{ title: t('settings.title') }} />
         <Stack.Screen name="keypad-test" options={{ title: t('keypadTest.title') }} />

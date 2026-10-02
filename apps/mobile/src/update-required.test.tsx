@@ -1,6 +1,6 @@
 import * as battleClient from '@mathgo/battle-client';
 import { PROTOCOL_VERSION } from '@mathgo/protocol';
-import { fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
+import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testing-library';
 import { Linking, Platform } from 'react-native';
 import { findMatchAsPlayer } from './net/battle';
 import { storeUrl } from './net/store-link';
@@ -84,9 +84,11 @@ describe('update required (S4-12)', () => {
     expect(updateRequired()).toBe(false);
   });
 
-  it('a current app is not sent to the update screen', () => {
+  it('a current app is not sent to the update screen', async () => {
+    findMatch.mockImplementation(() => new Promise(() => undefined));
     renderRouter(APP_DIR);
     fireEvent.press(screen.getByTestId('home-battle'));
     expect(screen).toHavePathname('/battle');
+    await act(async () => undefined);
   });
 });

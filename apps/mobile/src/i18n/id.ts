@@ -67,7 +67,6 @@ export const id = {
   },
   battle: {
     title: 'Bertarung',
-    note: 'Pertarungan online segera hadir.',
   },
   practice: {
     title: 'Latihan',
@@ -96,6 +95,13 @@ export const id = {
     diagnostics: 'Diagnostik',
   },
   online: {
+    rival: 'Lawan',
+    modeRanked: 'Pertarungan peringkat',
+    searching: 'Mencari lawan…',
+    searchingNote: 'Lawan dengan trofi yang mirip, soal yang sama.',
+    cancel: 'Batal',
+    failedTitle: 'Tidak bisa bertarung',
+    connectionFailed: 'Tidak bisa terhubung ke server. Periksa internet lalu coba lagi.',
     title: 'Daring (dev)',
     signedOut: 'Belum masuk.',
     createGuest: 'Buat akun tamu',

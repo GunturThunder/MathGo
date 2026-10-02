@@ -67,7 +67,6 @@ export const en: Translation = {
   },
   battle: {
     title: 'Battle',
-    note: 'Online battles are coming soon.',
   },
   practice: {
     title: 'Practice',
@@ -96,6 +95,13 @@ export const en: Translation = {
     diagnostics: 'Diagnostics',
   },
   online: {
+    rival: 'Rival',
+    modeRanked: 'Ranked battle',
+    searching: 'Finding a rival…',
+    searchingNote: 'Close trophies, same questions.',
+    cancel: 'Cancel',
+    failedTitle: 'Can’t battle right now',
+    connectionFailed: 'Can’t reach the server. Check your internet and try again.',
     title: 'Online (dev)',
     signedOut: 'Not signed in.',
     createGuest: 'Create guest account',

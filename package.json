@@ -15,7 +15,8 @@
     "format:check": "prettier --check .",
     "db:migrate": "turbo run build --filter=@mathgo/db --output-logs=errors-only && node --env-file-if-exists=.env packages/db/dist/migrate-cli.js",
     "review:too-fast": "turbo run build --filter=@mathgo/db --output-logs=errors-only && node --env-file-if-exists=.env packages/db/dist/review-cli.js",
-    "metrics": "turbo run build --filter=@mathgo/db --output-logs=errors-only && node --env-file-if-exists=.env packages/db/dist/metrics-cli.js"
+    "metrics": "turbo run build --filter=@mathgo/db --output-logs=errors-only && node --env-file-if-exists=.env packages/db/dist/metrics-cli.js",
+    "opponent": "turbo run build --filter=@mathgo/game-server --output-logs=errors-only && node apps/game-server/dist/loadtest/opponent.js"
   },
   "prettier": "@mathgo/config/prettier",
   "devDependencies": {
