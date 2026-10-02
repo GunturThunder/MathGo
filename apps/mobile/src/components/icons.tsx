@@ -293,3 +293,45 @@ export function BoltIcon({ color, size = 20 }: { color: string; size?: number })
     </Svg>
   );
 }
+
+export function WifiIcon({
+  color,
+  size = 40,
+  off = false,
+}: {
+  color: string;
+  size?: number;
+  off?: boolean;
+}) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {off ? (
+        <>
+          <Path d="M2 8.5a15 15 0 0 1 4.2-2.6" />
+          <Path d="M10.5 4.6A15 15 0 0 1 22 8.5" />
+          <Path d="M5.5 12.2a9.5 9.5 0 0 1 3.4-1.9" />
+          <Path d="M14.5 10.6a9.5 9.5 0 0 1 4 1.6" />
+          <Path d="M9 15.8a4.5 4.5 0 0 1 6 0" />
+          <Path d="M12 19.5h.01" />
+          <Path d="M3 3l18 18" />
+        </>
+      ) : (
+        <>
+          <Path d="M2 8.5a15 15 0 0 1 20 0" />
+          <Path d="M5.5 12.2a9.5 9.5 0 0 1 13 0" />
+          <Path d="M9 15.8a4.5 4.5 0 0 1 6 0" />
+          <Path d="M12 19.5h.01" />
+        </>
+      )}
+    </Svg>
+  );
+}

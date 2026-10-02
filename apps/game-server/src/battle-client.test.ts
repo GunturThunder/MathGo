@@ -105,3 +105,40 @@ describe('@mathgo/battle-client against BattleRoom (S3-11)', () => {
     expect((error as JoinError).code).toBe('connection-failed');
   });
 });
+
+describe('dev drop helper (S4-10)', () => {
+  it('drops like a lost network, the opponent is told, and the player comes back', async () => {
+    const roomId = await openBattle(colyseus);
+    const events: string[] = [];
+    const aliceInbox: ServerMessage[] = [];
+    const alice = await joinBattle(
+      { endpoint, getToken: () => tokenFor('drop-alice') },
+      {
+        onMessage: (m) => aliceInbox.push(m),
+        onDrop: () => events.push('drop'),
+        onReconnect: () => events.push('reconnect'),
+        onLeave: () => events.push('leave'),
+      },
+      roomId,
+    );
+    const bob = await player('drop-bob', roomId);
+    await until(() => aliceInbox.some((m) => m.type === 'questions'));
+
+    alice.devSimulateDrop(300);
+    await until(() => events.includes('drop'));
+    await until(() =>
+      bob.inbox.some((m) => m.type === 'presence' && m.payload.seat === 0 && !m.payload.connected),
+    );
+    const away = bob.inbox.find((m) => m.type === 'presence' && !m.payload.connected);
+    expect(away?.type === 'presence' && away.payload.reconnectBy).toBeGreaterThan(14_000);
+
+    await until(() => events.includes('reconnect'));
+    await until(() =>
+      bob.inbox.some((m) => m.type === 'presence' && m.payload.seat === 0 && m.payload.connected),
+    );
+    // Brought up to date on return: the state and the questions again.
+    await until(() => aliceInbox.filter((m) => m.type === 'questions').length >= 2);
+    expect(events).not.toContain('leave');
+    await Promise.all([alice.leave(), bob.connection.leave()]);
+  });
+});

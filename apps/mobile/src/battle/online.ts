@@ -25,6 +25,10 @@ export interface OnlineBattle {
   readonly serverNow: number;
   readonly receivedAt: number | null;
   readonly end: EndMessage | null;
+  /** Local time the 3-2-1 runs out (S4-10); null without a countdown. */
+  readonly startsAt: number | null;
+  /** The opponent dropped and has until this battle time to come back (FR-07). */
+  readonly rivalAwayUntil: number | null;
 }
 
 const fresh = (hp: number): PlayerView => ({
@@ -44,6 +48,8 @@ export const NEW_ONLINE_BATTLE: OnlineBattle = {
   serverNow: 0,
   receivedAt: null,
   end: null,
+  startsAt: null,
+  rivalAwayUntil: null,
 };
 
 function outcomeFor(result: EndMessage['result'], seat: Seat): Outcome {
@@ -66,6 +72,22 @@ export function reduceOnline(
           seat: message.payload.seat,
           arena: message.payload.arena,
           durationMs: message.payload.durationMs,
+        },
+        effects: [],
+      };
+    case 'countdown':
+      return {
+        battle: { ...battle, startsAt: localNow + message.payload.startsInMs },
+        effects: [],
+      };
+    case 'presence':
+      // Only the opponent's comings and goings are sent to us.
+      if (battle.seat === null || message.payload.seat === battle.seat)
+        return { battle, effects: [] };
+      return {
+        battle: {
+          ...battle,
+          rivalAwayUntil: message.payload.connected ? null : (message.payload.reconnectBy ?? null),
         },
         effects: [],
       };
@@ -110,7 +132,7 @@ export function reduceOnline(
                 reason: message.payload.result.reason,
               },
             ];
-      return { battle: { ...battle, end: message.payload }, effects };
+      return { battle: { ...battle, end: message.payload, rivalAwayUntil: null }, effects };
     }
     default:
       return { battle, effects: [] };
@@ -125,6 +147,22 @@ export function battleTime(battle: OnlineBattle, localNow: number): number {
 }
 
 const opponent = (seat: Seat): Seat => (seat === 0 ? 1 : 0);
+
+/** Where the battle is before it starts (S4-10): waiting for the opponent, or counting down. */
+export type PreStart =
+  { readonly kind: 'waiting' } | { readonly kind: 'countdown'; readonly n: number } | null;
+
+export function preStart(battle: OnlineBattle, localNow: number): PreStart {
+  if (battle.receivedAt !== null || battle.end !== null) return null;
+  if (battle.startsAt === null) return { kind: 'waiting' };
+  return { kind: 'countdown', n: Math.max(1, Math.ceil((battle.startsAt - localNow) / 1000)) };
+}
+
+/** Whole seconds the opponent has left to come back, or null while they're connected. */
+export function rivalAwaySeconds(battle: OnlineBattle, localNow: number): number | null {
+  if (battle.rivalAwayUntil === null) return null;
+  return Math.max(0, Math.ceil((battle.rivalAwayUntil - battleTime(battle, localNow)) / 1000));
+}
 
 /** The question this player is answering, if it has arrived. */
 export function currentQuestion(battle: OnlineBattle): { index: number; text: string } | null {

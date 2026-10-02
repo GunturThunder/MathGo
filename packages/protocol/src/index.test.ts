@@ -125,6 +125,14 @@ describe('server messages', () => {
     ).toBe(false);
   });
 
+  it('the countdown before a battle: whole milliseconds, at most 10 s (S4-10)', () => {
+    expect(parseServerMessage('countdown', { startsInMs: 3_000 }).ok).toBe(true);
+    expect(parseServerMessage('countdown', { startsInMs: 0 }).ok).toBe(true);
+    for (const bad of [{ startsInMs: -1 }, { startsInMs: 1.5 }, { startsInMs: 60_000 }, {}]) {
+      expect(parseServerMessage('countdown', bad).ok).toBe(false);
+    }
+  });
+
   it('errors are codes from a fixed list', () => {
     expect(parseServerMessage('error', { code: 'update-required' }).ok).toBe(true);
     expect(parseServerMessage('error', { code: 'something-else' }).ok).toBe(false);

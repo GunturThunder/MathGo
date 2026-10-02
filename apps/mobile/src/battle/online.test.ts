@@ -5,7 +5,9 @@ import {
   currentQuestion,
   onlineSummary,
   onlineView,
+  preStart,
   reduceOnline,
+  rivalAwaySeconds,
   type OnlineBattle,
 } from './online';
 
@@ -175,5 +177,47 @@ describe('online battle (S3-12)', () => {
     expect(battle.players[0].hp).toBe(100);
     expect(battle.receivedAt).toBeNull();
     expect(battle.questions).toEqual({});
+  });
+
+  it('before the start: waiting, then 3-2-1 from the server countdown (S4-10)', () => {
+    const waiting = play([[joined, 0]]).battle;
+    expect(preStart(waiting, 500)).toEqual({ kind: 'waiting' });
+    const counting = play([
+      [joined, 0],
+      [{ type: 'countdown', payload: { startsInMs: 3_000 } }, 1_000],
+    ]).battle;
+    expect(preStart(counting, 1_000)).toEqual({ kind: 'countdown', n: 3 });
+    expect(preStart(counting, 2_500)).toEqual({ kind: 'countdown', n: 2 });
+    expect(preStart(counting, 3_900)).toEqual({ kind: 'countdown', n: 1 });
+    const started = reduceOnline(counting, questions, 4_000).battle;
+    expect(preStart(started, 4_000)).toBeNull();
+  });
+
+  it('the opponent drops and comes back; their seconds count down on battle time (S4-10)', () => {
+    const away: ServerMessage = {
+      type: 'presence',
+      payload: { seat: 0, connected: false, reconnectBy: 25_000 },
+    };
+    const back: ServerMessage = { type: 'presence', payload: { seat: 0, connected: true } };
+    const state: ServerMessage = {
+      type: 'state',
+      payload: { now: 10_000, players: [player(100), player(100)], events: [] },
+    };
+    const gone = play([
+      [joined, 0],
+      [questions, 0],
+      [state, 10_000],
+      [away, 10_000],
+    ]).battle;
+    expect(rivalAwaySeconds(gone, 10_000)).toBe(15);
+    expect(rivalAwaySeconds(gone, 21_500)).toBe(4);
+    expect(rivalAwaySeconds(reduceOnline(gone, back, 12_000).battle, 12_000)).toBeNull();
+    // Our own presence is never shown as "opponent away".
+    const mine: ServerMessage = {
+      type: 'presence',
+      payload: { seat: 1, connected: false, reconnectBy: 25_000 },
+    };
+    expect(rivalAwaySeconds(reduceOnline(gone, mine, 12_000).battle, 12_000)).toBe(13);
+    expect(reduceOnline(play([[joined, 0]]).battle, mine, 0).battle.rivalAwayUntil).toBeNull();
   });
 });

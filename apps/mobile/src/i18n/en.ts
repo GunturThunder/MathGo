@@ -65,6 +65,18 @@ export const en: Translation = {
     devPretend: 'Pretend to be an old version (dev)',
     devPretendOn: 'Pretending to be an old version: ON (dev)',
   },
+  onlineStates: {
+    waiting: 'Waiting for your rival…',
+    waitingNote: 'The battle starts as soon as they’re in.',
+    startsIn: 'Battle starts in',
+    rivalAway: '{{name}} lost connection',
+    rivalAwayNote: 'Keep answering. Not back in {{time}} and you win.',
+    reconnecting: 'Reconnecting…',
+    reconnectingNote: 'The battle keeps going while we get you back.',
+    reconnectingLeft: '{{time}} left · after that it counts as a loss',
+    leave: 'Leave battle',
+    dropDev: 'Drop for 5 s (dev)',
+  },
   battle: {
     title: 'Battle',
   },
@@ -95,6 +107,7 @@ export const en: Translation = {
     diagnostics: 'Diagnostics',
   },
   online: {
+    connectionLost: 'The connection was gone too long, so the battle counts as a loss.',
     rival: 'Rival',
     modeRanked: 'Ranked battle',
     searching: 'Finding a rival…',

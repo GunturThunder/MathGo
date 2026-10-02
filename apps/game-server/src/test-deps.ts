@@ -11,6 +11,8 @@ export function testDeps(overrides: Partial<ServerDeps> = {}): ServerDeps {
     recorder: noMatchRecorder,
     matchQueue: new MemoryMatchQueue(),
     trophies: async () => 0,
+    // Battles start at once in tests; countdown.test.ts covers the 3-2-1.
+    countdownMs: 0,
     ...overrides,
   };
 }

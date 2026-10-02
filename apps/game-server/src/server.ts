@@ -23,6 +23,8 @@ export interface ServerDeps {
   readonly reconnectSeconds?: number;
   /** How often the queue is paired; 1 s by default (FR-02). */
   readonly queueTickMs?: number;
+  /** The 3-2-1 before each battle; 3 s by default (S4-10). Tests set 0. */
+  readonly countdownMs?: number;
 }
 
 export function createServer(config: Config, deps: ServerDeps) {

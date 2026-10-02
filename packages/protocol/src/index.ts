@@ -47,6 +47,13 @@ export const joined = z.strictObject({
   durationMs: z.number().int().positive(),
 });
 
+/**
+ * Both players are in: the battle starts in `startsInMs` (the 3-2-1 countdown, S4-10). The clock
+ * starts, and the first questions arrive, when it runs out. Apps that don't know this message
+ * ignore it, so it needs no new protocol version.
+ */
+export const countdown = z.strictObject({ startsInMs: z.number().int().min(0).max(10_000) });
+
 /** The next questions to show. Text only: answers never leave the server. */
 export const questionBatch = z.strictObject({
   questions: z
@@ -181,6 +188,7 @@ export const clientMessages = {
 
 export const serverMessages = {
   joined,
+  countdown,
   questions: questionBatch,
   state: stateUpdate,
   end: battleEnd,
@@ -194,6 +202,7 @@ export const serverMessages = {
 export type JoinRequest = z.infer<typeof joinRequest>;
 export type AnswerRequest = z.infer<typeof answerRequest>;
 export type Joined = z.infer<typeof joined>;
+export type Countdown = z.infer<typeof countdown>;
 export type QuestionBatch = z.infer<typeof questionBatch>;
 export type StateUpdate = z.infer<typeof stateUpdate>;
 export type BattleEnd = z.infer<typeof battleEnd>;

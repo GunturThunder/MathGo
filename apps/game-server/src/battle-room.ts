@@ -37,6 +37,8 @@ function isLevel(value: unknown): value is QuestionLevel {
 
 /** A dropped player keeps their seat this long while the battle runs on (FR-07). */
 export const RECONNECT_SECONDS = 15;
+/** The 3-2-1 before each battle (S4-10); the clock starts after it. */
+export const COUNTDOWN_MS = 3_000;
 
 export interface BattleRoomOptions {
   readonly key: SigningKey;
@@ -48,6 +50,8 @@ export interface BattleRoomOptions {
   readonly trophies: TrophyLookup;
   readonly now?: () => Date;
   readonly reconnectSeconds?: number;
+  /** Tests set 0: the battle starts the moment both players are in. */
+  readonly countdownMs?: number;
 }
 
 interface PlayerData {
@@ -70,6 +74,7 @@ export class BattleRoom extends Room {
   private static now: () => Date = () => new Date();
   private static invites: InviteStore | undefined;
   private static reconnectSeconds = RECONNECT_SECONDS;
+  private static countdownMs = COUNTDOWN_MS;
   private static recorder: MatchRecorder | undefined;
   private static activity: MatchQueueStore | undefined;
   private static trophies: TrophyLookup | undefined;
@@ -83,6 +88,7 @@ export class BattleRoom extends Room {
     BattleRoom.trophies = options.trophies;
     BattleRoom.now = options.now ?? (() => new Date());
     BattleRoom.reconnectSeconds = options.reconnectSeconds ?? RECONNECT_SECONDS;
+    BattleRoom.countdownMs = options.countdownMs ?? COUNTDOWN_MS;
   }
 
   override maxClients = 2;
@@ -93,6 +99,8 @@ export class BattleRoom extends Room {
   private session = newSession(DEFAULT_LEVEL);
   private limiter = newLimiter();
   private endTimer: Delayed | null = null;
+  /** Set during the 3-2-1 before a battle (S4-10). */
+  private countdownTimer: Delayed | null = null;
   /** Seats that said "play again" after the last battle (S4-05). */
   private readonly rematch = new Set<Seat>();
   /** Ranked rooms come from matchmaking (S5-01); invite rooms from POST /invites (S4-02). */
@@ -185,8 +193,26 @@ export class BattleRoom extends Room {
     this.beginBattle();
   }
 
-  /** Starts the clock of the current session and sends both players their first questions. */
+  /**
+   * Both players are in: count down 3-2-1 (S4-10), then start. The countdown is the server's, so
+   * it never eats into the 90 s and both players start together.
+   */
   private beginBattle() {
+    const ms = BattleRoom.countdownMs;
+    if (ms <= 0) {
+      this.startClock();
+      return;
+    }
+    this.broadcast('countdown', { startsInMs: ms });
+    this.countdownTimer?.clear();
+    this.countdownTimer = this.clock.setTimeout(() => {
+      this.countdownTimer = null;
+      this.startClock();
+    }, ms);
+  }
+
+  /** Starts the clock of the current session and sends both players their first questions. */
+  private startClock() {
     void BattleRoom.activity?.setActive([...this.users], this.roomId).catch(() => undefined);
     this.startedAt = BattleRoom.now().getTime();
     this.lastAt = 0;
@@ -263,6 +289,12 @@ export class BattleRoom extends Room {
   /** Gone for good: quit, or not back within the reconnect window. Mid-battle that is a forfeit. */
   override onLeave(client: Client) {
     const player = client.userData as PlayerData | undefined;
+    // Left during the countdown: start now, so leaving counts as a forfeit like mid-battle.
+    if (player !== undefined && this.countdownTimer !== null) {
+      this.countdownTimer.clear();
+      this.countdownTimer = null;
+      this.startClock();
+    }
     if (player !== undefined && this.running) {
       this.dispatch(this.session.forfeit(player.seat, this.battleTime()));
     }
