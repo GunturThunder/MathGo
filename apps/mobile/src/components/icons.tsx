@@ -188,3 +188,108 @@ export function HomeIcon({ color, size = 20 }: { color: string; size?: number })
     </Svg>
   );
 }
+
+export function BackIcon({ color, size = 22 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M19 12H5" />
+      <Path d="M11 18l-6-6 6-6" />
+    </Svg>
+  );
+}
+
+export function ArrowIcon({ color, size = 22 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M5 12h14" />
+      <Path d="M13 6l6 6-6 6" />
+    </Svg>
+  );
+}
+
+export function ChevronIcon({
+  color,
+  size = 16,
+  direction = 'right',
+}: {
+  color: string;
+  size?: number;
+  direction?: 'left' | 'right';
+}) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.6}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d={direction === 'right' ? 'M9 18l6-6-6-6' : 'M15 18l-6-6 6-6'} />
+    </Svg>
+  );
+}
+
+export function ShieldIcon({ color, size = 20 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M12 3l7.5 3v5.5c0 4.6-3.2 8.3-7.5 9.5-4.3-1.2-7.5-4.9-7.5-9.5V6z" />
+      <Path d="M8.8 12.2l2.2 2.2 4.3-4.4" />
+    </Svg>
+  );
+}
+
+export function DiceIcon({ color, size = 24 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M8 3.5h8A4.5 4.5 0 0 1 20.5 8v8a4.5 4.5 0 0 1-4.5 4.5H8A4.5 4.5 0 0 1 3.5 16V8A4.5 4.5 0 0 1 8 3.5z" />
+      <Path d="M8.5 8.5h.01M15.5 8.5h.01M12 12h.01M8.5 15.5h.01M15.5 15.5h.01" strokeWidth={2.8} />
+    </Svg>
+  );
+}
+
+export function BoltIcon({ color, size = 20 }: { color: string; size?: number }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path d="M13.5 2.5L5 13.5h6l-1 8 8.5-11h-6z" fill={color} />
+    </Svg>
+  );
+}

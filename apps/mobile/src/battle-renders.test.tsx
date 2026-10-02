@@ -21,11 +21,11 @@ jest.mock('./components/ShapeFighter', () => {
 beforeEach(() => jest.useFakeTimers());
 afterEach(() => jest.useRealTimers());
 
-function startPractice() {
+function startPractice(level: 'easy' | 'hard' = 'easy') {
   renderRouter(APP_DIR, { initialUrl: '/practice' });
   fireEvent.press(screen.getByTestId('practice-arena-1'));
   // Easy in Counting Camp thinks 9 s or more: no hits in the first 5 s.
-  fireEvent.press(screen.getByTestId('practice-level-easy'));
+  fireEvent.press(screen.getByTestId(`practice-level-${level}`));
   fireEvent.press(screen.getByTestId('practice-start'));
 }
 /** One act() per 100 ms tick, as frames come on a phone. */
@@ -52,7 +52,8 @@ describe('battle screen re-renders (S2-12)', () => {
   });
 
   it('a hit re-renders the cards', () => {
-    startPractice();
+    // Hard answers every 2.5–5 s and is right 97 % of the time: it lands hits within 20 s.
+    startPractice('hard');
     mockShapeRenders = 0;
     tick(20_000);
     expect(mockShapeRenders).toBeGreaterThan(0);

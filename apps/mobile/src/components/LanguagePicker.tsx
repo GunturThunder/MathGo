@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { LANGUAGES, LANGUAGE_NAMES } from '../i18n';
+import { profile } from '../profile/store';
 import { colors, radii, sizes, space, typography } from '../theme';
 
 export function LanguagePicker() {
@@ -16,7 +17,10 @@ export function LanguagePicker() {
             testID={`language-${language}`}
             accessibilityRole="radio"
             accessibilityState={{ selected }}
-            onPress={() => void i18n.changeLanguage(language)}
+            onPress={() => {
+              profile.setLanguage(language);
+              void i18n.changeLanguage(language);
+            }}
             style={[styles.option, selected && styles.selected]}
           >
             <Text style={[styles.label, selected && styles.selectedLabel]}>
