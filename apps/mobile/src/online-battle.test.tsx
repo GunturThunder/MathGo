@@ -72,7 +72,7 @@ async function startBattle() {
   const server = fakeServer();
   renderRouter(APP_DIR, { initialUrl: '/battle' });
   await act(async () => undefined);
-  expect(screen.getByTestId('online-searching')).toBeOnTheScreen();
+  expect(screen.getByTestId('matchmaking')).toBeOnTheScreen();
   await server.matched();
   server.send({ type: 'joined', payload: { seat: 0, arena: 1, durationMs: 90_000 } });
   server.send({
@@ -153,7 +153,7 @@ describe('online battle screen (S3-12)', () => {
     const server = fakeServer();
     renderRouter(APP_DIR, { initialUrl: '/battle' });
     await act(async () => undefined);
-    await act(async () => fireEvent.press(screen.getByTestId('online-cancel')));
+    await act(async () => fireEvent.press(screen.getByTestId('matchmaking-cancel')));
     expect(server.cancel).toHaveBeenCalled();
   });
 
@@ -167,7 +167,7 @@ describe('online battle screen (S3-12)', () => {
     findMatch.mockReset();
     fakeServer();
     await act(async () => fireEvent.press(screen.getByTestId('online-retry')));
-    expect(screen.getByTestId('online-searching')).toBeOnTheScreen();
+    expect(screen.getByTestId('matchmaking')).toBeOnTheScreen();
   });
 
   it('S4-10: waiting, then the 3-2-1, then the first question', async () => {

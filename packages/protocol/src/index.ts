@@ -115,6 +115,18 @@ export const presence = z.strictObject({
  */
 export const rematchUpdate = z.strictObject({ seat, accepted: z.boolean() });
 
+/**
+ * FR-02: a random battle pairs players within ±100 trophies, widening by 50 every 5 s of
+ * waiting. Shared so game-server pairs by it and the app shows the same range (S5-07).
+ */
+export const MATCH_WINDOW = { base: 100, step: 50, everyMs: 5_000 } as const;
+
+/** How far from their own trophies a player accepts an opponent after waiting `waitedMs`. */
+export function matchWindow(waitedMs: number): number {
+  const waited = Math.max(0, waitedMs);
+  return MATCH_WINDOW.base + MATCH_WINDOW.step * Math.floor(waited / MATCH_WINDOW.everyMs);
+}
+
 /** In the random queue; trophies as the server knows them (FR-02). */
 export const queued = z.strictObject({ trophies: nat });
 

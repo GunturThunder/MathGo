@@ -132,6 +132,15 @@ export const en: Translation = {
     joinNote: 'Enter a friend’s code',
     practice: 'Practice vs Bot',
   },
+  matchmaking: {
+    cancel: 'Cancel search',
+    subtitle: 'Same arena, close trophies, same questions.',
+    searching: 'Searching',
+    range: 'Trophy range',
+    widens: 'Widens by 50 every 5 seconds',
+    offer: 'No rival yet? Practise while you wait.',
+    offerAt: 'Unlocks at {{time}}',
+  },
   battle: {
     title: 'Battle',
   },

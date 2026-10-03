@@ -21,6 +21,7 @@ import {
 import { Button } from '../components/Button';
 import { BattleScreen } from '../components/battle/BattleScreen';
 import { CreateRoom } from '../components/battle/CreateRoom';
+import { Matchmaking } from '../components/battle/Matchmaking';
 import {
   PreStartOverlay,
   ReconnectingOverlay,
@@ -171,6 +172,24 @@ function OnlineBattle() {
             <Text style={styles.devDropText}>{t('onlineStates.dropDev')}</Text>
           </Pressable>
         ) : null}
+      </>
+    );
+  }
+
+  // Finding a random rival (S5-07).
+  if (source.kind === 'random' && online.phase === 'searching') {
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <Matchmaking
+          trophies={online.searchInfo.trophies ?? me.data?.trophies ?? 0}
+          waitedMs={online.now - online.searchInfo.startedAt}
+          onCancel={home}
+          onPractice={() => {
+            void online.leave();
+            router.replace('/practice');
+          }}
+        />
       </>
     );
   }

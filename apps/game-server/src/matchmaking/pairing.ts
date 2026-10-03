@@ -1,5 +1,7 @@
-/** FR-02: pair within ±100 trophies, widening by 50 every 5 s of waiting. */
-export const MATCH_WINDOW = { base: 100, step: 50, everyMs: 5_000 } as const;
+import { matchWindow } from '@mathgo/protocol';
+
+/** FR-02: pair within ±100 trophies, widening by 50 every 5 s of waiting (@mathgo/protocol). */
+export { MATCH_WINDOW } from '@mathgo/protocol';
 
 export interface QueueEntry {
   readonly userId: string;
@@ -10,8 +12,7 @@ export interface QueueEntry {
 
 /** How far from their own trophies a player accepts an opponent, after waiting until `now`. */
 export function windowFor(entry: QueueEntry, now: number): number {
-  const waited = Math.max(0, now - entry.joinedAt);
-  return MATCH_WINDOW.base + MATCH_WINDOW.step * Math.floor(waited / MATCH_WINDOW.everyMs);
+  return matchWindow(now - entry.joinedAt);
 }
 
 /** Two players may meet when their gap fits the wider window: waiting longer helps both. */

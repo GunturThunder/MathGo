@@ -133,6 +133,15 @@ export const id = {
     joinNote: 'Masukkan kode teman',
     practice: 'Latihan vs Bot',
   },
+  matchmaking: {
+    cancel: 'Batal mencari',
+    subtitle: 'Arena sama, trofi mirip, soal yang sama.',
+    searching: 'Mencari',
+    range: 'Rentang trofi',
+    widens: 'Melebar 50 setiap 5 detik',
+    offer: 'Belum ada lawan? Latihan dulu sambil menunggu.',
+    offerAt: 'Terbuka di {{time}}',
+  },
   battle: {
     title: 'Bertarung',
   },
