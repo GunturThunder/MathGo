@@ -213,6 +213,13 @@ export const en: Translation = {
     playAgain: 'Play Again',
     home: 'Home',
     modePractice: 'Practice',
+    trophies: 'Trophies',
+    trophiesNow: 'Trophies now',
+    toNext: '{{toGo}} to {{name}}',
+    topArena: 'Top arena',
+    unlockTitle: 'New arena unlocked!',
+    unlockBadge: 'ARENA {{value}}',
+    unlockOk: 'Awesome!',
     title: {
       win: 'Victory!',
       lose: 'Defeat',

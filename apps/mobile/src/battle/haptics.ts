@@ -16,3 +16,8 @@ export function endFeedback(won: boolean): void {
     won ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning,
   ).catch(() => undefined);
 }
+
+/** A new arena unlocked (S5-08). */
+export function unlockFeedback(): void {
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+}

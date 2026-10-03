@@ -108,6 +108,8 @@ describe('Home (S5-06)', () => {
       }),
     );
     fireEvent.press(screen.getByTestId('battle-end-results'));
+    // Times Tower just opened (S5-08): close it, then go Home.
+    fireEvent.press(screen.getByTestId('result-unlock-ok'));
     await act(async () => fireEvent.press(screen.getByTestId('result-home')));
     expect(screen).toHavePathname('/');
     await waitFor(() => expect(screen.getByTestId('home-trophies')).toHaveTextContent('720'));

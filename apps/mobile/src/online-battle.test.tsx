@@ -149,6 +149,28 @@ describe('online battle screen (S3-12)', () => {
     expect(screen.getByTestId('result-answers')).toHaveTextContent(/^10\/11/);
   });
 
+  it('S5-08: a ranked win across 300 trophies opens Plus Plains on the results', async () => {
+    const server = await startBattle();
+    server.send({
+      type: 'end',
+      payload: {
+        result: { outcome: 'win', winner: 0, reason: 'ko' },
+        stats: [
+          { correct: 10, wrong: 1, bestStreak: 6 },
+          { correct: 3, wrong: 2, bestStreak: 2 },
+        ],
+        trophies: [
+          { delta: 30, trophies: 310, arenaBefore: 1, arenaAfter: 2 },
+          { delta: -20, trophies: 400, arenaBefore: 2, arenaAfter: 2 },
+        ],
+      },
+    });
+    fireEvent.press(screen.getByTestId('battle-end-results'));
+    expect(screen.getByTestId('result-unlock-name')).toHaveTextContent('Plus Plains');
+    fireEvent.press(screen.getByTestId('result-unlock-ok'));
+    expect(screen.getByTestId('result-trophy-delta')).toHaveTextContent('+30Trofi');
+  });
+
   it('Cancel while searching leaves the queue', async () => {
     const server = fakeServer();
     renderRouter(APP_DIR, { initialUrl: '/battle' });

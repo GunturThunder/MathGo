@@ -1,8 +1,12 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import type { BattleSummary } from '../../battle/battle-result';
 import '../../i18n';
+import * as haptics from '../../battle/haptics';
+import { clockNow } from '../../lib/clock';
 import { ResultScreen } from './ResultScreen';
+
+jest.mock('../../lib/clock', () => ({ clockNow: jest.fn(() => 0) }));
 
 const metrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
@@ -17,6 +21,7 @@ const win: BattleSummary = {
   bestCombo: 6,
   me: { name: 'Kamu', damage: 100 },
   rival: { name: 'Bot · Sedang', damage: 60 },
+  trophies: null,
 };
 
 function show(summary: BattleSummary) {
@@ -67,5 +72,67 @@ describe('result screen (S2-11)', () => {
     fireEvent.press(screen.getByLabelText('Tutup'));
     expect(onPlayAgain).toHaveBeenCalledTimes(1);
     expect(onHome).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('ranked results: trophies and a new arena (S5-08)', () => {
+  const ranked = (delta: number, now: number, arenaBefore: 1 | 2 | 5, arenaAfter: 1 | 2 | 5) =>
+    ({ ...win, trophies: { delta, now, arenaBefore, arenaAfter } }) satisfies BattleSummary;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.mocked(clockNow).mockReturnValue(0);
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  /** Lets the count-up run to the end. */
+  const settle = () =>
+    act(() => {
+      jest.mocked(clockNow).mockReturnValue(5_000);
+      jest.advanceTimersByTime(100);
+    });
+
+  it('Done when: crossing 300 trophies shows the Plus Plains unlock', () => {
+    const unlock = jest.spyOn(haptics, 'unlockFeedback');
+    show(ranked(30, 310, 1, 2));
+    // The new arena comes first, over the results (the screen behind is hidden from readers).
+    expect(screen.getByTestId('result-unlock')).toHaveTextContent(/Arena baru terbuka!/);
+    expect(screen.getByTestId('result-unlock-name')).toHaveTextContent('Plus Plains');
+    expect(screen.getByTestId('result-unlock')).toHaveTextContent(/Tambah dan kurang sampai 100/);
+    expect(unlock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('result-trophy-delta')).toBeNull();
+    fireEvent.press(screen.getByTestId('result-unlock-ok'));
+    expect(screen.queryByTestId('result-unlock')).toBeNull();
+    expect(screen.getByTestId('result-trophy-delta')).toHaveTextContent('+30Trofi');
+    expect(screen.queryByTestId('result-combo')).toBeNull();
+    // The count starts from before the battle, then counts up.
+    expect(screen.getByTestId('result-trophies-value')).toHaveTextContent('280');
+    settle();
+    expect(screen.getByTestId('result-trophies-value')).toHaveTextContent('310');
+    expect(screen.getByTestId('result-next-arena')).toHaveTextContent('390 lagi ke Times Tower');
+  });
+
+  it('a loss takes trophies away, with no unlock', () => {
+    show(ranked(-20, 1_180, 1, 1));
+    expect(screen.getByTestId('result-trophy-delta')).toHaveTextContent('\u221220Trofi');
+    expect(screen.getByTestId('result-trophies-value')).toHaveTextContent('1.200');
+    settle();
+    expect(screen.getByTestId('result-trophies-value')).toHaveTextContent('1.180');
+    expect(screen.queryByTestId('result-unlock')).toBeNull();
+  });
+
+  it('staying in an arena: no unlock; the top arena says so', () => {
+    show(ranked(25, 2_525, 5, 5));
+    expect(screen.queryByTestId('result-unlock')).toBeNull();
+    expect(screen.getByTestId('result-next-arena')).toHaveTextContent('Arena tertinggi');
+  });
+
+  it('practice and friendly results keep the best combo', () => {
+    show(win);
+    expect(screen.getByTestId('result-combo')).toBeOnTheScreen();
+    expect(screen.queryByTestId('result-trophies-now')).toBeNull();
   });
 });
