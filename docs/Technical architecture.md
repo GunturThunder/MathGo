@@ -112,7 +112,7 @@ These weren't in the first PRD draft; all are now approved and the MVP needs the
 
 | Area | Proposal |
 | --- | --- |
-| Guest accounts (FR-01) | On first launch the app calls `POST /auth/guest` and gets a JWT. A later Google or Apple sign-in links to that account, so progress is kept. Players under 18 get no account until a parent approves with a WhatsApp or SMS code (PRD FR-20); until then the app runs offline only. |
+| Guest accounts (FR-01) | On first launch the app calls `POST /auth/guest` and gets a JWT. A later Google or Apple sign-in links to that account, so progress is kept. Players under 18 get no account until a parent approves with a code sent to their email (PRD FR-20); until then the app runs offline only. |
 | Kids' compliance | Families policy and COPPA limit which analytics and ad SDKs you can use, so pick them early. In Indonesia, PP Tunas also applies: age checks, parental consent for children's accounts, and no commercial profiling of children (see the PRD's sources). Decided: log game events to our own Postgres for the MVP, plus Sentry for crashes with personal data removed. No third-party analytics SDK. |
 | Nickname filter | Decided: players pick from generated names (adjective + animal) in Bahasa Indonesia and English. No typed nicknames, so no filter is needed. |
 | Testing | Property-based tests (fast-check) prove `game-core` follows the safety rules: whole-number answers, within the arena's limit, no early negatives. The Colyseus loadtest tool runs headless bot clients. |

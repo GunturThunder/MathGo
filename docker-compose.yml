@@ -55,6 +55,11 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-mathgo}:${POSTGRES_PASSWORD:-mathgo}@postgres:5432/${POSTGRES_DB:-mathgo}
       # Shared with game-server (S3-05). Local only: production sets its own.
       JWT_SECRET: ${JWT_SECRET:-local-compose-jwt-secret-not-for-production}
+      # Parent consent (S5-05). Local only: the dev sender writes each parent code to the api
+      # log instead of sending it (`docker compose logs api`), which production refuses.
+      NODE_ENV: development
+      CONSENT_SECRET: ${CONSENT_SECRET:-local-compose-consent-secret-not-for-production}
+      CONSENT_SENDER: log
     ports:
       - '127.0.0.1:${API_PORT:-3000}:3000'
     depends_on:

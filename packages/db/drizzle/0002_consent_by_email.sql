@@ -1,0 +1,18 @@
+-- Parent consent by email (S5-05, decided Oct 3, 2026): codes go to the parent's email address.
+ALTER TYPE "public"."consent_channel" ADD VALUE 'email';--> statement-breakpoint
+ALTER TABLE "parental_consents" RENAME COLUMN "phone_hash" TO "contact_hash";--> statement-breakpoint
+CREATE TABLE "consent_codes" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"email_hash" text NOT NULL,
+	"birth_year" smallint NOT NULL,
+	"code_hash" text NOT NULL,
+	"wrong_attempts" smallint DEFAULT 0 NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"locked_at" timestamp with time zone,
+	"used_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "consent_codes_birth_year_range" CHECK ("consent_codes"."birth_year" between 1900 and 2100),
+	CONSTRAINT "consent_codes_wrong_attempts_range" CHECK ("consent_codes"."wrong_attempts" between 0 and 6)
+);
+--> statement-breakpoint
+CREATE INDEX "consent_codes_email_hash_created_at_idx" ON "consent_codes" USING btree ("email_hash","created_at");

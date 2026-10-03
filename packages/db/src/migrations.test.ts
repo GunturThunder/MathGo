@@ -65,6 +65,7 @@ describe('migration on an empty database', () => {
       `select table_name from information_schema.tables where table_schema = 'public' order by 1`,
     );
     expect(result.rows.map((r) => r.table_name)).toEqual([
+      'consent_codes',
       'events',
       'match_answers',
       'matches',
@@ -159,7 +160,7 @@ describe('constraints', () => {
 describe('deleting a user (erasure request)', () => {
   it('removes their consent and ledger, and anonymises matches, answers and events', async () => {
     const [a, b] = [await newUser(), await newUser()];
-    await db.insert(parentalConsents).values({ userId: a.id, phoneHash: 'h', channel: 'whatsapp' });
+    await db.insert(parentalConsents).values({ userId: a.id, contactHash: 'h', channel: 'email' });
     const [m] = await db
       .insert(matches)
       .values({ ...match, seat0UserId: a.id, seat1UserId: b.id })

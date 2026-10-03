@@ -47,7 +47,7 @@ export async function canPlayOnline(db: Database, user: Profile, now: Date): Pro
 }
 
 /** Access token + a fresh refresh token for a user, in the shape the app stores. */
-async function issueSession(deps: AuthDeps, db: Database, user: Profile) {
+export async function issueSession(deps: AuthDeps, db: Database, user: Profile) {
   const now = deps.now();
   const online = await canPlayOnline(db, user, now);
   const access = await signAccessToken({ userId: user.id, online }, deps.key, now);
