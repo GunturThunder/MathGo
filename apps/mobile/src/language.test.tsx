@@ -20,7 +20,7 @@ const SAME_IN_EVERY_LANGUAGE = new Set([
 function sameInEveryLanguage(text: string): boolean {
   let rest = text;
   for (const word of SAME_IN_EVERY_LANGUAGE) rest = rest.split(word).join('');
-  return /^[\d\s.,·/]*$/.test(rest);
+  return /^[\d\s.,·/:–]*$/.test(rest);
 }
 
 /** The shape of `screen.toJSON()`. */

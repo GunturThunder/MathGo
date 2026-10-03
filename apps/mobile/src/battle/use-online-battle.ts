@@ -53,6 +53,11 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
   const [droppedAt, setDroppedAt] = useState<number | null>(null);
   /** The room this player opened, with its code to share (S4-08). */
   const [invite, setInvite] = useState<Invite | null>(null);
+  /** The random search (S5-07): when it started, and the trophies the server queued us with. */
+  const [searchInfo, setSearchInfo] = useState<{ startedAt: number; trophies: number | null }>({
+    startedAt: 0,
+    trophies: null,
+  });
   const sourceKind = source.kind;
   const roomId = source.kind === 'join' ? source.roomId : null;
   const leaving = useRef(false);
@@ -93,6 +98,7 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
     setEffects([]);
     setError(null);
     setPhase('searching');
+    setSearchInfo({ startedAt: clockNow(), trophies: null });
     setDroppedAt(null);
     setInvite(null);
     leaving.current = false;
@@ -120,7 +126,9 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
         };
         let conn: BattleConnection;
         if (sourceKind === 'random') {
-          const s = await findMatchAsPlayer(handlers);
+          const s = await findMatchAsPlayer(handlers, (trophies) =>
+            setSearchInfo((prev) => ({ ...prev, trophies })),
+          );
           search.current = s;
           conn = await s.match;
         } else if (sourceKind === 'create') {
@@ -150,6 +158,13 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
       connection.current = null;
     };
   }, [onMessage, round, sourceKind, roomId]);
+
+  // While searching, the time waited ticks every second (S5-07).
+  useEffect(() => {
+    if (phase !== 'searching') return;
+    const timer = setInterval(() => setNow(clockNow()), 1_000);
+    return () => clearInterval(timer);
+  }, [phase]);
 
   // The timer: re-render when its second changes, not on every tick.
   useEffect(() => {
@@ -225,5 +240,6 @@ export function useOnlineBattle(source: BattleSource = { kind: 'random' }) {
     devDrop,
     invite,
     rematch,
+    searchInfo,
   };
 }

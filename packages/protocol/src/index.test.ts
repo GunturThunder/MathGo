@@ -12,6 +12,7 @@ import {
   battleEnd,
   joinRequest,
   parseClientMessage,
+  matchWindow,
   parseServerMessage,
   questionBatch,
   type BattleEnd,
@@ -136,6 +137,16 @@ describe('server messages', () => {
   it('errors are codes from a fixed list', () => {
     expect(parseServerMessage('error', { code: 'update-required' }).ok).toBe(true);
     expect(parseServerMessage('error', { code: 'something-else' }).ok).toBe(false);
+  });
+});
+
+describe('matchmaking window (FR-02)', () => {
+  it('±100, widening by 50 every 5 s', () => {
+    expect(matchWindow(0)).toBe(100);
+    expect(matchWindow(4_999)).toBe(100);
+    expect(matchWindow(5_000)).toBe(150);
+    expect(matchWindow(30_000)).toBe(400);
+    expect(matchWindow(-10)).toBe(100);
   });
 });
 
