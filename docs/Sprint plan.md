@@ -79,7 +79,7 @@ Goal: `api` and `game-server` run in Docker Compose, a guest can sign in, and th
 | S3-10 | API client: TanStack Query, token in MMKV, automatic refresh on 401 | Mobile | 1.5 | S3-02 | Token survives app restart; refresh is invisible to the player | Done |
 | S3-11 | Colyseus client wrapper: connect with JWT, join by room id, typed messages from `protocol`, reconnect hooks | Mobile | 2 | S3-05 | App joins a test BattleRoom and receives questions | Done |
 | S3-12 | Battle screen reads from either the local engine (practice) or server state (online), same UI | Mobile | 2 | S3-11, S2-10 | One online battle plays end to end between two dev phones | Done |
-| S3-13 | Choose a WhatsApp/SMS OTP provider for parent codes; start sender registration | Product | 1 | – | Provider account and test sender ready for Sprint 5 | Not started |
+| S3-13 | Choose an email provider for parent codes (free tier); set up the sending domain (SPF, DKIM, DMARC) | Product | 1 | – | Provider account and test sender ready for Sprint 5 | Not started |
 | S3-14 | Draft privacy policy and terms (Bahasa Indonesia and English) covering UU PDP and PP Tunas | Product | 2 | – | Drafts sent to the local lawyer | Not started |
 | S3-15 | Brief the local lawyer on PP Tunas, UU PDP and IGRS; agree a review date | Product | 0.5 | S3-14 | Review booked before Dec 11 | Not started |
 
@@ -111,7 +111,7 @@ Load: Backend 8 days, Mobile 8 days, Product 2 days.
 
 ## Sprint 5 · Nov 30–Dec 11 · Random matchmaking, trophies and parent consent
 
-Goal: tapping Battle finds a random opponent near your trophy count, wins and losses move trophies and arenas, and a parent can unlock online play with a WhatsApp or SMS code (FR-20).
+Goal: tapping Battle finds a random opponent near your trophy count, wins and losses move trophies and arenas, and a parent can unlock online play with a code sent to their email (FR-20).
 
 | ID | Task | Owner | Days | Needs | Done when | Status |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -119,13 +119,13 @@ Goal: tapping Battle finds a random opponent near your trophy count, wins and lo
 | S5-02 | Queue edge cases: cancel, joining twice, already in a match, stale entries after a crash | Backend | 1 | S5-01 | Each case has a test; no player is paired twice | Done |
 | S5-03 | Trophy settlement (FR-08): one Postgres transaction writes `trophy_ledger` and updates `users.trophies`; ranked battles only | Backend | 1.5 | S4-03, S2-03 | Ledger sum equals each user's trophies; invite battles change nothing | Done |
 | S5-04 | Arena per match: questions from the lower arena, lower trophy count sets N\_max | Backend | 0.5 | S5-01 | A 250 vs 800 trophy match gets arena 1 questions | Done |
-| S5-05 | Parent consent API: `POST /consent/start` (phone number) and `/consent/verify`; WhatsApp first, SMS fallback; 6-digit code, 5-minute expiry, attempt limits; consent record stored | Backend | 2.5 | S3-04, S3-13 | A test parent unlocks a child account; a 6th wrong code is blocked | Done |
+| S5-05 | Parent consent API: `POST /consent/start` (parent's email) and `/consent/verify`; code sent by email; 6-digit code, 5-minute expiry, attempt limits; consent record stored | Backend | 2.5 | S3-04, S3-13 | A test parent unlocks a child account; a 6th wrong code is blocked | Done |
 | S5-06 | Home: Battle button, trophy count, arena badge | Mobile | 1.5 | S5-03 | Trophies and arena update after each ranked battle | Done |
 | S5-07 | Matchmaking screen: searching animation, time waited, cancel; at 30 s offer practice vs bot | Mobile | 1.5 | S5-01 | Cancel returns to Home; bot offer appears at 30 s | Done |
 | S5-08 | Result screen: trophy change animation, arena unlock moment | Mobile | 1.5 | S5-03 | Crossing 300 trophies shows the Plus Plains unlock | Done |
-| S5-09 | Parent consent screens: phone input, code entry, resend timer, success unlocks online play | Mobile | 2 | S5-05 | Under-18 player goes from "Ask a parent" to a random battle | Not started |
+| S5-09 | Parent consent screens: email input, code entry, resend timer, success unlocks online play | Mobile | 2 | S5-05 | Under-18 player goes from "Ask a parent" to a random battle | Not started |
 | S5-10 | Arena look: colour theme per arena on Home and Battle | Mobile | 1 | S5-06 | All 5 arenas have their theme | Done |
-| S5-11 | OTP provider live: sender approved for WhatsApp and SMS in Indonesia | Product | 1 | S3-13 | Codes arrive on Telkomsel, Indosat and XL numbers | Not started |
+| S5-11 | Email sending live from the MathBattle domain | Product | 1 | S3-13 | Codes reach the inbox, not spam, in Gmail, Yahoo and Outlook | Not started |
 | S5-12 | Lawyer review of the age check, consent flow, privacy policy and terms | Product | 1 | S3-15 | Written sign-off or change list by Dec 11 | Not started |
 | S5-13 | Recruit about 50 closed-beta testers in Indonesia, including parents with kids | Product | 1.5 | – | Tester list with emails for TestFlight and Play internal testing | Not started |
 

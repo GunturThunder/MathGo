@@ -150,7 +150,7 @@ Both entry paths lead to the same Battle screen; Profile and Settings open from 
 
 First launch asks for the player's birth year. Players 18 and over continue as shown above.
 
-Players under 18 get offline practice against the bot straight away, with no account and no data collected. Online battles and trophies unlock once a parent enters their phone number and confirms a one-time code sent by WhatsApp or SMS. This follows PP Tunas (see Technical requirements).
+Players under 18 get offline practice against the bot straight away, with no account and no data collected. Online battles and trophies unlock once a parent enters their email address and confirms a 6-digit code sent to it. Email is free to send and needs no sender registration; WhatsApp or SMS codes can be added later if too few parents finish by email. This follows PP Tunas (see Technical requirements).
 
 ## Functional requirements
 
@@ -167,7 +167,7 @@ Ten P0 requirements define the MVP; P1 ships before soft launch and P2 after it.
 | FR-07 | Battle | Reconnect within 15 s after a drop; otherwise the match counts as a loss | P0 · MVP |
 | FR-08 | Progression | Trophy gain and loss, arena unlocks and arena floors | P0 · MVP |
 | FR-09 | Platform | Analytics events for battles, matchmaking and invites, stored in our own Postgres; crash reports via Sentry with personal data removed | P0 · MVP |
-| FR-20 | Account | Birth-year check at first launch; under-18 players get offline practice only until a parent approves online play with a WhatsApp or SMS code | P0 · MVP |
+| FR-20 | Account | Birth-year check at first launch; under-18 players get offline practice only until a parent approves online play with a code sent to their email | P0 · MVP |
 | FR-10 | Account | Pick grade or skill level at first launch to set starting difficulty | P1 · Before launch |
 | FR-11 | Matchmaking | Join a room by tapping an invite link | P1 · Before launch |
 | FR-12 | Matchmaking | Rematch with the same opponent | P1 · Before launch |
