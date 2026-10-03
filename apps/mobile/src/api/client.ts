@@ -1,4 +1,4 @@
-import type { ApiErrorBody, Profile, Session } from './types';
+import type { ApiErrorBody, ConsentStarted, Profile, Session } from './types';
 import type { TokenStore } from './token-store';
 
 /** An api error with its stable code, e.g. `consent-required` or `nickname-not-allowed`. */
@@ -7,6 +7,8 @@ export class ApiError extends Error {
     readonly status: number,
     readonly code: string,
     message: string,
+    /** Extra facts some errors carry (S5-05): wrong codes left, when to try again. */
+    readonly details: { readonly attemptsLeft?: number; readonly retryAt?: string } = {},
   ) {
     super(message);
     this.name = 'ApiError';
@@ -38,12 +40,15 @@ const EXPIRY_MARGIN_MS = 30_000;
  */
 export class ApiClient {
   private refreshing: Promise<Session> | null = null;
-  private readonly fetch: typeof fetch;
   private readonly now: () => Date;
 
   constructor(private readonly options: ApiClientOptions) {
-    this.fetch = options.fetch ?? fetch;
     this.now = options.now ?? (() => new Date());
+  }
+
+  /** Looked up on each call, not kept: the global can be replaced later (tests, polyfills). */
+  private get fetch(): typeof fetch {
+    return this.options.fetch ?? globalThis.fetch;
   }
 
   get session(): Session | null {
@@ -57,6 +62,18 @@ export class ApiClient {
 
   async signUpGuest(birthYear: number): Promise<Session> {
     const session = await this.call<Session>('POST', '/auth/guest', { birthYear });
+    this.options.store.set(session);
+    return session;
+  }
+
+  /** A parent asks for a code by email, for a child born in `birthYear` (S5-05, S5-09). */
+  startConsent(email: string, birthYear: number): Promise<ConsentStarted> {
+    return this.call<ConsentStarted>('POST', '/consent/start', { email, birthYear });
+  }
+
+  /** The parent's code: right, and the child's account exists with online play unlocked. */
+  async verifyConsent(consentId: string, code: string): Promise<Session> {
+    const session = await this.call<Session>('POST', '/consent/verify', { consentId, code });
     this.options.store.set(session);
     return session;
   }
@@ -141,7 +158,10 @@ export class ApiClient {
     const json: unknown = await res.json();
     if (!res.ok) {
       const { error } = json as ApiErrorBody;
-      throw new ApiError(res.status, error.code, error.message);
+      throw new ApiError(res.status, error.code, error.message, {
+        ...(error.attemptsLeft === undefined ? {} : { attemptsLeft: error.attemptsLeft }),
+        ...(error.retryAt === undefined ? {} : { retryAt: error.retryAt }),
+      });
     }
     return json as T;
   }

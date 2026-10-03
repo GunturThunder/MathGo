@@ -1,0 +1,11 @@
+import { useEffect, useState } from 'react';
+
+/** The wall clock, ticking every second: countdowns to times the server sent (S5-09). */
+export function useNow(intervalMs = 1_000): number {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), intervalMs);
+    return () => clearInterval(timer);
+  }, [intervalMs]);
+  return now;
+}

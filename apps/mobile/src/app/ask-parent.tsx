@@ -15,8 +15,8 @@ const STEPS = [
 
 /**
  * Under-18 mode (S3-09, design: 15 Ask a parent). Every way into online play leads here for a
- * player under 18 without consent. Practice vs bot works right away. The parent code itself
- * (phone number, 6-digit code) comes with S5-05 and S5-09.
+ * player under 18 without consent. Practice vs bot works right away; "Ask a Parent" starts the
+ * parent's email code (S5-09).
  */
 export default function AskParent() {
   const { t } = useTranslation();
@@ -31,11 +31,9 @@ export default function AskParent() {
           <Button
             label={t('askParent.ask')}
             variant="violet"
-            onPress={() => undefined}
-            disabled
+            onPress={() => router.push('/parent/email')}
             testID="ask-parent-ask"
           />
-          <Text style={styles.soon}>{t('askParent.soon')}</Text>
           <Button
             label={t('askParent.practice')}
             variant="secondary"
@@ -105,5 +103,4 @@ const styles = StyleSheet.create({
   stepText: { flex: 1 },
   stepTitle: { ...typography.body, fontFamily: typography.label.fontFamily, color: colors.ink },
   stepNote: { ...typography.caption, color: colors.ink2 },
-  soon: { ...typography.caption, color: colors.ink2, textAlign: 'center', marginTop: -space.xs },
 });

@@ -10,4 +10,4 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000
 export const api = new ApiClient({ baseUrl: API_URL, store: createTokenStore() });
 
 export { ApiClient, ApiError, SessionEndedError } from './client';
-export type { Profile, Session } from './types';
+export type { ConsentStarted, Profile, Session } from './types';
