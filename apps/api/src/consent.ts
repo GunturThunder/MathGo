@@ -14,14 +14,14 @@ import {
 } from '@mathgo/db';
 import type { FastifyInstance } from 'fastify';
 import { issueSession, type AuthDeps } from './auth.js';
-import { sendWithFallback, type CodeSender, type ConsentChannel } from './code-sender.js';
+import type { CodeSender } from './code-sender.js';
 import { ApiError } from './errors.js';
 import { generateNicknames } from './nicknames.js';
-import { maskPhone, normalizeIndonesianMobile } from './phone.js';
+import { maskEmail, normalizeEmail } from './email.js';
 
 // Parent consent (S5-05, PRD FR-20, PP Tunas). A child under 18 has no account. A parent enters
-// their phone number, gets a 6-digit code by WhatsApp (SMS fallback), and the correct code
-// creates the child's account with online play unlocked.
+// their email address, gets a 6-digit code there, and the correct code creates the child's
+// account with online play unlocked.
 
 /** A code works for 5 minutes. */
 export const CODE_TTL_MS = 5 * 60 * 1000;
@@ -29,9 +29,9 @@ export const CODE_TTL_MS = 5 * 60 * 1000;
 export const RESEND_AFTER_MS = 60 * 1000;
 /** The 6th wrong code blocks that code… */
 export const MAX_WRONG_CODES = 6;
-/** …and the phone gets a new code after 15 minutes (decided Oct 1, 2026). */
+/** …and the address gets a new code after 15 minutes (decided Oct 1, 2026). */
 export const LOCK_MS = 15 * 60 * 1000;
-/** At most 5 codes per phone per hour: WhatsApp and SMS cost money, and spam annoys parents. */
+/** At most 5 codes per address per hour, so nobody can flood a parent's inbox. */
 export const MAX_CODES_PER_HOUR = 5;
 const HOUR_MS = 60 * 60 * 1000;
 /** Code rows are kept a day for the limits above, then deleted. */
@@ -50,7 +50,7 @@ const keyedHash = (secret: string, value: string) =>
 const codeHash = (secret: string, id: string, code: string) =>
   keyedHash(secret, `code:${id}:${code}`);
 
-const phoneHash = (secret: string, phone: string) => keyedHash(secret, `phone:${phone}`);
+const emailHash = (secret: string, email: string) => keyedHash(secret, `email:${email}`);
 
 const sameHash = (a: string, b: string) =>
   a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
@@ -58,24 +58,23 @@ const sameHash = (a: string, b: string) =>
 const newCode = () => randomInt(0, 1_000_000).toString().padStart(6, '0');
 
 export function registerConsentRoutes(app: FastifyInstance, deps: ConsentDeps): void {
-  app.post<{ Body: { phone: string; channel: ConsentChannel; birthYear: number } }>(
+  app.post<{ Body: { email: string; birthYear: number } }>(
     '/consent/start',
     {
       schema: {
         body: {
           type: 'object',
-          required: ['phone', 'channel', 'birthYear'],
+          required: ['email', 'birthYear'],
           additionalProperties: false,
           properties: {
-            phone: { type: 'string', minLength: 1, maxLength: 32 },
-            channel: { type: 'string', enum: ['whatsapp', 'sms'] },
+            email: { type: 'string', minLength: 1, maxLength: 320 },
             birthYear: { type: 'integer' },
           },
         },
       },
     },
     async (request, reply) => {
-      const { channel, birthYear } = request.body;
+      const { birthYear } = request.body;
       const now = deps.now();
       const thisYear = now.getUTCFullYear();
       if (birthYear < thisYear - 120 || birthYear > thisYear) {
@@ -88,14 +87,14 @@ export function registerConsentRoutes(app: FastifyInstance, deps: ConsentDeps): 
       if (isAdult(birthYear, now)) {
         throw new ApiError(400, 'consent-not-needed', 'Adults sign up with POST /auth/guest.');
       }
-      const phone = normalizeIndonesianMobile(request.body.phone);
-      if (phone === null) {
-        throw new ApiError(400, 'invalid-phone', 'Send an Indonesian mobile number (+62 8…).');
+      const email = normalizeEmail(request.body.email);
+      if (email === null) {
+        throw new ApiError(400, 'invalid-email', 'Send a valid email address.');
       }
       if (deps.sender === null) {
         throw new ApiError(503, 'consent-unavailable', 'Parent codes cannot be sent yet.');
       }
-      const hash = phoneHash(deps.secret, phone);
+      const hash = emailHash(deps.secret, email);
       await deps.db
         .delete(consentCodes)
         .where(lt(consentCodes.createdAt, new Date(now.getTime() - KEEP_CODES_MS)));
@@ -103,9 +102,8 @@ export function registerConsentRoutes(app: FastifyInstance, deps: ConsentDeps): 
 
       const id = randomUUID();
       const code = newCode();
-      let sentBy: ConsentChannel;
       try {
-        sentBy = await sendWithFallback(deps.sender, { channel, phone, code });
+        await deps.sender.send({ email, code });
       } catch (error) {
         request.log.error({ err: error }, 'consent code not sent');
         throw new ApiError(502, 'code-not-sent', 'The code could not be sent. Try again.');
@@ -116,22 +114,20 @@ export function registerConsentRoutes(app: FastifyInstance, deps: ConsentDeps): 
         await tx
           .update(consentCodes)
           .set({ usedAt: now })
-          .where(and(eq(consentCodes.phoneHash, hash), isNull(consentCodes.usedAt)));
+          .where(and(eq(consentCodes.emailHash, hash), isNull(consentCodes.usedAt)));
         await tx.insert(consentCodes).values({
           id,
-          phoneHash: hash,
-          channel: sentBy,
+          emailHash: hash,
           birthYear,
           codeHash: codeHash(deps.secret, id, code),
           expiresAt,
           createdAt: now,
         });
       });
-      request.log.info({ consentId: id, channel: sentBy }, 'consent code sent');
+      request.log.info({ consentId: id }, 'consent code sent');
       return reply.status(201).send({
         consentId: id,
-        channel: sentBy,
-        phone: maskPhone(phone),
+        email: maskEmail(email),
         expiresAt: expiresAt.toISOString(),
         resendAt: new Date(now.getTime() + RESEND_AFTER_MS).toISOString(),
       });
@@ -191,8 +187,8 @@ export function registerConsentRoutes(app: FastifyInstance, deps: ConsentDeps): 
         if (user === undefined) throw new Error('user insert returned nothing');
         await tx.insert(parentalConsents).values({
           userId: user.id,
-          phoneHash: row.phoneHash,
-          channel: row.channel,
+          contactHash: row.emailHash,
+          channel: 'email',
           consentedAt: now,
         });
         return { kind: 'ok', session: await issueSession(deps, tx, user) } as const;
@@ -220,14 +216,14 @@ export function registerConsentRoutes(app: FastifyInstance, deps: ConsentDeps): 
   );
 }
 
-/** This phone's codes from the last hour, newest first. */
+/** This address's codes from the last hour, newest first. */
 function recentCodes(db: Database, hash: string, now: Date) {
   return db
     .select({ createdAt: consentCodes.createdAt, lockedAt: consentCodes.lockedAt })
     .from(consentCodes)
     .where(
       and(
-        eq(consentCodes.phoneHash, hash),
+        eq(consentCodes.emailHash, hash),
         gt(consentCodes.createdAt, new Date(now.getTime() - HOUR_MS)),
       ),
     )

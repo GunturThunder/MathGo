@@ -6,6 +6,7 @@ import { registerAuthRoutes } from './auth.js';
 import { LogCodeSender, type CodeSender } from './code-sender.js';
 import type { Config } from './config.js';
 import { registerConsentRoutes } from './consent.js';
+import { maskEmail } from './email.js';
 import { registerErrorHandlers } from './errors.js';
 import { registerEventRoutes } from './events.js';
 import { registerNicknameRoutes } from './nickname-routes.js';
@@ -54,7 +55,7 @@ export function buildApp(
     codeSender !== undefined
       ? codeSender
       : config.CONSENT_SENDER === 'log'
-        ? new LogCodeSender(app.log)
+        ? new LogCodeSender(app.log, maskEmail)
         : null;
   registerConsentRoutes(app, { ...auth, sender, secret: config.CONSENT_SECRET });
 

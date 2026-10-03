@@ -20,7 +20,8 @@ import {
 
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
 
-export const consentChannel = pgEnum('consent_channel', ['whatsapp', 'sms']);
+/** How the parent got the code. Email since Oct 3, 2026; WhatsApp and SMS may come later. */
+export const consentChannel = pgEnum('consent_channel', ['whatsapp', 'sms', 'email']);
 export const matchMode = pgEnum('match_mode', ['ranked', 'invite']);
 export const matchOutcome = pgEnum('match_outcome', ['win', 'draw']);
 export const matchEndReason = pgEnum('match_end_reason', ['ko', 'time', 'forfeit']);
@@ -52,8 +53,8 @@ export const parentalConsents = pgTable('parental_consents', {
     .notNull()
     .unique()
     .references(() => users.id, { onDelete: 'cascade' }),
-  /** Keyed hash of the parent's phone number; the number itself is not stored. */
-  phoneHash: text('phone_hash').notNull(),
+  /** Keyed hash of the parent's email address; the address itself is not stored. */
+  contactHash: text('contact_hash').notNull(),
   channel: consentChannel('channel').notNull(),
   consentedAt: timestamp('consented_at', { withTimezone: true }).notNull().defaultNow(),
   revokedAt: timestamp('revoked_at', { withTimezone: true }),
@@ -180,23 +181,21 @@ export const refreshTokens = pgTable(
 
 /**
  * Parent consent codes (S5-05, FR-20). A child has no account yet, so a code is tied to the
- * parent's phone (as a keyed hash, never the number) and the child's birth year. A correct code
+ * parent's email (as a keyed hash, never the address) and the child's birth year. A correct code
  * creates the child's account and its `parental_consents` row; the code row is then used up.
  */
 export const consentCodes = pgTable(
   'consent_codes',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    phoneHash: text('phone_hash').notNull(),
-    /** Where the code actually went (WhatsApp first, SMS fallback). */
-    channel: consentChannel('channel').notNull(),
+    emailHash: text('email_hash').notNull(),
     /** The child's birth year, kept for the account the code creates. */
     birthYear: smallint('birth_year').notNull(),
     /** Keyed hash of the 6-digit code. */
     codeHash: text('code_hash').notNull(),
     wrongAttempts: smallint('wrong_attempts').notNull().default(0),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-    /** Set by the 6th wrong code: this code is dead and the phone waits 15 minutes. */
+    /** Set by the 6th wrong code: this code is dead and the address waits 15 minutes. */
     lockedAt: timestamp('locked_at', { withTimezone: true }),
     /** Set when the code was entered correctly, or replaced by a newer code. */
     usedAt: timestamp('used_at', { withTimezone: true }),
@@ -205,6 +204,6 @@ export const consentCodes = pgTable(
   (t) => [
     check('consent_codes_birth_year_range', sql`${t.birthYear} between 1900 and 2100`),
     check('consent_codes_wrong_attempts_range', sql`${t.wrongAttempts} between 0 and 6`),
-    index('consent_codes_phone_hash_created_at_idx').on(t.phoneHash, t.createdAt),
+    index('consent_codes_email_hash_created_at_idx').on(t.emailHash, t.createdAt),
   ],
 );

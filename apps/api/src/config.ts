@@ -20,11 +20,11 @@ const schema = z
     DATABASE_URL: z.url().optional(),
     /** Signs access tokens; game-server verifies them with the same secret (S3-05). */
     JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional(),
-    /** Keys the hashes of parents' phone numbers and consent codes (S5-05). */
+    /** Keys the hashes of parents' email addresses and consent codes (S5-05). */
     CONSENT_SECRET: z.string().min(32, 'CONSENT_SECRET must be at least 32 characters').optional(),
     /**
      * How parent codes are sent: `log` writes them to the log (development only), `none` turns
-     * consent off (503) until the WhatsApp/SMS provider is set up (S5-11).
+     * consent off (503) until the email provider is set up (S5-11).
      */
     CONSENT_SENDER: z.enum(['log', 'none']).optional(),
   })

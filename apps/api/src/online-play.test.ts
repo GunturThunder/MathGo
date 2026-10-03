@@ -30,7 +30,7 @@ async function consentedMinor() {
   if (user === undefined) throw new Error('no user');
   await db
     .insert(parentalConsents)
-    .values({ userId: user.id, phoneHash: 'hash', channel: 'whatsapp' });
+    .values({ userId: user.id, contactHash: 'hash', channel: 'email' });
   const refresh = newRefreshToken();
   await db.insert(refreshTokens).values({
     userId: user.id,

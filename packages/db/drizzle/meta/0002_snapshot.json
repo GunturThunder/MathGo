@@ -1,5 +1,5 @@
 {
-  "id": "58369e14-a632-4be2-a082-5f8080b90d3e",
+  "id": "d84408c4-1b29-484a-8962-3ad29a438311",
   "prevId": "3f28ce1e-32f7-455f-89cc-b408ef0ed8e1",
   "version": "7",
   "dialect": "postgresql",
@@ -15,16 +15,9 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "phone_hash": {
-          "name": "phone_hash",
+        "email_hash": {
+          "name": "email_hash",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "channel": {
-          "name": "channel",
-          "type": "consent_channel",
-          "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
         },
@@ -74,11 +67,11 @@
         }
       },
       "indexes": {
-        "consent_codes_phone_hash_created_at_idx": {
-          "name": "consent_codes_phone_hash_created_at_idx",
+        "consent_codes_email_hash_created_at_idx": {
+          "name": "consent_codes_email_hash_created_at_idx",
           "columns": [
             {
-              "expression": "phone_hash",
+              "expression": "email_hash",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -122,15 +115,15 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "always",
             "name": "events_id_seq",
-            "schema": "public",
             "increment": "1",
-            "startWith": "1",
             "minValue": "1",
             "maxValue": "9223372036854775807",
+            "startWith": "1",
             "cache": "1",
-            "cycle": false
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
           }
         },
         "name": {
@@ -178,24 +171,24 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "events_user_id_users_id_fk": {
           "name": "events_user_id_users_id_fk",
           "tableFrom": "events",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
@@ -214,15 +207,15 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "always",
             "name": "match_answers_id_seq",
-            "schema": "public",
             "increment": "1",
-            "startWith": "1",
             "minValue": "1",
             "maxValue": "9223372036854775807",
+            "startWith": "1",
             "cache": "1",
-            "cycle": false
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
           }
         },
         "match_id": {
@@ -305,9 +298,9 @@
             }
           ],
           "isUnique": true,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "match_answers_user_too_fast_idx": {
           "name": "match_answers_user_too_fast_idx",
@@ -326,37 +319,37 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "match_answers_match_id_matches_id_fk": {
           "name": "match_answers_match_id_matches_id_fk",
           "tableFrom": "match_answers",
-          "tableTo": "matches",
           "columnsFrom": [
             "match_id"
           ],
+          "tableTo": "matches",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "match_answers_user_id_users_id_fk": {
           "name": "match_answers_user_id_users_id_fk",
           "tableFrom": "match_answers",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
@@ -479,9 +472,9 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         },
         "matches_seat1_user_id_idx": {
           "name": "matches_seat1_user_id_idx",
@@ -494,37 +487,37 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "matches_seat0_user_id_users_id_fk": {
           "name": "matches_seat0_user_id_users_id_fk",
           "tableFrom": "matches",
-          "tableTo": "users",
           "columnsFrom": [
             "seat0_user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         },
         "matches_seat1_user_id_users_id_fk": {
           "name": "matches_seat1_user_id_users_id_fk",
           "tableFrom": "matches",
-          "tableTo": "users",
           "columnsFrom": [
             "seat1_user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
@@ -567,8 +560,8 @@
           "primaryKey": false,
           "notNull": true
         },
-        "phone_hash": {
-          "name": "phone_hash",
+        "contact_hash": {
+          "name": "contact_hash",
           "type": "text",
           "primaryKey": false,
           "notNull": true
@@ -599,25 +592,25 @@
         "parental_consents_user_id_users_id_fk": {
           "name": "parental_consents_user_id_users_id_fk",
           "tableFrom": "parental_consents",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "parental_consents_user_id_unique": {
           "name": "parental_consents_user_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "user_id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -679,34 +672,34 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "refresh_tokens_user_id_users_id_fk": {
           "name": "refresh_tokens_user_id_users_id_fk",
           "tableFrom": "refresh_tokens",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "refresh_tokens_token_hash_unique": {
           "name": "refresh_tokens_token_hash_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "token_hash"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -723,15 +716,15 @@
           "primaryKey": true,
           "notNull": true,
           "identity": {
-            "type": "always",
             "name": "trophy_ledger_id_seq",
-            "schema": "public",
             "increment": "1",
-            "startWith": "1",
             "minValue": "1",
             "maxValue": "9223372036854775807",
+            "startWith": "1",
             "cache": "1",
-            "cycle": false
+            "cycle": false,
+            "schema": "public",
+            "type": "always"
           }
         },
         "user_id": {
@@ -791,10 +784,10 @@
             }
           ],
           "isUnique": true,
-          "where": "\"trophy_ledger\".\"reason\" = 'match'",
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "where": "\"trophy_ledger\".\"reason\" = 'match'",
+          "concurrently": false
         },
         "trophy_ledger_user_id_idx": {
           "name": "trophy_ledger_user_id_idx",
@@ -807,37 +800,37 @@
             }
           ],
           "isUnique": false,
-          "concurrently": false,
+          "with": {},
           "method": "btree",
-          "with": {}
+          "concurrently": false
         }
       },
       "foreignKeys": {
         "trophy_ledger_user_id_users_id_fk": {
           "name": "trophy_ledger_user_id_users_id_fk",
           "tableFrom": "trophy_ledger",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "cascade"
         },
         "trophy_ledger_match_id_matches_id_fk": {
           "name": "trophy_ledger_match_id_matches_id_fk",
           "tableFrom": "trophy_ledger",
-          "tableTo": "matches",
           "columnsFrom": [
             "match_id"
           ],
+          "tableTo": "matches",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "set null"
         }
       },
       "compositePrimaryKeys": {},
@@ -907,17 +900,17 @@
       "uniqueConstraints": {
         "users_google_sub_unique": {
           "name": "users_google_sub_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "google_sub"
-          ]
+          ],
+          "nullsNotDistinct": false
         },
         "users_apple_sub_unique": {
           "name": "users_apple_sub_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "apple_sub"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -940,7 +933,8 @@
       "schema": "public",
       "values": [
         "whatsapp",
-        "sms"
+        "sms",
+        "email"
       ]
     },
     "public.match_end_reason": {
@@ -978,10 +972,10 @@
     }
   },
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

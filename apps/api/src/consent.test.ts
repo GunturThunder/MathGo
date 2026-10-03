@@ -2,18 +2,17 @@ import { consentCodes, eq, parentalConsents, users } from '@mathgo/db';
 import { createTestDatabase } from '@mathgo/db/testing';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp } from './app.js';
-import { CodeNotSentError, type CodeMessage, type CodeSender } from './code-sender.js';
+import type { CodeMessage, CodeSender } from './code-sender.js';
 import { loadConfig } from './config.js';
 import { CODE_TTL_MS, LOCK_MS, RESEND_AFTER_MS } from './consent.js';
-import { maskPhone, normalizeIndonesianMobile } from './phone.js';
+import { maskEmail, normalizeEmail } from './email.js';
 
-/** Records every code instead of sending it; a channel can be made to fail. */
+/** Records every code instead of sending it; can be made to fail. */
 class FakeSender implements CodeSender {
   readonly sent: CodeMessage[] = [];
-  failing = new Set<CodeMessage['channel']>();
+  failing = false;
   send(message: CodeMessage): Promise<void> {
-    if (this.failing.has(message.channel))
-      return Promise.reject(new CodeNotSentError(message.channel));
+    if (this.failing) return Promise.reject(new Error('provider down'));
     this.sent.push(message);
     return Promise.resolve();
   }
@@ -36,38 +35,39 @@ afterAll(async () => {
   await database.close();
 });
 beforeEach(() => {
-  sender.failing.clear();
+  sender.failing = false;
 });
 
 const later = (ms: number) => {
   now = new Date(now.getTime() + ms);
 };
-/** Each test uses its own parent's number, so the per-phone limits don't mix. */
-let phoneSeq = 0;
-const nextPhone = () => `0812 3456 ${(7000 + ++phoneSeq).toString()}`;
+/** Each test uses its own parent's address, so the per-address limits don't mix. */
+let emailSeq = 0;
+const nextEmail = () => `parent${(++emailSeq).toString()}@example.com`;
 
 interface ErrorReply {
   error: { code: string; attemptsLeft?: number; retryAt?: string };
 }
 
-const start = (phone: string, channel: 'whatsapp' | 'sms' = 'whatsapp', birthYear = 2014) =>
-  app.inject({ method: 'POST', url: '/consent/start', payload: { phone, channel, birthYear } });
+const start = (email: string, birthYear = 2014) =>
+  app.inject({ method: 'POST', url: '/consent/start', payload: { email, birthYear } });
 const verify = (consentId: string, code: string) =>
   app.inject({ method: 'POST', url: '/consent/verify', payload: { consentId, code } });
-const startOk = async (phone: string, channel: 'whatsapp' | 'sms' = 'whatsapp') => {
-  const res = await start(phone, channel);
+const startOk = async (email: string) => {
+  const res = await start(email);
   expect(res.statusCode).toBe(201);
-  return res.json<{ consentId: string; channel: string; phone: string; expiresAt: string }>();
+  return res.json<{ consentId: string; email: string; expiresAt: string; resendAt: string }>();
 };
 const wrongCodeFor = (code: string) => (code === '000000' ? '111111' : '000000');
 
-describe('parent consent (S5-05)', () => {
+describe('parent consent by email (S5-05)', () => {
   it('Done when: a test parent unlocks a child account', async () => {
     const before = await db.$count(users);
-    const started = await startOk('0812-3456-7890');
-    expect(started).toMatchObject({ channel: 'whatsapp', phone: '+62 812 •••• 7890' });
+    const started = await startOk(' Ayah.Budi@Gmail.com ');
+    expect(started.email).toBe('ay•••••••@gmail.com');
     expect(Date.parse(started.expiresAt) - now.getTime()).toBe(CODE_TTL_MS);
-    expect(sender.last).toMatchObject({ channel: 'whatsapp', phone: '+6281234567890' });
+    expect(Date.parse(started.resendAt) - now.getTime()).toBe(RESEND_AFTER_MS);
+    expect(sender.last.email).toBe('ayah.budi@gmail.com');
     expect(sender.last.code).toMatch(/^\d{6}$/);
     // No account yet: only the code is pending.
     expect(await db.$count(users)).toBe(before);
@@ -91,15 +91,15 @@ describe('parent consent (S5-05)', () => {
       .select()
       .from(parentalConsents)
       .where(eq(parentalConsents.userId, session.user.id));
-    expect(consent).toMatchObject({ channel: 'whatsapp', revokedAt: null });
+    expect(consent).toMatchObject({ channel: 'email', revokedAt: null });
 
     // The code is used up.
     expect((await verify(started.consentId, sender.last.code)).statusCode).toBe(404);
   });
 
   it('Done when: a 6th wrong code is blocked, and a new code comes after 15 minutes', async () => {
-    const phone = nextPhone();
-    const started = await startOk(phone);
+    const email = nextEmail();
+    const started = await startOk(email);
     const code = sender.last.code;
     const wrong = wrongCodeFor(code);
     for (const left of [5, 4, 3, 2, 1]) {
@@ -120,18 +120,18 @@ describe('parent consent (S5-05)', () => {
     const right = await verify(started.consentId, code);
     expect(right.statusCode).toBe(429);
     expect(right.json<ErrorReply>().error.code).toBe('code-locked');
-    // …and no new code for this number for 15 minutes.
+    // …and no new code for this address for 15 minutes.
     later(LOCK_MS - 1_000);
-    const tooEarly = await start(phone);
+    const tooEarly = await start(email);
     expect(tooEarly.statusCode).toBe(429);
     expect(tooEarly.json<ErrorReply>().error.code).toBe('code-locked');
     later(1_000);
-    const again = await startOk(phone);
+    const again = await startOk(email);
     expect((await verify(again.consentId, sender.last.code)).statusCode).toBe(201);
   });
 
   it('a code works for 5 minutes', async () => {
-    const started = await startOk(nextPhone());
+    const started = await startOk(nextEmail());
     later(CODE_TTL_MS);
     const res = await verify(started.consentId, sender.last.code);
     expect(res.statusCode).toBe(410);
@@ -139,70 +139,66 @@ describe('parent consent (S5-05)', () => {
   });
 
   it('resend: a minute apart, and only the newest code works', async () => {
-    const phone = nextPhone();
-    const first = await startOk(phone);
+    const email = nextEmail();
+    const first = await startOk(email);
     const firstCode = sender.last.code;
-    const soon = await start(phone);
+    const soon = await start(email);
     expect(soon.statusCode).toBe(429);
     expect(soon.json<ErrorReply>().error).toMatchObject({
       code: 'resend-too-soon',
       retryAt: new Date(now.getTime() + RESEND_AFTER_MS).toISOString(),
     });
     later(RESEND_AFTER_MS);
-    // "Send by SMS" on the code screen.
-    const second = await startOk(phone, 'sms');
-    expect(second.channel).toBe('sms');
+    const second = await startOk(email);
     expect((await verify(first.consentId, firstCode)).statusCode).toBe(404);
     expect((await verify(second.consentId, sender.last.code)).statusCode).toBe(201);
   });
 
-  it('at most 5 codes per number per hour', async () => {
-    const phone = nextPhone();
+  it('the same address in other letter case counts as the same parent', async () => {
+    const email = nextEmail();
+    await startOk(email);
+    const res = await start(email.toUpperCase());
+    expect(res.json<ErrorReply>().error.code).toBe('resend-too-soon');
+  });
+
+  it('at most 5 codes per address per hour', async () => {
+    const email = nextEmail();
     for (let i = 0; i < 5; i++) {
-      await startOk(phone);
+      await startOk(email);
       later(RESEND_AFTER_MS);
     }
-    const sixth = await start(phone);
+    const sixth = await start(email);
     expect(sixth.statusCode).toBe(429);
     expect(sixth.json<ErrorReply>().error.code).toBe('too-many-codes');
     later(60 * 60 * 1000);
-    await startOk(phone);
-  });
-
-  it('WhatsApp first, SMS fallback', async () => {
-    sender.failing.add('whatsapp');
-    const started = await startOk(nextPhone());
-    expect(started.channel).toBe('sms');
-    expect(sender.last.channel).toBe('sms');
-    expect((await verify(started.consentId, sender.last.code)).statusCode).toBe(201);
+    await startOk(email);
   });
 
   it('nothing sent, nothing stored: the parent can try again at once', async () => {
-    sender.failing.add('whatsapp');
-    sender.failing.add('sms');
-    const phone = nextPhone();
-    const res = await start(phone);
+    sender.failing = true;
+    const email = nextEmail();
+    const res = await start(email);
     expect(res.statusCode).toBe(502);
     expect(res.json<ErrorReply>().error.code).toBe('code-not-sent');
-    sender.failing.clear();
-    await startOk(phone);
+    sender.failing = false;
+    await startOk(email);
   });
 
-  it('the phone number itself is never stored', async () => {
-    await startOk('+62 813 9999 1234');
+  it('the email address itself is never stored', async () => {
+    await startOk('ibu.sari.rahasia@example.co.id');
     const rows = JSON.stringify([
       await db.select().from(consentCodes),
       await db.select().from(parentalConsents),
     ]);
-    expect(rows).not.toContain('81399991234');
-    expect(rows).not.toContain('99991234');
+    expect(rows).not.toContain('sari.rahasia');
+    expect(rows).not.toContain('example.co.id');
   });
 
   it.each([
-    [{ phone: '0812 3456 7890', channel: 'whatsapp', birthYear: 1990 }, 400, 'consent-not-needed'],
-    [{ phone: '021 555 1234', channel: 'whatsapp', birthYear: 2014 }, 400, 'invalid-phone'],
-    [{ phone: '+1 415 555 0100', channel: 'sms', birthYear: 2014 }, 400, 'invalid-phone'],
-    [{ phone: '0812 3456 7890', channel: 'email', birthYear: 2014 }, 400, 'invalid-request'],
+    [{ email: 'ayah@gmail.com', birthYear: 1990 }, 400, 'consent-not-needed'],
+    [{ email: 'not-an-email', birthYear: 2014 }, 400, 'invalid-email'],
+    [{ email: 'ayah@gmail', birthYear: 2014 }, 400, 'invalid-email'],
+    [{ email: 'ayah@gmail.com', birthYear: 2014, phone: '0812' }, 400, 'invalid-request'],
   ])('refuses %o', async (payload, status, code) => {
     const res = await app.inject({ method: 'POST', url: '/consent/start', payload });
     expect(res.statusCode).toBe(status);
@@ -228,7 +224,7 @@ describe('parent consent (S5-05)', () => {
     const res = await off.inject({
       method: 'POST',
       url: '/consent/start',
-      payload: { phone: nextPhone(), channel: 'whatsapp', birthYear: 2014 },
+      payload: { email: nextEmail(), birthYear: 2014 },
     });
     expect(res.statusCode).toBe(503);
     expect(res.json<ErrorReply>().error.code).toBe('consent-unavailable');
@@ -236,26 +232,31 @@ describe('parent consent (S5-05)', () => {
   });
 });
 
-describe('Indonesian mobile numbers', () => {
+describe('email addresses', () => {
   it.each([
-    ['0812-3456-7890', '+6281234567890'],
-    ['812 3456 7890', '+6281234567890'],
-    ['+62 812 3456 7890', '+6281234567890'],
-    ['6281234567890', '+6281234567890'],
-    ['(0857) 1234 567', '+628571234567'],
-  ])('%s → %s', (input, e164) => {
-    expect(normalizeIndonesianMobile(input)).toBe(e164);
+    [' Ayah.Budi@Gmail.com ', 'ayah.budi@gmail.com'],
+    ['ibu+mathbattle@yahoo.co.id', 'ibu+mathbattle@yahoo.co.id'],
+  ])('%s → %s', (input, normalized) => {
+    expect(normalizeEmail(input)).toBe(normalized);
   });
 
-  it.each(['021 555 1234', '0812', '+1 415 555 0100', '08123456789012345', 'abc'])(
-    '%s is refused',
+  it.each(['', 'ayah', 'ayah@', '@gmail.com', 'ayah@gmail', 'a b@gmail.com', 'a@b@gmail.com'])(
+    '%o is refused',
     (input) => {
-      expect(normalizeIndonesianMobile(input)).toBeNull();
+      expect(normalizeEmail(input)).toBeNull();
     },
   );
 
-  it('masks all but the start and the last 4 digits', () => {
-    expect(maskPhone('+6281234567890')).toBe('+62 812 •••• 7890');
+  it('an address longer than email allows is refused', () => {
+    expect(normalizeEmail(`${'a'.repeat(250)}@gmail.com`)).toBeNull();
+  });
+
+  it.each([
+    ['ayah.budi@gmail.com', 'ay•••••••@gmail.com'],
+    ['ab@gmail.com', 'a•@gmail.com'],
+    ['a@gmail.com', 'a•@gmail.com'],
+  ])('masks %s as %s', (email, masked) => {
+    expect(maskEmail(email)).toBe(masked);
   });
 });
 
