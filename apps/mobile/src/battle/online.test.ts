@@ -160,6 +160,7 @@ describe('online battle (S3-12)', () => {
       bestCombo: 5,
       me: { name: 'Kamu', damage: 100 },
       rival: { name: 'Lawan', damage: 60 },
+      trophies: null,
     });
   });
 

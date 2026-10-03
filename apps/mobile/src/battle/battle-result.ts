@@ -1,4 +1,4 @@
-import type { BattleResult, BattleState, Seat } from '@mathgo/game-core';
+import type { ArenaId, BattleResult, BattleState, Seat } from '@mathgo/game-core';
 import { outcomeFor, type Outcome } from './effects';
 import type { Fighters } from './battle-view';
 
@@ -21,6 +21,17 @@ export interface BattleSummary {
   readonly bestCombo: number;
   readonly me: FighterResult;
   readonly rival: FighterResult;
+  /** Ranked battles only (S5-08): what this battle did to the player's trophies. */
+  readonly trophies: TrophyResult | null;
+}
+
+export interface TrophyResult {
+  /** +30, −20, 0 at an arena floor (FR-08). */
+  readonly delta: number;
+  /** The new total. */
+  readonly now: number;
+  readonly arenaBefore: ArenaId;
+  readonly arenaAfter: ArenaId;
 }
 
 export function battleSummary(
@@ -41,5 +52,7 @@ export function battleSummary(
     bestCombo: me.bestStreak,
     me: { name: fighters.me.name, damage: hp - rival.hp },
     rival: { name: fighters.rival.name, damage: hp - me.hp },
+    // Practice changes no trophies.
+    trophies: null,
   };
 }

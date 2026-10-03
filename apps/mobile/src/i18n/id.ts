@@ -214,6 +214,13 @@ export const id = {
     playAgain: 'Main Lagi',
     home: 'Beranda',
     modePractice: 'Latihan',
+    trophies: 'Trofi',
+    trophiesNow: 'Trofi sekarang',
+    toNext: '{{toGo}} lagi ke {{name}}',
+    topArena: 'Arena tertinggi',
+    unlockTitle: 'Arena baru terbuka!',
+    unlockBadge: 'ARENA {{value}}',
+    unlockOk: 'Mantap!',
     title: {
       win: 'Menang!',
       lose: 'Kalah',

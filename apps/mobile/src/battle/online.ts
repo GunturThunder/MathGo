@@ -234,6 +234,16 @@ export function onlineSummary(battle: OnlineBattle, fighters: Fighters): BattleS
     bestCombo: mine.bestStreak,
     me: { name: fighters.me.name, damage: ONLINE_HP - rival.hp },
     rival: { name: fighters.rival.name, damage: ONLINE_HP - me.hp },
+    // Ranked battles settle trophies (S5-03); friendly matches don't.
+    trophies:
+      battle.end.trophies === null
+        ? null
+        : {
+            delta: battle.end.trophies[battle.seat].delta,
+            now: battle.end.trophies[battle.seat].trophies,
+            arenaBefore: battle.end.trophies[battle.seat].arenaBefore,
+            arenaAfter: battle.end.trophies[battle.seat].arenaAfter,
+          },
   };
 }
 
