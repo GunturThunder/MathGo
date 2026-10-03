@@ -9,6 +9,8 @@ export interface ErrorBody {
     readonly code: string;
     readonly message: string;
     readonly requestId: string;
+    /** Extra facts the app shows, e.g. `attemptsLeft` or `retryAt` (S5-05). */
+    readonly [detail: string]: unknown;
   };
 }
 
@@ -18,6 +20,7 @@ export class ApiError extends Error {
     readonly statusCode: number,
     readonly code: string,
     message: string,
+    readonly details: Readonly<Record<string, unknown>> = {},
   ) {
     super(message);
     this.name = 'ApiError';
@@ -41,9 +44,10 @@ export function registerErrorHandlers(app: FastifyInstance): void {
     let code = 'internal-error';
     // Never send internal details to clients; they stay in the log.
     let message = 'Something went wrong.';
+    let details: Readonly<Record<string, unknown>> = {};
 
     if (error instanceof ApiError) {
-      ({ statusCode: status, code, message } = error);
+      ({ statusCode: status, code, message, details } = error);
     } else if (error.validation !== undefined) {
       status = 400;
       code = 'invalid-request';
@@ -64,7 +68,7 @@ export function registerErrorHandlers(app: FastifyInstance): void {
     } else {
       request.log.info({ code, status }, 'request rejected');
     }
-    const body: ErrorBody = { error: { code, message, requestId: request.id } };
+    const body: ErrorBody = { error: { ...details, code, message, requestId: request.id } };
     return reply.status(status).send(body);
   });
 }

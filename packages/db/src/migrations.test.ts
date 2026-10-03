@@ -65,6 +65,7 @@ describe('migration on an empty database', () => {
       `select table_name from information_schema.tables where table_schema = 'public' order by 1`,
     );
     expect(result.rows.map((r) => r.table_name)).toEqual([
+      'consent_codes',
       'events',
       'match_answers',
       'matches',
