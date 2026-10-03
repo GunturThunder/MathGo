@@ -1,3 +1,4 @@
+import type { ArenaId } from '@mathgo/game-core';
 import type { TextStyle, ViewStyle } from 'react-native';
 
 // Design tokens from the final design (docs/Math Battle UI.html, "Visual language" board, S1-07).
@@ -81,6 +82,62 @@ export const shapes = {
 } as const;
 
 export type ShapeName = keyof typeof shapes;
+
+/**
+ * Arena themes (S5-10, design: 22 Arena themes). Each arena keeps its Trophy Road emblem's
+ * colour family: Home's arena card (white text on `card`), the battle screen's `ground`, and the
+ * arena chip on the question panel (ink text on `chip`). You stay blue and the rival orange.
+ */
+export const arenaThemes = {
+  1: {
+    card: '#11804D',
+    sparkle: '#9BE3BE',
+    ground: '#E8F5EC',
+    chip: colors.mint,
+    emblem: { sun: '#FFAA2C', face: '#2CC07E', base: '#15935A', highlight: '#B4F0D2' },
+  },
+  2: {
+    card: '#B35C00',
+    sparkle: '#FFD39E',
+    ground: '#FBEFE3',
+    chip: colors.peach,
+    emblem: { far: '#FFC27F', near: '#FFAA2C', base: '#E08A00', plus: colors.white },
+  },
+  3: {
+    card: colors.blue,
+    sparkle: '#9CC4FF',
+    ground: colors.ground,
+    chip: colors.sky,
+    emblem: {
+      bottom: '#FFAA2C',
+      bottomBase: '#D98300',
+      middle: '#6C66F5',
+      middleBase: '#3F39C9',
+      top: colors.white,
+      topBase: '#0F3E9E',
+      topMark: colors.blue,
+      middleMark: colors.white,
+      bottomMark: colors.ink,
+    },
+  },
+  4: {
+    card: '#3F39C9',
+    sparkle: '#B7B4FF',
+    ground: '#ECEBFD',
+    chip: colors.lilac,
+    emblem: { face: '#8D88FF', base: '#1F1A8C', snow: colors.white, brackets: '#FFAA2C' },
+  },
+  5: {
+    card: colors.night,
+    sparkle: '#FFD23F',
+    ground: '#E7E7F0',
+    chip: '#FFD23F',
+    emblem: { face: '#FFAA2C', base: '#B86400', root: colors.night, star: '#FFD23F' },
+  },
+} as const satisfies Record<
+  ArenaId,
+  { card: string; sparkle: string; ground: string; chip: string; emblem: Record<string, string> }
+>;
 
 /** Font families as loaded by useAppFonts(). Each weight is its own family on Android. */
 export const fonts = {

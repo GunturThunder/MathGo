@@ -124,7 +124,7 @@ Goal: tapping Battle finds a random opponent near your trophy count, wins and lo
 | S5-07 | Matchmaking screen: searching animation, time waited, cancel; at 30 s offer practice vs bot | Mobile | 1.5 | S5-01 | Cancel returns to Home; bot offer appears at 30 s | Done |
 | S5-08 | Result screen: trophy change animation, arena unlock moment | Mobile | 1.5 | S5-03 | Crossing 300 trophies shows the Plus Plains unlock | Done |
 | S5-09 | Parent consent screens: phone input, code entry, resend timer, success unlocks online play | Mobile | 2 | S5-05 | Under-18 player goes from "Ask a parent" to a random battle | Not started |
-| S5-10 | Arena look: colour theme per arena on Home and Battle | Mobile | 1 | S5-06 | All 5 arenas have their theme | Not started |
+| S5-10 | Arena look: colour theme per arena on Home and Battle | Mobile | 1 | S5-06 | All 5 arenas have their theme | In progress · needs phone test |
 | S5-11 | OTP provider live: sender approved for WhatsApp and SMS in Indonesia | Product | 1 | S3-13 | Codes arrive on Telkomsel, Indosat and XL numbers | Not started |
 | S5-12 | Lawyer review of the age check, consent flow, privacy policy and terms | Product | 1 | S3-15 | Written sign-off or change list by Dec 11 | Not started |
 | S5-13 | Recruit about 50 closed-beta testers in Indonesia, including parents with kids | Product | 1.5 | – | Tester list with emails for TestFlight and Play internal testing | Not started |

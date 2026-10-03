@@ -2,9 +2,11 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+import type { ArenaId } from '@mathgo/game-core';
 import type { AnswerEntry, KeypadKey } from '../../battle/answer-entry';
-import { colors, radii, space, typography } from '../../theme';
+import { arenaThemes, colors, radii, space, typography } from '../../theme';
 import { AnswerField } from '../AnswerField';
+import { ArenaEmblem } from '../ArenaEmblem';
 import { FlameIcon } from '../icons';
 import { usePop, useShake } from './effects/pop';
 
@@ -20,6 +22,7 @@ export function QuestionPanel({
   question,
   comboLit,
   comboReady,
+  arena,
   arenaLabel,
   entry,
   showSign,
@@ -30,6 +33,8 @@ export function QuestionPanel({
   question: string;
   comboLit: number;
   comboReady: boolean;
+  /** Colours the arena chip (S5-10). */
+  arena: ArenaId;
   arenaLabel: string;
   entry: AnswerEntry;
   showSign: boolean;
@@ -63,9 +68,15 @@ export function QuestionPanel({
             <Text style={styles.readyText}>{t('battleScreen.comboReady')}</Text>
           </Animated.View>
         ) : (
-          <Text style={styles.arena} numberOfLines={1}>
-            {arenaLabel}
-          </Text>
+          <View
+            style={[styles.arena, { backgroundColor: arenaThemes[arena].chip }]}
+            testID="arena-chip"
+          >
+            <ArenaEmblem arena={arena} size={20} />
+            <Text style={styles.arenaText} numberOfLines={1}>
+              {arenaLabel}
+            </Text>
+          </View>
         )}
       </View>
       <Text
@@ -131,11 +142,22 @@ const styles = StyleSheet.create({
     color: colors.ink,
   },
   arena: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space.xs,
+    flexShrink: 1,
+    height: 26,
+    marginLeft: space.sm,
+    paddingLeft: space.xs,
+    paddingRight: space.md - 2,
+    borderRadius: 13,
+  },
+  arenaText: {
     ...typography.caption,
     fontSize: 12,
-    color: colors.nightMuted,
+    fontFamily: typography.label.fontFamily,
+    color: colors.ink,
     flexShrink: 1,
-    marginLeft: space.sm,
   },
   question: {
     ...typography.question,

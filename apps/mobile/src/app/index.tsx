@@ -6,13 +6,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api } from '../api';
 import { useMe } from '../api/queries';
 import { arenaProgress } from '../battle/arena-progress';
+import { ArenaEmblem } from '../components/ArenaEmblem';
 import { ChevronsIcon, HashIcon, PlusIcon, SwordIcon, TrophyIcon } from '../components/icons';
 import { ShapeFighter } from '../components/ShapeFighter';
 import { formatNumber } from '../lib/format';
 import { updateRequired } from '../net/update-required';
 import { onlineLocked } from '../profile/online';
 import { profile } from '../profile/store';
-import { colors, radii, space, typography } from '../theme';
+import { arenaThemes, colors, radii, space, typography } from '../theme';
 
 /** Home (S5-06, design: 03 Home): where you stand, Battle!, and battles with a friend. */
 export default function Home() {
@@ -26,6 +27,8 @@ export default function Home() {
   const player = me.data ?? api.session?.user ?? null;
   const progress = arenaProgress(player?.trophies ?? 0);
   const n = (value: number) => formatNumber(value, i18n.language);
+  // Each arena has its colour and emblem (S5-10).
+  const theme = arenaThemes[progress.arena];
   // Under 18 without consent, or an outdated app: online buttons explain instead (S3-09, S4-12).
   const locked = onlineLocked();
   const online = (href: Href): Href =>
@@ -70,11 +73,14 @@ export default function Home() {
         </View>
       </View>
 
-      <View style={styles.arenaCard} testID="home-arena">
+      <View style={[styles.arenaCard, { backgroundColor: theme.card }]} testID="home-arena">
         <View style={[styles.circle, styles.circleBig]} />
         <View style={[styles.circle, styles.circleSmall]} />
+        <View style={styles.emblem} importantForAccessibility="no-hide-descendants">
+          <ArenaEmblem arena={progress.arena} size={112} />
+        </View>
         <View style={styles.arenaBadge}>
-          <Text style={styles.arenaBadgeText}>
+          <Text style={[styles.arenaBadgeText, { color: theme.card }]}>
             {t('homeScreen.arenaBadge', { value: progress.arena })}
           </Text>
         </View>
@@ -222,9 +228,9 @@ const styles = StyleSheet.create({
     paddingVertical: space.lg + 2,
     paddingHorizontal: space.xl,
     borderRadius: radii.card - 2,
-    backgroundColor: colors.blue,
     overflow: 'hidden',
   },
+  emblem: { position: 'absolute', right: space.md, bottom: space.md + 2 },
   circle: { position: 'absolute', borderRadius: 999, backgroundColor: colors.glow },
   circleBig: { right: -46, top: -56, width: 190, height: 190 },
   circleSmall: { right: 64, bottom: -84, width: 150, height: 150 },
@@ -236,7 +242,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: colors.white,
   },
-  arenaBadgeText: { ...typography.label, color: colors.blue },
+  arenaBadgeText: { ...typography.label },
   arenaName: { ...typography.headline, fontSize: 28, lineHeight: 30, color: colors.white },
   track: {
     width: '75%',

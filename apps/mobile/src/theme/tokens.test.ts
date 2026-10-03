@@ -1,4 +1,5 @@
-import { colors } from './tokens';
+import { ARENAS } from '@mathgo/game-core';
+import { arenaThemes, colors } from './tokens';
 
 /** WCAG contrast ratio between two #RRGGBB colours. */
 function contrast(a: string, b: string): number {
@@ -30,4 +31,24 @@ describe('theme tokens (S1-07)', () => {
   it('white on orange is not: the design uses ink text on orange only', () => {
     expect(contrast(colors.white, colors.orange)).toBeLessThan(4.5);
   });
+});
+
+describe('arena themes (S5-10)', () => {
+  it('Done when: all 5 arenas have their theme', () => {
+    expect(ARENAS.map((a) => a.id).every((id) => id in arenaThemes)).toBe(true);
+    // Five different looks: no two arenas share a card or a ground.
+    const themes = Object.values(arenaThemes);
+    expect(new Set(themes.map((th) => th.card)).size).toBe(5);
+    expect(new Set(themes.map((th) => th.ground)).size).toBe(5);
+  });
+
+  it.each(ARENAS.map((a) => [a.name, arenaThemes[a.id]] as const))(
+    '%s: white on the card, ink on the chip and on the ground are readable',
+    (_, theme) => {
+      expect(contrast(colors.white, theme.card)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(colors.ink, theme.chip)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(colors.ink, theme.ground)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(colors.ink2, theme.ground)).toBeGreaterThanOrEqual(4.5);
+    },
+  );
 });
