@@ -11,7 +11,7 @@ import {
 } from '../../battle/answer-entry';
 import type { BattleView } from '../../battle/battle-view';
 import type { QueuedEffect } from '../../battle/effects';
-import { colors, radii, space, typography, type ShapeName } from '../../theme';
+import { arenaThemes, colors, radii, space, typography, type ShapeName } from '../../theme';
 import { FlagIcon, LockIcon } from '../icons';
 import { Keypad } from '../Keypad';
 import { BattleTimer } from './BattleTimer';
@@ -87,6 +87,8 @@ export function BattleScreen({
       style={[
         styles.screen,
         {
+          // The arena's ground (S5-10).
+          backgroundColor: arenaThemes[view.arena].ground,
           gap,
           paddingTop: insets.top + (compact ? space.sm : space.lg),
           paddingBottom: insets.bottom + (compact ? space.md : space.xxl),
@@ -125,6 +127,7 @@ export function BattleScreen({
         question={question}
         comboLit={view.comboLit}
         comboReady={view.comboReady}
+        arena={view.arena}
         arenaLabel={
           modeLabel ?? t('battleScreen.arena', { number: view.arena, name: view.arenaName })
         }

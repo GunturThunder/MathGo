@@ -5,6 +5,7 @@ import { EMPTY_ENTRY } from '../../battle/answer-entry';
 import { battleView, type BattleView } from '../../battle/battle-view';
 import type { QueuedEffect } from '../../battle/effects';
 import '../../i18n';
+import { arenaThemes } from '../../theme';
 import { BattleScreen } from './BattleScreen';
 import { questionFontSize } from './QuestionPanel';
 
@@ -167,5 +168,18 @@ describe('battle effects (S2-09)', () => {
       </SafeAreaProvider>,
     );
     expect(screen.queryByTestId('hit-burst')).toBeNull();
+  });
+});
+
+describe('arena look (S5-10)', () => {
+  it.each([1, 2, 3, 4, 5] as const)('arena %i: its ground and its chip', (arena) => {
+    show({ arena, arenaName: 'X' });
+    expect(screen.getByTestId('battle-screen')).toHaveStyle({
+      backgroundColor: arenaThemes[arena].ground,
+    });
+    expect(screen.getByTestId('arena-chip')).toHaveStyle({
+      backgroundColor: arenaThemes[arena].chip,
+    });
+    expect(screen.getByTestId('arena-chip')).toHaveTextContent(`Arena ${arena} · X`);
   });
 });

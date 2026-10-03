@@ -4,6 +4,7 @@ import { act, fireEvent, renderRouter, screen, waitFor } from 'expo-router/testi
 import { api } from './api';
 import { queryClient } from './api/queries';
 import { profile } from './profile/store';
+import { arenaThemes } from './theme';
 
 const APP_DIR = './src/app';
 const thisYear = new Date().getUTCFullYear();
@@ -53,6 +54,25 @@ describe('Home (S5-06)', () => {
     expect(screen.getByTestId('home-trophies')).toHaveTextContent('500');
     expect(screen.getByTestId('home-arena-line')).toHaveTextContent(/Plus Plains/);
   });
+
+  it.each([
+    [150, 1],
+    [500, 2],
+    [842, 3],
+    [1_500, 4],
+    [2_050, 5],
+  ] as const)(
+    'S5-10: %i trophies paint the arena card in arena %i’s colour',
+    async (trophies, arena) => {
+      jest.spyOn(api, 'me').mockResolvedValue(me(trophies));
+      renderRouter(APP_DIR);
+      await waitFor(() =>
+        expect(screen.getByTestId('home-arena')).toHaveStyle({
+          backgroundColor: arenaThemes[arena].card,
+        }),
+      );
+    },
+  );
 
   it('the profile shape opens Settings; practice is one tap away', async () => {
     jest.spyOn(api, 'me').mockResolvedValue(me(0));
