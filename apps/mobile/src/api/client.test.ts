@@ -1,5 +1,11 @@
 import { createMMKV } from 'react-native-mmkv';
-import { ApiClient, ApiError, SessionEndedError } from './client';
+import {
+  ApiClient,
+  ApiError,
+  REQUEST_TIMEOUT_MS,
+  RequestTimeoutError,
+  SessionEndedError,
+} from './client';
 import { createTokenStore } from './token-store';
 import type { Profile, Session } from './types';
 
@@ -138,6 +144,36 @@ describe('ApiClient (S3-10)', () => {
     const error = await app.setNickname('KingSlayer99').catch((e: unknown) => e);
     expect(error).toBeInstanceOf(ApiError);
     expect((error as ApiError).code).toBe('not-found'); // the fake api has no such route
+  });
+
+  it('gives up after 10 seconds when the server never answers (e.g. wrong Wi-Fi)', async () => {
+    jest.useFakeTimers();
+    let signal: AbortSignal | undefined;
+    // A fetch that hangs until it is aborted, as an unreachable server does.
+    const hanging = ((_url: string, init?: RequestInit) =>
+      new Promise((_resolve, reject) => {
+        signal = init?.signal ?? undefined;
+        signal?.addEventListener('abort', () => reject(new Error('aborted')));
+      })) as typeof fetch;
+    const app = new ApiClient({
+      baseUrl: 'http://api.test',
+      store: createTokenStore(createMMKV({ id: 'test-timeout' })),
+      fetch: hanging,
+    });
+    const result = app.nicknames('id').catch((e: unknown) => e);
+    jest.advanceTimersByTime(REQUEST_TIMEOUT_MS - 1);
+    expect(signal?.aborted).toBe(false);
+    jest.advanceTimersByTime(1);
+    expect(await result).toBeInstanceOf(RequestTimeoutError);
+    jest.useRealTimers();
+  });
+
+  it('a quick answer clears its timer', async () => {
+    jest.useFakeTimers();
+    const { client } = setup();
+    await client().signUpGuest(2000);
+    expect(jest.getTimerCount()).toBe(0);
+    jest.useRealTimers();
   });
 
   it('without a session, authed calls end the session instead of calling the api', async () => {

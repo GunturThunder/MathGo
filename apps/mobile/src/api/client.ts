@@ -34,6 +34,20 @@ export interface ApiClientOptions {
 const EXPIRY_MARGIN_MS = 30_000;
 
 /**
+ * A request gives up after this long. Without it a phone that can't reach the server (wrong Wi-Fi,
+ * no local network permission on iOS) waited a minute or more on screens like "Memuat nama".
+ */
+export const REQUEST_TIMEOUT_MS = 10_000;
+
+/** The server didn't answer in time: shown like any network failure ("try again"). */
+export class RequestTimeoutError extends Error {
+  constructor(readonly path: string) {
+    super(`No answer from ${path} in ${REQUEST_TIMEOUT_MS / 1000} s.`);
+    this.name = 'RequestTimeoutError';
+  }
+}
+
+/**
  * Talks to apps/api. Adds the access token to every call and refreshes it without the player
  * noticing: before it expires, and once more on a 401. Concurrent calls share one refresh, so a
  * one-time refresh token is never spent twice.
@@ -150,12 +164,25 @@ export class ApiClient {
     const headers: Record<string, string> = {};
     if (body !== undefined) headers['content-type'] = 'application/json';
     if (token !== undefined) headers['authorization'] = `Bearer ${token}`;
-    const res = await this.fetch(`${this.options.baseUrl}${path}`, {
-      method,
-      headers,
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    });
-    const json: unknown = await res.json();
+    // AbortController with a timer: AbortSignal.timeout isn't in every Hermes version.
+    const abort = new AbortController();
+    const timer = setTimeout(() => abort.abort(), REQUEST_TIMEOUT_MS);
+    let res: Response;
+    let json: unknown;
+    try {
+      res = await this.fetch(`${this.options.baseUrl}${path}`, {
+        method,
+        headers,
+        signal: abort.signal,
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+      });
+      json = await res.json();
+    } catch (error) {
+      if (abort.signal.aborted) throw new RequestTimeoutError(path);
+      throw error;
+    } finally {
+      clearTimeout(timer);
+    }
     if (!res.ok) {
       const { error } = json as ApiErrorBody;
       throw new ApiError(res.status, error.code, error.message, {
