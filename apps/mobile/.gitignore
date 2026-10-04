@@ -4,3 +4,5 @@
 
 expo-env.d.ts
 # @end expo-cli
+# scripts/fix-baloo-ios-metrics.py
+.venv-fonts/
