@@ -7,6 +7,7 @@ import { BattleDevCard } from '../components/BattleDevCard';
 import { Button } from '../components/Button';
 import { DeterminismCard } from '../components/DeterminismCard';
 import { LanguagePicker } from '../components/LanguagePicker';
+import { MotionSetting } from '../components/MotionSetting';
 import { NavButton } from '../components/NavButton';
 import { OnlineDevCard } from '../components/OnlineDevCard';
 import { devPretendOldVersion, setDevPretendOldVersion } from '../net/update-required';
@@ -24,6 +25,7 @@ export default function Settings() {
       testID="settings-screen"
     >
       <LanguagePicker />
+      <MotionSetting />
       <Text style={styles.heading}>{t('settings.diagnostics')}</Text>
       <DeterminismCard />
       {__DEV__ ? <OnlineDevCard /> : null}
