@@ -6,6 +6,7 @@ A 1v1 mobile math battle game: each correct answer attacks the opponent. TypeScr
 
 - `docs/MathGo — PRD.md`: what we build and why (rules, arenas, question generator, requirements FR-xx).
 - `docs/Technical architecture.md`: stack, service boundaries, battle flow.
+- `docs/Game feel.md`: game animation research, motion rules and the animation pass (GF-xx).
 - `docs/Sprint plan.md`: tasks by ID (`S1-01` …), with owner, dependencies and a "Done when" check.
 
 The docs are exported from the online "MathGo — PRD" doc (https://claude.ai/artifact/WPu88KL124128V27Tp8eef), which is the source of truth. Don't edit them here, except the Status column of `docs/Sprint plan.md` (see below). If a task conflicts with the docs, stop and ask.

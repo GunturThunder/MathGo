@@ -131,6 +131,22 @@ Goal: tapping Battle finds a random opponent near your trophy count, wins and lo
 
 Load: Backend 8 days, Mobile 7.5 days, Product 3.5 days.
 
+## Game feel pass · added Oct 4
+
+Goal: every right answer is an attack the player sees land, so MathBattle feels like a fighting game, not a quiz. The research, the motion rules and the numbers behind these tasks are in the Game feel tab.
+
+| ID | Task | Owner | Days | Needs | Done when | Status |
+| --- | --- | --- | --- | --- | --- | --- |
+| GF-01 | Motion foundation: motion tokens in the theme; Reduce Motion from the phone's setting plus a switch in Settings; existing effects follow it | Mobile | 1.5 | S2-09 | With Reduce Motion on, a battle plays with no shake, attack flight or idle loops | Not started |
+| GF-02 | Press feel: one pressable that squashes and springs back, used by every button, key and Home card | Mobile | 1 | GF-01 | Every button and key squashes and springs back; answers still register on press-in | Not started |
+| GF-03 | Attack and impact: your shape flies to the rival on an arc; hit-stop, shake sized to the hit, burst; the rival's attacks fly to you | Mobile | 2.5 | GF-01 | Every right answer in a practice battle visibly travels and lands; a KO freezes for 300 ms | Not started |
+| GF-04 | HP and tension: damage ghost on the HP bar, low-HP heartbeat under 25 HP, timer pulse in the last 10 s, question entrance | Mobile | 1.5 | GF-01 | Each hit leaves a draining ghost chunk; the bar pulses under 25 HP; the timer pulses each of the last 10 s | Not started |
+| GF-05 | KO and results: slow-motion KO, motion for a loss, result screen arriving in order | Mobile | 1.5 | GF-03 | A KO plays in slow motion before the end card; result items arrive in order within 1 s | Not started |
+| GF-06 | Versus and screens: versus intro (design board 05) after a match is found, screen transitions, Home entrance and idle motion | Mobile | 2 | GF-01, S5-07 | A random match shows the versus intro on both phones; Home cards arrive in order | Not started |
+| GF-07 | Feel pass on phones: tune with 3 or more testers, measure frame rate, record the final values in the Game feel tab | Mobile | 1 | GF-02–GF-06 | 55 fps or better on the Galaxy A07 during a KO; tuned values recorded | Not started |
+
+Load: Mobile 11 days. It runs now, while Sprint 6 waits on accounts and the server, so it moves no gate.
+
 ## Sprint 6 · Dec 14–24 · Sign-in, analytics, production and closed beta
 
 Goal: every P0 requirement is live on the production VPS, and closed-beta testers are playing by Dec 24. This sprint has only 9 working days, and Backend is at full load. If something slips, S6-04 moves first.
