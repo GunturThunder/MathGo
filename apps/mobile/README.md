@@ -81,10 +81,43 @@ npx eas-cli@latest build --profile development --platform android
 Open the link or QR code on the phone to install the APK, then run
 `pnpm --filter @mathgo/mobile start` and open the app.
 
-## iOS
+## iOS (S1-04)
 
-Not set up yet: it needs an Apple Developer account. Then `npx eas-cli@latest device:create` and
-`npx eas-cli@latest build --profile development --platform ios`.
+Needs a Mac with Xcode and CocoaPods. `ios/` is generated (`npx expo prebuild --platform ios`)
+and not committed, like `android/`.
+
+**Simulator.** From the repo root:
+
+```sh
+pnpm --filter @mathgo/mobile ios
+```
+
+It builds, installs, starts Metro and opens the app. The simulator shares the Mac's `localhost`,
+so the Docker api and game-server work as they are.
+
+**iPhone (cable, same Wi-Fi as the Mac).**
+
+1. Once: open `ios/MathBattle.xcworkspace` in Xcode, target MathBattle → Signing & Capabilities →
+   pick your team (a free Apple ID works; the app then runs for 7 days). On the iPhone: Settings →
+   Privacy & Security → Developer Mode on.
+2. Docker listens on `127.0.0.1` only. Let the iPhone reach the api and game-server:
+   ```sh
+   node scripts/lan-forward.mjs "$(ipconfig getifaddr en0)"
+   ```
+3. Start Metro with the Mac's address, then build to the phone:
+   ```sh
+   IP=$(ipconfig getifaddr en0)
+   EXPO_PUBLIC_API_URL=http://$IP:3000 EXPO_PUBLIC_GAME_SERVER_URL=ws://$IP:2567 \
+     npx expo start --dev-client
+   npx expo run:ios --device --no-bundler
+   ```
+4. First launch: trust the developer (Settings → General → VPN & Device Management) and tap
+   **Allow** when iOS asks to find devices on the local network. Stuck on "Memuat nama"? The
+   phone can't reach the Mac: check the Wi-Fi and Settings → Privacy & Security → Local Network.
+
+**Fonts.** iOS uses copies of Baloo 2 with line metrics for Latin text
+(`assets/fonts/baloo-ios/`, made by `scripts/fix-baloo-ios-metrics.py`). With the original files,
+iOS cut the tops off tight display text.
 
 ## Measuring performance (S2-12)
 
