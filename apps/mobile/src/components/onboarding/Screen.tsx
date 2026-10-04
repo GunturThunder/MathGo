@@ -5,8 +5,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radii, space, typography } from '../../theme';
 import { BackIcon } from '../icons';
 
-/** First-launch screens (design: boards 02, 13, 14): back, title, subtitle, body, one action. */
+/**
+ * First-launch and parent screens (design: boards 02, 13–18): back, an optional badge, title,
+ * subtitle, body, and the actions pinned below.
+ */
 export function OnboardingScreen({
+  badge,
   title,
   subtitle,
   onBack,
@@ -21,6 +25,8 @@ export function OnboardingScreen({
   footer: ReactNode;
   children?: ReactNode;
   testID?: string;
+  /** A small pill above the title, e.g. "FOR PARENTS" (boards 16, 17). */
+  badge?: string;
 }) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
@@ -44,6 +50,11 @@ export function OnboardingScreen({
           ) : null}
         </View>
         <View style={styles.heading}>
+          {badge === undefined ? null : (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{badge}</Text>
+            </View>
+          )}
           <Text style={styles.title} accessibilityRole="header">
             {title}
           </Text>
@@ -70,6 +81,16 @@ const styles = StyleSheet.create({
     boxShadow: `0 8px 20px ${colors.shadow}`,
   },
   heading: { gap: space.xs + 2, marginTop: space.xs },
+  badge: {
+    alignSelf: 'flex-start',
+    height: 26,
+    justifyContent: 'center',
+    paddingHorizontal: space.md - 2,
+    marginBottom: space.xxs,
+    borderRadius: 13,
+    backgroundColor: colors.violet,
+  },
+  badgeText: { ...typography.label, color: colors.white },
   title: { ...typography.headline, color: colors.ink },
   subtitle: { ...typography.body, color: colors.ink2 },
   footer: { gap: space.md, paddingHorizontal: space.xl, paddingTop: space.sm },

@@ -34,6 +34,9 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding/language" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding/birth-year" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding/name" options={{ headerShown: false }} />
+        <Stack.Screen name="parent/email" options={{ headerShown: false }} />
+        <Stack.Screen name="parent/code" options={{ headerShown: false }} />
+        <Stack.Screen name="parent/done" options={{ headerShown: false, gestureEnabled: false }} />
       </Stack>
     </QueryClientProvider>
   );

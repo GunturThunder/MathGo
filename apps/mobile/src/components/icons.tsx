@@ -1,4 +1,4 @@
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect } from 'react-native-svg';
 
 // Line icons from the design's Visual language board (24 × 24, round caps).
 
@@ -396,6 +396,43 @@ export function ChevronsIcon({
       <Path d="M5 6l6 6-6 6" opacity={0.3} />
       <Path d="M18 6l6 6-6 6" opacity={0.6} />
       <Path d="M31 6l6 6-6 6" />
+    </Svg>
+  );
+}
+
+/** An envelope: the parent's email field (S5-09). */
+export function MailIcon({ color, size = 22 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Rect x={3} y={5} width={18} height={14} rx={3} />
+      <Path d="M4 7l8 6 8-6" />
+    </Svg>
+  );
+}
+
+/** A tick: a checked box, online play unlocked (S5-09). */
+export function CheckIcon({ color, size = 18 }: { color: string; size?: number }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={3}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M5 12.5l4.5 4.5L19 7.5" />
     </Svg>
   );
 }
