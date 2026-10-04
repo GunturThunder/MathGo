@@ -12,7 +12,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { BattleResult } from '@mathgo/game-core';
 import type { Outcome } from '../../../battle/effects';
-import { colors, radii, shapes, sizes, space, typography } from '../../../theme';
+import { useReduceMotion } from '../../../motion/reduce-motion';
+import { colors, motion, radii, shapes, sizes, space, typography } from '../../../theme';
 import { usePop } from './pop';
 
 const BURST =
@@ -57,13 +58,16 @@ export function BattleEnd({
 }) {
   const { t } = useTranslation();
   const { width, height } = useWindowDimensions();
+  const reduced = useReduceMotion();
   const fade = useSharedValue(0);
   const fall = useSharedValue(0);
   const cardStyle = usePop(1, 400);
   useEffect(() => {
-    fade.value = withTiming(1, { duration: 250 });
+    fade.value = withTiming(1, {
+      duration: reduced ? motion.duration.reducedFade : motion.duration.medium,
+    });
     fall.value = withTiming(1, { duration: FALL_MS, easing: Easing.in(Easing.quad) });
-  }, [fade, fall]);
+  }, [fade, fall, reduced]);
   const scrimStyle = useAnimatedStyle(() => ({ opacity: fade.value }));
 
   const key =
@@ -79,7 +83,10 @@ export function BattleEnd({
   return (
     <View style={StyleSheet.absoluteFill} testID="battle-end" accessibilityViewIsModal>
       <Animated.View style={[StyleSheet.absoluteFill, styles.scrim, scrimStyle]} />
-      {outcome === 'win' ? <Confetti width={width} height={height} fall={fall} /> : null}
+      {/* Under Reduce Motion the win shows without raining shapes (GF-01). */}
+      {outcome === 'win' && !reduced ? (
+        <Confetti width={width} height={height} fall={fall} />
+      ) : null}
       <View style={styles.center} pointerEvents="box-none">
         <Animated.View style={[styles.card, cardStyle]}>
           <View style={styles.badge}>

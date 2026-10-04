@@ -203,6 +203,10 @@ export const id = {
   settings: {
     title: 'Pengaturan',
     language: 'Bahasa',
+    motion: 'Gerakan',
+    reduceMotion: 'Kurangi gerakan',
+    reduceMotionNote: 'Tanpa guncangan dan animasi terbang. Angka dan warna tetap muncul.',
+    reduceMotionSystem: 'Menyala karena Kurangi Gerakan di HP ini aktif.',
     resetOnboarding: 'Ulangi peluncuran pertama (dev)',
     diagnostics: 'Diagnostik',
   },

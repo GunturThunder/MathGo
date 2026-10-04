@@ -10,6 +10,7 @@ import Animated, {
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
+import { useReduceMotion } from '../../../motion/reduce-motion';
 import { colors, typography } from '../../../theme';
 
 /** The jagged burst from the design (viewBox 90 × 92). */
@@ -22,9 +23,11 @@ export const HIT_BURST_MS = 700;
 
 /**
  * Damage on a fighter (S2-09): a burst that pops in with the damage number, sparks flying out,
- * then fades. Skia draws it; Reanimated drives it on the UI thread.
+ * then fades. Skia draws it; Reanimated drives it on the UI thread. Under Reduce Motion (GF-01)
+ * the burst and the number fade in and out in place, without sparks.
  */
 export function HitBurst({ damage, taken }: { damage: number; taken: boolean }) {
+  const reduced = useReduceMotion();
   const t = useSharedValue(0);
   useEffect(() => {
     t.value = withTiming(1, { duration: HIT_BURST_MS, easing: Easing.out(Easing.cubic) });
@@ -32,7 +35,7 @@ export function HitBurst({ damage, taken }: { damage: number; taken: boolean }) 
 
   // Pop: 0–0.5 of the run, then hold; fade out over the last 30 %.
   const burstTransform = useDerivedValue(() => {
-    const p = Math.min(1, t.value / 0.5);
+    const p = reduced ? 1 : Math.min(1, t.value / 0.5);
     const scale = interpolate(p, [0, 0.6, 1], [0.4, 1.12, 1]);
     const angle = (interpolate(p, [0, 0.6, 1], [-18, 4, 0]) * Math.PI) / 180;
     return [
@@ -46,7 +49,7 @@ export function HitBurst({ damage, taken }: { damage: number; taken: boolean }) 
   });
   const opacity = useDerivedValue(() => interpolate(t.value, [0, 0.1, 0.7, 1], [0, 1, 1, 0]));
   const labelStyle = useAnimatedStyle(() => {
-    const p = Math.min(1, t.value / 0.5);
+    const p = reduced ? 1 : Math.min(1, t.value / 0.5);
     return {
       opacity: opacity.value,
       transform: [{ scale: interpolate(p, [0, 0.6, 1], [0.4, 1.12, 1]) }],
@@ -57,9 +60,11 @@ export function HitBurst({ damage, taken }: { damage: number; taken: boolean }) 
     <Animated.View style={styles.box} pointerEvents="none" testID="hit-burst">
       <Canvas style={styles.canvas}>
         <Group opacity={opacity}>
-          {Array.from({ length: SPARKS }, (_, i) => (
-            <Spark key={i} index={i} t={t} color={taken ? colors.hitTaken : colors.hit} />
-          ))}
+          {reduced
+            ? null
+            : Array.from({ length: SPARKS }, (_, i) => (
+                <Spark key={i} index={i} t={t} color={taken ? colors.hitTaken : colors.hit} />
+              ))}
           <Group transform={burstTransform}>
             <Path path={BURST} color={taken ? colors.hitTaken : colors.hit} />
             <Path

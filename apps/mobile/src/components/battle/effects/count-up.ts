@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
 import { clockNow } from '../../../lib/clock';
+import { useReduceMotion } from '../../../motion/reduce-motion';
 
 const FRAME_MS = 32;
 
-/** A number that counts from `from` to `to` over `durationMs`, eased out (S5-08's trophies). */
+/**
+ * A number that counts from `from` to `to` over `durationMs`, eased out (S5-08's trophies). Under
+ * Reduce Motion (GF-01) it shows `to` at once.
+ */
 export function useCountUp(from: number, to: number, durationMs = 900): number {
-  const [value, setValue] = useState(from);
+  const reduced = useReduceMotion();
+  const [value, setValue] = useState(reduced ? to : from);
   useEffect(() => {
-    if (from === to) {
+    if (from === to || reduced) {
       setValue(to);
       return;
     }
@@ -20,6 +25,6 @@ export function useCountUp(from: number, to: number, durationMs = 900): number {
       if (t >= 1) clearInterval(timer);
     }, FRAME_MS);
     return () => clearInterval(timer);
-  }, [from, to, durationMs]);
+  }, [from, to, durationMs, reduced]);
   return value;
 }

@@ -13,6 +13,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { formatClock } from '../../battle/battle-view';
 import { formatNumber } from '../../lib/format';
+import { useReduceMotion } from '../../motion/reduce-motion';
 import { colors, radii, shapes, space, typography } from '../../theme';
 import { Button } from '../Button';
 import { CloseIcon, TrophyIcon } from '../icons';
@@ -109,12 +110,20 @@ export function Matchmaking({
   );
 }
 
-/** Your shape with rings pulsing out of it: still looking. Runs on the UI thread. */
+/**
+ * Your shape with rings pulsing out of it: still looking. Runs on the UI thread. An idle loop, so
+ * Reduce Motion leaves it out (GF-01); the time waited still counts up.
+ */
 function Radar() {
+  const reduced = useReduceMotion();
   return (
     <View style={styles.radar} importantForAccessibility="no-hide-descendants">
-      <Ring delay={0} />
-      <Ring delay={PULSE_MS / 2} />
+      {reduced ? null : (
+        <View style={StyleSheet.absoluteFill} testID="matchmaking-pulse">
+          <Ring delay={0} />
+          <Ring delay={PULSE_MS / 2} />
+        </View>
+      )}
       <View style={styles.me}>
         <ShapeFighter shape="triangle" size={56} />
       </View>

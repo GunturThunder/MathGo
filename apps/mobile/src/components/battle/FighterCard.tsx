@@ -8,7 +8,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import type { FighterView } from '../../battle/battle-view';
-import { colors, radii, shapes, space, typography, type ShapeName } from '../../theme';
+import { useReduceMotion } from '../../motion/reduce-motion';
+import { colors, motion, radii, shapes, space, typography, type ShapeName } from '../../theme';
 import { TrophyIcon } from '../icons';
 import { ShapeFighter } from '../ShapeFighter';
 import { HitBurst } from './effects/HitBurst';
@@ -45,14 +46,15 @@ export const FighterCard = memo(function FighterCard({
   const { t } = useTranslation();
   const tile = compact ? 44 : 50;
 
-  // HP drains smoothly instead of jumping.
+  // HP drains smoothly instead of jumping (quickly under Reduce Motion, GF-01).
+  const reduced = useReduceMotion();
   const share = useSharedValue(fighter.hpShare);
   useEffect(() => {
     share.value = withTiming(fighter.hpShare, {
-      duration: HP_DRAIN_MS,
+      duration: reduced ? motion.duration.reducedFade : HP_DRAIN_MS,
       easing: Easing.out(Easing.quad),
     });
-  }, [fighter.hpShare, share]);
+  }, [fighter.hpShare, share, reduced]);
   const barStyle = useAnimatedStyle(() => ({ width: `${share.value * 100}%` }));
   const flinch = useFlinch(hit?.id ?? 0, side);
   const fastPop = usePop(hit?.fast ? hit.id : 0);

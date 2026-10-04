@@ -9,6 +9,8 @@ export interface Profile {
   readonly birthYear: number | null;
   /** The first launch flow is finished: open on Home from now on. */
   readonly onboarded: boolean;
+  /** The in-app Reduce Motion switch (GF-01); the phone's own setting counts too. */
+  readonly reduceMotion: boolean;
 }
 
 export interface ProfileStore {
@@ -16,6 +18,7 @@ export interface ProfileStore {
   setLanguage(language: Language): void;
   setBirthYear(year: number): void;
   completeOnboarding(): void;
+  setReduceMotion(on: boolean): void;
   /** Dev builds: run the first launch flow again. */
   reset(): void;
 }
@@ -33,11 +36,13 @@ export function createProfileStore(
         language: isLanguage(language) ? language : null,
         birthYear: storage.getNumber('birthYear') ?? null,
         onboarded: storage.getBoolean('onboarded') ?? false,
+        reduceMotion: storage.getBoolean('reduceMotion') ?? false,
       };
     },
     setLanguage: (language) => storage.set('language', language),
     setBirthYear: (year) => storage.set('birthYear', year),
     completeOnboarding: () => storage.set('onboarded', true),
+    setReduceMotion: (on) => storage.set('reduceMotion', on),
     reset: () => {
       storage.remove('birthYear');
       storage.remove('onboarded');

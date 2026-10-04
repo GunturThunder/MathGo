@@ -201,6 +201,10 @@ export const en: Translation = {
   settings: {
     title: 'Settings',
     language: 'Language',
+    motion: 'Motion',
+    reduceMotion: 'Reduce motion',
+    reduceMotionNote: 'No shaking or flying animations. Numbers and colours still show.',
+    reduceMotionSystem: 'On because Reduce Motion is on for this phone.',
     resetOnboarding: 'Run first launch again (dev)',
     diagnostics: 'Diagnostics',
   },

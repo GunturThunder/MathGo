@@ -137,7 +137,7 @@ Goal: every right answer is an attack the player sees land, so MathBattle feels 
 
 | ID | Task | Owner | Days | Needs | Done when | Status |
 | --- | --- | --- | --- | --- | --- | --- |
-| GF-01 | Motion foundation: motion tokens in the theme; Reduce Motion from the phone's setting plus a switch in Settings; existing effects follow it | Mobile | 1.5 | S2-09 | With Reduce Motion on, a battle plays with no shake, attack flight or idle loops | Not started |
+| GF-01 | Motion foundation: motion tokens in the theme; Reduce Motion from the phone's setting plus a switch in Settings; existing effects follow it | Mobile | 1.5 | S2-09 | With Reduce Motion on, a battle plays with no shake, attack flight or idle loops | In progress · needs phone test |
 | GF-02 | Press feel: one pressable that squashes and springs back, used by every button, key and Home card | Mobile | 1 | GF-01 | Every button and key squashes and springs back; answers still register on press-in | Not started |
 | GF-03 | Attack and impact: your shape flies to the rival on an arc; hit-stop, shake sized to the hit, burst; the rival's attacks fly to you | Mobile | 2.5 | GF-01 | Every right answer in a practice battle visibly travels and lands; a KO freezes for 300 ms | Not started |
 | GF-04 | HP and tension: damage ghost on the HP bar, low-HP heartbeat under 25 HP, timer pulse in the last 10 s, question entrance | Mobile | 1.5 | GF-01 | Each hit leaves a draining ghost chunk; the bar pulses under 25 HP; the timer pulses each of the last 10 s | Not started |
